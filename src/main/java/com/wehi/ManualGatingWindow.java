@@ -98,22 +98,22 @@ public class ManualGatingWindow implements Runnable, ChangeListener<ImageData<Bu
         mainBox.getChildren().addAll(loadOptionsBox, sep);
 
 
-        HBox contentBox = createHBox();
+        SplitPane contentBox = new SplitPane();
 
         /* Initialise Phenotype Hierarchy */
         Label phenotypeHierarchyLabel = createLabel("Phenotype Hierarchy");
         phenotypeHierarchy = new TreeView<>();
         phenotypeHierarchy.prefHeightProperty().bind(stage.heightProperty());
-        contentBox.getChildren().add(createColumn(3, 1,phenotypeHierarchyLabel, phenotypeHierarchy));
+        contentBox.getItems().add(createColumn(3, 1,phenotypeHierarchyLabel, phenotypeHierarchy));
 
         TreeItem<String> root = new TreeItem<>("Cell");
         phenotypeHierarchyNodeMap.put("Cell", root);
 
-
-        /* ******** Vertical Separator ********** */
-        Separator vertSeparator = new Separator();
-        vertSeparator.setOrientation(Orientation.VERTICAL);
-        contentBox.getChildren().add(vertSeparator);
+//
+//        /* ******** Vertical Separator ********** */
+//        Separator vertSeparator = new Separator();
+//        vertSeparator.setOrientation(Orientation.VERTICAL);
+//        contentBox.getItems().add(vertSeparator);
 
 
         /* ***** Options column **************/
@@ -137,14 +137,18 @@ public class ManualGatingWindow implements Runnable, ChangeListener<ImageData<Bu
 
 
         /* Create column on the right */
-        contentBox.getChildren().add(createColumn(3, 2,
-                dimensionsHBox,
-                axisOptionsTableCreator.getTable(),
-                markerSignalCombinationTableEntryTableCreator.getTable(),
+        SplitPane optionsSplitPane = new SplitPane();
+        optionsSplitPane.setOrientation(Orientation.VERTICAL);
+        optionsSplitPane.getItems().addAll(
+                createColumn(3, 2,
+                    dimensionsHBox,
+                    axisOptionsTableCreator.getTable(),
+                    markerSignalCombinationTableEntryTableCreator.getTable()
+                ),
                 cytometryChart.getPane()
-        ));
+        );
 
-
+        contentBox.getItems().add(optionsSplitPane);
 
 
         /* Adding the main body to the scene */

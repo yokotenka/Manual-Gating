@@ -141,33 +141,12 @@ public class CytometryChart {
         horizontalSlider.prefWidthProperty().bind(Bindings.add(15, xAxis.widthProperty()));
         horizontalSlider.setShowTickLabels(false);
         horizontalSlider.setShowTickMarks(false);
-        horizontalSliderValueTextField = new TextField("2.71");
+        horizontalSliderValueTextField = new TextField("0");
 
-//        horizontalSliderValueTextField.textProperty().addListener(
-//                ((observableValue, oldValue, newValue) ->
-//                        horizontalSlider.setValue(Double.parseDouble(horizontalSliderValueTextField.getText()))
-//                        )
-//        );
-//
-//        horizontalSlider.valueProperty().addListener(
-//                (observableValue, oldValue, newValue) ->
-//                        horizontalSliderValueTextField.setText(String.valueOf(newValue.doubleValue()))
-//        );
-//
-//        horizontalSliderValueTextField.textProperty().addListener((observable, oldValue, newValue) -> {
-//            if (!newValue.matches("\\d*([\\.]\\d*)?")) {
-//                horizontalSliderValueTextField.setText(oldValue);
-//            }
-//        });
-//
-//        horizontalSliderValueTextField.setOnAction(e -> {
-//            if (horizontalSliderValueTextField.getText().length() > 0 && horizontalSliderValueTextField.getText().charAt(0)=='.') {
-//                horizontalSliderValueTextField.setText(horizontalSliderValueTextField.getText(1, horizontalSliderValueTextField.getText().length()));
-//            }
-//            if (horizontalSliderValueTextField.getText().length() > 0 && horizontalSliderValueTextField.getText().charAt(horizontalSliderValueTextField.getText().length()-1)=='.'){
-//                horizontalSliderValueTextField.setText(horizontalSliderValueTextField.getText(0, horizontalSliderValueTextField.getText().length()-1));
-//            }
-//        });
+        horizontalSlider.valueProperty().addListener(
+                (observableValue, oldValue, newValue) ->
+                        verticalSliderValueTextField.setText(String.valueOf(newValue.doubleValue()))
+        );
 
         if (isTwoDimensional){
             verticalSlider = new Slider();
@@ -179,32 +158,13 @@ public class CytometryChart {
             verticalSlider.setShowTickLabels(false);
             verticalSlider.prefHeightProperty().bind(Bindings.add(13,yAxis.heightProperty()));
 
-            verticalSliderValueTextField = new TextField("2.71");
+            verticalSliderValueTextField = new TextField("0");
 
-//            verticalSliderValueTextField.textProperty().addListener(
-//                    (observableValue, oldValue, newValue) ->
-//                            verticalSlider.setValue(Double.parseDouble(horizontalSliderValueTextField.getText()))
-//            );
-//
-//            verticalSlider.valueProperty().addListener(
-//                    (observableValue, oldValue, newValue) ->
-//                            verticalSliderValueTextField.setText(String.valueOf(newValue.doubleValue()))
-//            );
-//
-//            verticalSliderValueTextField.textProperty().addListener((observable, oldValue, newValue) -> {
-//                if (!newValue.matches("\\d*([\\.]\\d*)?")) {
-//                    verticalSliderValueTextField.setText(oldValue);
-//                }
-//            });
-//
-//            verticalSliderValueTextField.setOnAction(e -> {
-//                if (verticalSliderValueTextField.getText().length() > 0 && verticalSliderValueTextField.getText().charAt(0)=='.') {
-//                    verticalSliderValueTextField.setText(verticalSliderValueTextField.getText(1, verticalSliderValueTextField.getText().length()));
-//                }
-//                if (verticalSliderValueTextField.getText().length() > 0 && verticalSliderValueTextField.getText().charAt(verticalSliderValueTextField.getText().length()-1)=='.'){
-//                    verticalSliderValueTextField.setText(verticalSliderValueTextField.getText(0, verticalSliderValueTextField.getText().length()-1));
-//                }
-//            });
+            verticalSlider.valueProperty().addListener(
+                    (observableValue, oldValue, newValue) ->
+                            verticalSliderValueTextField.setText(String.valueOf(newValue.doubleValue()))
+            );
+
         }
     }
 
@@ -221,8 +181,8 @@ public class CytometryChart {
 
         chartWrapper = new ThresholdedScatterChartWrapper(scatterChart);
         chartWrapper.setIsInteractive(true);
-        chartWrapper.addThreshold(horizontalSlider.valueProperty(), Color.rgb(10, 0, 0, 0.2), 0);
-        chartWrapper.addThreshold(verticalSlider.valueProperty(), Color.rgb(10, 0, 0, 0.2), 1);
+        chartWrapper.addThreshold(horizontalSlider.valueProperty(), Color.rgb(255, 0, 0, 0.2), 0);
+        chartWrapper.addThreshold(verticalSlider.valueProperty(), Color.rgb(255, 0, 0, 0.2), 1);
 
         chartWrapper.getPane().getChildren().add(horizontalSlider);
         chartWrapper.getPane().getChildren().add(verticalSlider);
@@ -240,7 +200,7 @@ public class CytometryChart {
         group = new GridPane();
 
         group.add(chartWrapper.getPane(), 0, 0);
-
+        group.add(horizontalSliderValueTextField, 0, 1);
 
         GridPane.setFillWidth(group, true);
         GridPane.setFillHeight(group, true);

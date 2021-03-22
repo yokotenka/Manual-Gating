@@ -10,6 +10,9 @@ com/wehi/MarkerSignalCombinationTableEntry.java
  com.wehi.MarkerSignalCombinationTableEntry
 com/wehi/ThresholdedScatterChartWrapper.java
  com.wehi.ThresholdedScatterChartWrapper
+com/wehi/ThresholdTableEntry.java
+ com.wehi.ThresholdTableEntry
+ com.wehi.ThresholdTableEntry$DecimalTextField
 com/wehi/TableCreator.java
  com.wehi.TableCreator
 com/wehi/ManualGatingExtension.java
