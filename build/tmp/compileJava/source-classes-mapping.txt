@@ -8,6 +8,8 @@ com/wehi/AxisTableEntry.java
  com.wehi.AxisTableEntry
 com/wehi/MarkerSignalCombinationTableEntry.java
  com.wehi.MarkerSignalCombinationTableEntry
+com/wehi/ThresholdedScatterChartWrapper.java
+ com.wehi.ThresholdedScatterChartWrapper
 com/wehi/TableCreator.java
  com.wehi.TableCreator
 com/wehi/ManualGatingExtension.java

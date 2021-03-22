@@ -1,7 +1,9 @@
 package com.wehi;
 
 import javafx.beans.binding.Bindings;
+import javafx.beans.property.DoubleProperty;
 import javafx.beans.value.ChangeListener;
+import javafx.beans.value.ObservableNumberValue;
 import javafx.beans.value.ObservableValue;
 import javafx.geometry.Bounds;
 import javafx.geometry.Insets;
@@ -12,6 +14,7 @@ import javafx.scene.Node;
 import javafx.scene.chart.LineChart;
 import javafx.scene.chart.NumberAxis;
 import javafx.scene.chart.ScatterChart;
+import javafx.scene.chart.XYChart;
 import javafx.scene.chart.XYChart.Series;
 import javafx.scene.control.Slider;
 import javafx.scene.control.TextField;
@@ -19,8 +22,11 @@ import javafx.scene.layout.GridPane;
 import javafx.scene.layout.HBox;
 import javafx.scene.layout.Pane;
 import javafx.scene.layout.VBox;
+import javafx.scene.paint.Color;
 import javafx.scene.shape.Line;
 import javafx.stage.Stage;
+
+import qupath.lib.gui.charts.HistogramPanelFX.ThresholdedChartWrapper;
 import org.apache.commons.math3.util.FastMath;
 
 
@@ -39,6 +45,8 @@ public class CytometryChart {
 
     private TextField horizontalSliderValueTextField;
     private TextField verticalSliderValueTextField;
+
+    private ThresholdedScatterChartWrapper chartWrapper;
 
     private Series<Number, Number> horizontalLine;
     private Series<Number, Number> verticalLine;
@@ -204,13 +212,26 @@ public class CytometryChart {
         group = new GridPane();
 
         HBox hBox = new HBox(horizontalSlider);
-        hBox.setPadding(new Insets(0, 5, 0 ,50));
+        hBox.setPadding(new Insets(0, 5, 0 ,30));
         group.add(hBox, 1,0);
 
         VBox vBox = new VBox(verticalSlider);
-        vBox.setPadding(new Insets(10, 0, 50, 0));
+        vBox.setPadding(new Insets(15, 0, 40, 0));
         group.add(vBox, 0, 1);
-        group.add(scatterChart, 1, 1);
+
+        chartWrapper = new ThresholdedScatterChartWrapper(scatterChart);
+        chartWrapper.setIsInteractive(true);
+        chartWrapper.addThreshold(horizontalSlider.valueProperty(), Color.rgb(10, 0, 0, 0.2), 0);
+        chartWrapper.addThreshold(verticalSlider.valueProperty(), Color.rgb(10, 0, 0, 0.2), 1);
+
+
+//        horizontalSlider.setLayoutX(xAxis.getDisplayPosition(xAxis.getLowerBound()));
+        
+
+
+
+
+        group.add(chartWrapper.getPane(), 1, 1);
         GridPane.setFillWidth(group, true);
         GridPane.setFillHeight(group, true);
         group.prefWidthProperty().bind(stage.widthProperty());
@@ -224,16 +245,4 @@ public class CytometryChart {
     }
 
 
-
-    private Line createVerticalLine(){
-        Line verticalLine  = new Line();
-
-        return verticalLine;
-    }
-
-    private Line createHorizontalLine(){
-        Line horizontalLine = new Line();
-
-        return horizontalLine;
-    }
 }
