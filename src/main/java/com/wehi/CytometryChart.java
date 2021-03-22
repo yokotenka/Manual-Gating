@@ -138,9 +138,9 @@ public class CytometryChart {
         horizontalSlider.setMax(MAX_LOG_INTENSITY);
         horizontalSlider.setMin(-MAX_LOG_INTENSITY);
         horizontalSlider.setValue(0);
-        horizontalSlider.prefWidthProperty().bind(scatterChart.widthProperty());
-        horizontalSlider.setShowTickLabels(true);
-        horizontalSlider.setShowTickMarks(true);
+        horizontalSlider.prefWidthProperty().bind(Bindings.add(15, xAxis.widthProperty()));
+        horizontalSlider.setShowTickLabels(false);
+        horizontalSlider.setShowTickMarks(false);
         horizontalSliderValueTextField = new TextField("2.71");
 
 //        horizontalSliderValueTextField.textProperty().addListener(
@@ -175,9 +175,9 @@ public class CytometryChart {
             verticalSlider.setMax(MAX_LOG_INTENSITY);
             verticalSlider.setMin(-MAX_LOG_INTENSITY);
             verticalSlider.setValue(0);
-            verticalSlider.setShowTickMarks(true);
-            verticalSlider.setShowTickLabels(true);
-            verticalSlider.prefHeightProperty().bind(scatterChart.heightProperty());
+            verticalSlider.setShowTickMarks(false);
+            verticalSlider.setShowTickLabels(false);
+            verticalSlider.prefHeightProperty().bind(Bindings.add(13,yAxis.heightProperty()));
 
             verticalSliderValueTextField = new TextField("2.71");
 
@@ -209,35 +209,47 @@ public class CytometryChart {
     }
 
     private void initialisePane(){
-        group = new GridPane();
+//        group = new GridPane();
 
-        HBox hBox = new HBox(horizontalSlider);
-        hBox.setPadding(new Insets(0, 5, 0 ,30));
-        group.add(hBox, 1,0);
-
-        VBox vBox = new VBox(verticalSlider);
-        vBox.setPadding(new Insets(15, 0, 40, 0));
-        group.add(vBox, 0, 1);
+//        HBox hBox = new HBox(horizontalSlider);
+//        hBox.setPadding(new Insets(0, 0, 0 ,70));
+//        group.add(horizontalSlider, 1,0);
+//
+////        VBox vBox = new VBox(verticalSlider);
+////        vBox.setPadding(new Insets(15, 0, 40, 0));
+//        group.add(verticalSlider, 0, 1);
 
         chartWrapper = new ThresholdedScatterChartWrapper(scatterChart);
         chartWrapper.setIsInteractive(true);
         chartWrapper.addThreshold(horizontalSlider.valueProperty(), Color.rgb(10, 0, 0, 0.2), 0);
         chartWrapper.addThreshold(verticalSlider.valueProperty(), Color.rgb(10, 0, 0, 0.2), 1);
 
+        chartWrapper.getPane().getChildren().add(horizontalSlider);
+        chartWrapper.getPane().getChildren().add(verticalSlider);
 
-//        horizontalSlider.setLayoutX(xAxis.getDisplayPosition(xAxis.getLowerBound()));
-        
+        double xAxisPosition = xAxis.getDisplayPosition(xAxis.getLowerBound());
+        Point2D positionInSceneX = xAxis.localToScene(xAxisPosition, 0);
+        horizontalSlider.setLayoutX(chartWrapper.getPane().sceneToLocal(positionInSceneX).getX() + 50);
+
+        double yAxisPosition = yAxis.getDisplayPosition(yAxis.getLowerBound());
+        Point2D positionInSceneY = yAxis.localToScene(0, yAxisPosition);
+        verticalSlider.setLayoutY(chartWrapper.getPane().sceneToLocal(positionInSceneY).getY() + 10);
 
 
 
+        group = new GridPane();
 
-        group.add(chartWrapper.getPane(), 1, 1);
+        group.add(chartWrapper.getPane(), 0, 0);
+
+
         GridPane.setFillWidth(group, true);
         GridPane.setFillHeight(group, true);
+        chartWrapper.getPane().prefWidthProperty().bind(stage.widthProperty());
+        chartWrapper.getPane().prefHeightProperty().bind(stage.heightProperty());
         group.prefWidthProperty().bind(stage.widthProperty());
-        group.prefHeightProperty().bind(stage.widthProperty());
-
+        group.prefHeightProperty().bind(stage.heightProperty());
         group.setPadding(new Insets(10, 10, 10, 10));
+
     }
 
     public GridPane getPane() {
