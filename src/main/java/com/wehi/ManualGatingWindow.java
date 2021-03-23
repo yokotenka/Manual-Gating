@@ -1,12 +1,12 @@
 package com.wehi;
 
-import javafx.beans.binding.Bindings;
+import com.wehi.TableTreeViewHelpers.*;
 import javafx.beans.value.ChangeListener;
 import javafx.beans.value.ObservableValue;
 import javafx.collections.FXCollections;
+import javafx.collections.ObservableList;
 import javafx.geometry.HPos;
 import javafx.geometry.Insets;
-import javafx.geometry.Orientation;
 import javafx.geometry.Pos;
 import javafx.scene.Node;
 import javafx.scene.Scene;
@@ -14,7 +14,6 @@ import javafx.scene.control.*;
 import javafx.scene.control.Button;
 import javafx.scene.control.Label;
 import javafx.scene.layout.HBox;
-import javafx.scene.layout.Pane;
 import javafx.scene.layout.VBox;
 import javafx.stage.Stage;
 import qupath.lib.gui.QuPathGUI;
@@ -28,7 +27,8 @@ import qupath.lib.projects.Projects;
 import java.awt.image.BufferedImage;
 import java.io.File;
 import java.util.Collection;
-import java.util.HashMap;
+import java.util.List;
+import java.util.stream.Collectors;
 
 public class ManualGatingWindow implements Runnable, ChangeListener<ImageData<BufferedImage>> {
     private QuPathGUI qupath;
@@ -37,15 +37,12 @@ public class ManualGatingWindow implements Runnable, ChangeListener<ImageData<Bu
     private ImageServer<BufferedImage> imageServer;
     private Collection<PathObject> cells;
 
-    private HashMap<String, TreeItem> phenotypeHierarchyNodeMap = new HashMap<>();
-
     private final String title = "Manual Gating";
 
 
     private VBox mainBox;
     private Stage stage;
-    private VBox column1;
-    private TreeView<String> phenotypeHierarchy;
+    private TreeTableCreator<PhenotypeEntry> phenotypeHierarchy;
 
     private ComboBox<String> dimensionsBox;
     private ComboBox<String> manualGatingOptionsBox;
@@ -53,8 +50,10 @@ public class ManualGatingWindow implements Runnable, ChangeListener<ImageData<Bu
     private CytometryChart cytometryChart;
 
     private TableCreator<AxisTableEntry> axisOptionsTableCreator;
-    private TableCreator<MarkerSignalCombinationTableEntry> markerSignalCombinationTableEntryTableCreator;
+    private TableCreator<PhenotypeCreationTableEntry> markerSignalCombinationTableEntryTableCreator;
 
+    private ObservableList<String> markers;
+    private ObservableList<String> measurements;
 
     public ManualGatingWindow(QuPathGUI quPathGUI){
         this.qupath = quPathGUI;
@@ -70,7 +69,6 @@ public class ManualGatingWindow implements Runnable, ChangeListener<ImageData<Bu
     public void createDialog(){
         stage = new Stage();
 
-
         // Update qupath data
         updateQupath();
         // Update title
@@ -81,79 +79,36 @@ public class ManualGatingWindow implements Runnable, ChangeListener<ImageData<Bu
 
 
         /* For loading previously saved options */
-        HBox loadOptionsBox = new HBox();
+        HBox loadOptionsBox = createHBox();
         updateManualGatingOptionsBox();
         confirmManualGatingOptionButton = new Button("Load Options");
-
 
         loadOptionsBox.getChildren().addAll(
                                             createLabel("Load saved options"),
                                             manualGatingOptionsBox,
                                             confirmManualGatingOptionButton
                                         );
-
         Separator sep = new Separator();
         sep.setHalignment(HPos.CENTER);
-
         mainBox.getChildren().addAll(loadOptionsBox, sep);
 
 
-        SplitPane contentBox = new SplitPane();
+        /* The body of the options */
+        SplitPane splitPane = new SplitPane();
+
 
         /* Initialise Phenotype Hierarchy */
         Label phenotypeHierarchyLabel = createLabel("Phenotype Hierarchy");
-        phenotypeHierarchy = new TreeView<>();
-        phenotypeHierarchy.prefHeightProperty().bind(stage.heightProperty());
-        contentBox.getItems().add(createColumn(3, 1,phenotypeHierarchyLabel, phenotypeHierarchy));
-
-        TreeItem<String> root = new TreeItem<>("Cell");
-        phenotypeHierarchyNodeMap.put("Cell", root);
-
-//
-//        /* ******** Vertical Separator ********** */
-//        Separator vertSeparator = new Separator();
-//        vertSeparator.setOrientation(Orientation.VERTICAL);
-//        contentBox.getItems().add(vertSeparator);
+        initialiseTreeTableView();
+        splitPane.getItems().add(createColumn(phenotypeHierarchyLabel, phenotypeHierarchy.getTreeTable()));
 
 
         /* ***** Options column **************/
 
-        /* Selecting dimensions */
-        HBox dimensionsHBox = createHBox();
-        dimensionsBox = new ComboBox<>();
-        dimensionsBox.getItems().add("1-D");
-        dimensionsBox.getItems().add("2-D");
-        dimensionsHBox.getChildren().addAll(createLabel("Choose the dimension of the plot"), dimensionsBox);
-
-        /* Axis tableview */
-        axisOptionsTableCreator = new TableCreator<>();
-
-        /* Marker Signal Combination */
-        markerSignalCombinationTableEntryTableCreator = new TableCreator<>();
-
-
-        /* Graph */
-        cytometryChart = new CytometryChart(stage, "", "");
-
-
-        /* Create column on the right */
-        SplitPane optionsSplitPane = new SplitPane();
-        optionsSplitPane.setOrientation(Orientation.VERTICAL);
-        optionsSplitPane.getItems().addAll(
-                createColumn(3, 2,
-                    dimensionsHBox,
-                    axisOptionsTableCreator.getTable(),
-                    markerSignalCombinationTableEntryTableCreator.getTable()
-                ),
-                cytometryChart.getPane()
-        );
-
-        contentBox.getItems().add(optionsSplitPane);
-
-
         /* Adding the main body to the scene */
-        mainBox.getChildren().add(contentBox);
+        splitPane.getItems().add(phenotypeHierarchy.getRoot().getValue().createPane(stage));
 
+        mainBox.getChildren().add(splitPane);
         stage.initOwner(QuPathGUI.getInstance().getStage());
         stage.setScene(new Scene(mainBox));
         stage.setWidth(850);
@@ -174,7 +129,7 @@ public class ManualGatingWindow implements Runnable, ChangeListener<ImageData<Bu
         this.viewer = qupath.getViewer();
         this.imageData = this.viewer.getImageData();
         this.imageServer = this.viewer.getServer();
-//        this.cells = this.imageData.getHierarchy().getCellObjects();
+        this.cells = this.imageData.getHierarchy().getCellObjects();
     }
 
     private void updateTitle() {
@@ -205,21 +160,63 @@ public class ManualGatingWindow implements Runnable, ChangeListener<ImageData<Bu
         mainBox.setPadding(new Insets(10, 10, 10, 10));
     }
 
-    private VBox createColumn(int widthProportionDivisor, int widthProportionMultiplier, Node... nodes){
-        column1 = createVBox();
-        column1.getChildren().addAll(nodes);
-        column1.setFillWidth(true);
+    private void initialiseTreeTableView(){
+        phenotypeHierarchy = new TreeTableCreator<>();
+        phenotypeHierarchy.getTreeTable().prefHeightProperty().bind(stage.heightProperty());
+        phenotypeHierarchy.addColumn("Phenotype", "phenotypeName", 0.2);
+        phenotypeHierarchy.addColumn("Positive Markers", "positiveMarkersString", 0.4);
+        phenotypeHierarchy.addColumn("Negative Markers", "negativeMarkersString", 0.4);
 
+        extractMarkers();
+        extractMarkerMeasurements();
 
-        column1.prefWidthProperty().bind(
-                Bindings.multiply(
-                        Bindings.divide(stage.widthProperty(), widthProportionDivisor),
-                        widthProportionMultiplier
+        TreeItem<PhenotypeEntry> cell = new TreeItem<>(
+                new PhenotypeEntry(
+                        cells,
+                        "Cell",
+                        null,
+                        null,
+                        markers,
+                        measurements
                 )
-        );
-
-        return column1;
+            );
+        phenotypeHierarchy.setRoot(cell);
     }
+
+    public static VBox createColumn(Node... nodes){
+        VBox column = createVBox();
+        column.getChildren().addAll(nodes);
+        column.setFillWidth(true);
+        return column;
+    }
+
+
+    public void extractMarkers(){
+        markers = FXCollections.observableArrayList();
+        for (int i=0; i < imageServer.nChannels(); i++){
+            markers.add(imageServer.getChannel(i).getName());
+        }
+    }
+
+    public void extractMarkerMeasurements() {
+
+        // Do something for when no cell detected
+        if (cells == null) {
+            return;
+        }
+        // Gets a cell
+        PathObject cell = (PathObject) cells.toArray()[0];
+        String markerName = imageServer.getChannel(0).getName();
+        List<String> measurementList = cell.getMeasurementList().getMeasurementNames();
+
+        // Potentially could be a source of error #################################################
+        measurements = FXCollections.observableList(measurementList.stream()
+                .parallel()
+                .filter(it -> it.contains(markerName + ":"))
+                .map(it -> it.substring(markerName.length() + 2))
+                .collect(Collectors.toList()));
+    }
+
 
 
     public static Label createLabel(String msg) {
@@ -229,13 +226,13 @@ public class ManualGatingWindow implements Runnable, ChangeListener<ImageData<Bu
         return label;
     }
 
-    private HBox createHBox(){
+    public static HBox createHBox(){
         HBox hBox = new HBox();
         hBox.setSpacing(5);
         return hBox;
     }
 
-    private VBox createVBox(){
+    public static VBox createVBox(){
         VBox vBox = new VBox();
         vBox.setSpacing(5);
         return vBox;

@@ -2,12 +2,15 @@ com/wehi/ManualGatingWindow.java
  com.wehi.ManualGatingWindow
 com/wehi/Phenotype.java
  com.wehi.Phenotype
-com/wehi/CytometryChart.java
- com.wehi.CytometryChart
-com/wehi/AxisTableEntry.java
- com.wehi.AxisTableEntry
-com/wehi/MarkerSignalCombinationTableEntry.java
- com.wehi.MarkerSignalCombinationTableEntry
+com/wehi/TableTreeViewHelpers/CytometryChart.java
+ com.wehi.TableTreeViewHelpers.CytometryChart
+com/wehi/TableTreeViewHelpers/PhenotypeEntry.java
+ com.wehi.TableTreeViewHelpers.AxisValue
+ com.wehi.TableTreeViewHelpers.PhenotypeEntry
+com/wehi/TableTreeViewHelpers/AxisTableEntry.java
+ com.wehi.TableTreeViewHelpers.AxisTableEntry
+com/wehi/TableTreeViewHelpers/PhenotypeCreationTableEntry.java
+ com.wehi.TableTreeViewHelpers.PhenotypeCreationTableEntry
 com/wehi/ThresholdedScatterChartWrapper.java
  com.wehi.ThresholdedScatterChartWrapper
 com/wehi/ThresholdTableEntry.java
@@ -17,3 +20,5 @@ com/wehi/TableCreator.java
  com.wehi.TableCreator
 com/wehi/ManualGatingExtension.java
  com.wehi.ManualGatingExtension
+com/wehi/TableTreeViewHelpers/TreeTableCreator.java
+ com.wehi.TableTreeViewHelpers.TreeTableCreator

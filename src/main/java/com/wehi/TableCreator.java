@@ -21,10 +21,10 @@ public class TableCreator<T> {
 
     /**
      * Set items to the TableView
-     * @param markers
+     * @param rows
      */
-    public void setItems(ObservableList<T> markers){
-        table.setItems(markers);
+    public void setItems(ObservableList<T> rows){
+        table.setItems(rows);
     }
 
     /**
@@ -83,6 +83,14 @@ public class TableCreator<T> {
             return toBeRemoved;
         }
         return null;
+    }
+
+    /**
+     * Gets the item
+     * @return items
+     */
+    public ObservableList<T> getItems(){
+        return table.getItems();
     }
 
 }
