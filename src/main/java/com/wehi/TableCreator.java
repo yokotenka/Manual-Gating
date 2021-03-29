@@ -1,6 +1,8 @@
 package com.wehi;
 
 import javafx.collections.ObservableList;
+import javafx.geometry.Pos;
+import javafx.scene.control.TableCell;
 import javafx.scene.control.TableColumn;
 import javafx.scene.control.TableView;
 import javafx.scene.control.cell.PropertyValueFactory;
@@ -59,6 +61,7 @@ public class TableCreator<T> {
     public TableColumn<T, Object> createColumn(String title, String variableName){
         TableColumn<T, Object> nameCol = new TableColumn<>(title);
         nameCol.setCellValueFactory(new PropertyValueFactory<>(variableName));
+
         return nameCol;
     }
 

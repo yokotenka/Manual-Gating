@@ -1,8 +1,11 @@
 package com.wehi.TableTreeViewHelpers;
 
+import javafx.beans.value.ChangeListener;
+import javafx.beans.value.ObservableValue;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
 import javafx.scene.control.ComboBox;
+import javafx.scene.control.TextField;
 
 public class AxisTableEntry {
 
@@ -14,6 +17,10 @@ public class AxisTableEntry {
     // Measurements selection box
     private ComboBox<String> measurementsBox = new ComboBox();
 
+    private TextField logThresholdTextField = new TextField("0");
+
+    private TextField thresholdTextField = new TextField((String.valueOf(Math.exp(0))));
+
     // Threshold value
     private Double threshold = (double) 0;
 
@@ -21,6 +28,20 @@ public class AxisTableEntry {
         this.axisValue = axisValue;
         this.markersBox.setItems(markers);
         this.measurementsBox.setItems(measurements);
+
+
+        logThresholdTextField.textProperty().addListener((observable, oldValue, newValue) -> {
+            if (!newValue.matches("-?\\d*([\\.]\\d*)?")) {
+                logThresholdTextField.setText(oldValue);
+            }
+        });
+
+        thresholdTextField.textProperty().addListener((observable, oldValue, newValue) -> {
+            if (!newValue.matches("\\d*([\\.]\\d*)?")) {
+                thresholdTextField.setText(oldValue);
+            }
+        });
+
     }
 
     public void setMeasurementName(ObservableList<String> measurements) {
@@ -61,5 +82,28 @@ public class AxisTableEntry {
 
     public AxisValue getAxisValue() {
         return axisValue;
+    }
+
+    public void setThresholdTextFields(double logThreshold) {
+        this.logThresholdTextField.setText(String.valueOf(logThreshold));
+
+        if (Double.compare(logThreshold, -6) <= 0){
+            this.thresholdTextField.setText(String.valueOf(0));
+            this.logThresholdTextField.setText(String.valueOf(-6));
+            threshold = (double) 0;
+        } else if (Double.compare(Math.exp(logThreshold), 255) > 0){
+            threshold = (double) 255;
+            this.thresholdTextField.setText(String.valueOf(255));
+        } else {
+            this.thresholdTextField.setText(String.valueOf(Math.exp(logThreshold)));
+        }
+    }
+
+    public TextField getLogThresholdTextField() {
+        return logThresholdTextField;
+    }
+
+    public TextField getThresholdTextField() {
+        return thresholdTextField;
     }
 }

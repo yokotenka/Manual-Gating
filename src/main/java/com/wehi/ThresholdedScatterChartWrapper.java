@@ -389,7 +389,7 @@ public class ThresholdedScatterChartWrapper {
         horizontalSlider.setMax(CytometryChart.MAX_LOG_INTENSITY);
         horizontalSlider.setMin(-CytometryChart.MAX_LOG_INTENSITY);
         horizontalSlider.setValue(0);
-        horizontalSlider.prefWidthProperty().bind(Bindings.add(15, xAxis.widthProperty()));
+//        horizontalSlider.prefWidthProperty().bind(Bindings.add(15, xAxis.widthProperty()));
         horizontalSlider.setShowTickLabels(false);
         horizontalSlider.setShowTickMarks(false);
         horizontalSliderValueTextField = new TextField("0");
@@ -405,7 +405,7 @@ public class ThresholdedScatterChartWrapper {
         verticalSlider.setValue(0);
         verticalSlider.setShowTickMarks(false);
         verticalSlider.setShowTickLabels(false);
-        verticalSlider.prefHeightProperty().bind(Bindings.add(13,yAxis.heightProperty()));
+//        verticalSlider.prefHeightProperty().bind(Bindings.add(13,yAxis.heightProperty()));
         verticalSliderValueTextField = new TextField("0");
         verticalSlider.valueProperty().addListener(
                 (observableValue, oldValue, newValue) ->
@@ -416,6 +416,15 @@ public class ThresholdedScatterChartWrapper {
         pane.getChildren().add(horizontalSlider);
     }
 
+    public void updateXSliderBounds(double lowerBound, double upperBound){
+        horizontalSlider.setMax(upperBound);
+        horizontalSlider.setMin(lowerBound);
+    }
+
+    public void updateYSliderBounds(double lowerBound, double upperBound){
+        verticalSlider.setMin(lowerBound);
+        verticalSlider.setMax(upperBound);
+    }
 
 
     /**
