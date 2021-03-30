@@ -166,14 +166,14 @@ public class CytometryChart {
         BivariateKDE kde = new BivariateKDE(x, y);
         double[] density = kde.estimate();
         int k=0;
-        for (PathObject cell : cells){
-            if (k < density.length) {
-                cell.getMeasurementList().putMeasurement("KDE", density[k]);
-                cell.getMeasurementList().putMeasurement("Logged x", x.get(k));
-                cell.getMeasurementList().putMeasurement("Logged y", y.get(k++));
-
-            }
-        }
+//        for (PathObject cell : cells){
+//            if (k < density.length) {
+//                cell.getMeasurementList().putMeasurement("KDE", density[k]);
+//                cell.getMeasurementList().putMeasurement("Logged x", x.get(k));
+//                cell.getMeasurementList().putMeasurement("Logged y", y.get(k++));
+//
+//            }
+//        }
 
 
         double max = new DescriptiveStatistics(density).getMax();
@@ -186,8 +186,8 @@ public class CytometryChart {
         Set<Node> nodes = scatterChart.lookupAll(".series0");
         for (Node n : nodes) {
             double normalisedValue = density[i]/max;
-            Color color = ColourMapper.mapToColor(normalisedValue);
-            n.setStyle("-fx-background-color: rgb("+(int) Math.floor(color.getRed())+","+(int) Math.floor(color.getGreen())+","+(int) Math.floor(color.getBlue())+");"
+            ColourMapper.Triplet color = ColourMapper.mapToColor(normalisedValue);
+            n.setStyle("-fx-background-color: rgb("+color.getRed()+","+color.getGreen()+","+color.getBlue()+");"
             +"-fx-background-radius: 1px;"
             );
             n.setScaleX(0.1);
@@ -273,24 +273,51 @@ public class CytometryChart {
     public static class ColourMapper {
 
 
-        public static Color mapToColor(double x){
-            Color colour = null;
+        public static Triplet mapToColor(double x){
+            Triplet colour = null;
 
             if (Double.compare(x, 1) > 0){
-                colour = Color.rgb(255, 255, 0);
+                colour = new Triplet(255, 255, 0);
             } else if (Double.compare(1, x) >= 0 && Double.compare(x, 0.666) > 0){
-                colour = Color.rgb((int) Math.floor((x - 0.666)* 255/(0.333)), 255, 0);
+                double scaledVal = (x - 0.666)/(0.333);
+                colour = new Triplet((int) Math.floor(scaledVal * 255), 255, 0);
             } else if (Double.compare(0.666, x) >= 0 && Double.compare(x, 0.333) > 0){
-                colour = Color.rgb(0, 255, (int) Math.floor((1-((x - 0.333))/(0.333))*255));
+                double scaledVal = 1-(x - 0.333)/0.333;
+                colour = new Triplet(0, 255, (int) Math.floor(scaledVal*255));
             } else if (Double.compare(0.333, x) >= 0 && Double.compare(x, 0) > 0){
-                colour = Color.rgb(0, (int) Math.floor((x)* 255/(0.333)), 255);
+                double scaledVal = x /(0.333);
+                colour = new Triplet(0, (int) Math.floor(scaledVal * 255), 255);
             } else{
-                colour = Color.rgb(0, 0, 255);
+                colour = new Triplet(0, 0, 255);
             }
 
 
             return colour;
         }
 
+        public static class Triplet{
+            private int red;
+            private int green;
+            private int blue;
+
+            public Triplet(int red, int green, int blue){
+                this.red = red;
+                this.green = green;
+                this.blue = blue;
+            }
+
+            public int getBlue() {
+                return blue;
+            }
+
+            public int getGreen() {
+                return green;
+            }
+
+            public int getRed() {
+                return red;
+            }
+        }
     }
+
 }

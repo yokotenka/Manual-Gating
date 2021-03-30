@@ -14,6 +14,7 @@ com/wehi/ManualGatingWindow.java
 com/wehi/TableTreeViewHelpers/CytometryChart.java
  com.wehi.TableTreeViewHelpers.CytometryChart
  com.wehi.TableTreeViewHelpers.CytometryChart$ColourMapper
+ com.wehi.TableTreeViewHelpers.CytometryChart$ColourMapper$Triplet
  com.wehi.TableTreeViewHelpers.CytometryChart$Point
 com/wehi/TableTreeViewHelpers/PhenotypeEntry.java
  com.wehi.TableTreeViewHelpers.AxisValue
