@@ -38,8 +38,8 @@ public class ThresholdedScatterChartWrapper {
 
     private Pane pane = new Pane();
 
-    private DoubleProperty lineWidth = new SimpleDoubleProperty(3);
-    private DoubleProperty lineHeight = new SimpleDoubleProperty(3);
+    private DoubleProperty lineWidth = new SimpleDoubleProperty(1);
+    private DoubleProperty lineHeight = new SimpleDoubleProperty(1);
 
     private BooleanProperty isInteractive = new SimpleBooleanProperty(false);
 

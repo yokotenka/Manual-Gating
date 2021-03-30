@@ -1,25 +1,33 @@
-com/wehi/TableTreeViewHelpers/TreeTableCreator.java
- com.wehi.TableTreeViewHelpers.TreeTableCreator
 com/wehi/Phenotype.java
  com.wehi.Phenotype
-com/wehi/TableTreeViewHelpers/CytometryChart.java
- com.wehi.TableTreeViewHelpers.CytometryChart
-com/wehi/ManualGatingExtension.java
- com.wehi.ManualGatingExtension
-com/wehi/TableCreator.java
- com.wehi.TableCreator
+com/wehi/TableTreeViewHelpers/AxisTableEntry.java
+ com.wehi.TableTreeViewHelpers.AxisTableEntry
 com/wehi/TableTreeViewHelpers/PhenotypeCreationTableEntry.java
  com.wehi.TableTreeViewHelpers.MARKER_COMBINATION
  com.wehi.TableTreeViewHelpers.PhenotypeCreationTableEntry
+com/wehi/TableCreator.java
+ com.wehi.TableCreator
+com/wehi/ChartVisualiseHelpers/ColourMapper.java
+ com.wehi.ChartVisualiseHelpers.ColourMapper
+com/wehi/ManualGatingWindow.java
+ com.wehi.ManualGatingWindow
+com/wehi/TableTreeViewHelpers/CytometryChart.java
+ com.wehi.TableTreeViewHelpers.CytometryChart
+ com.wehi.TableTreeViewHelpers.CytometryChart$ColourMapper
+ com.wehi.TableTreeViewHelpers.CytometryChart$Point
+com/wehi/TableTreeViewHelpers/PhenotypeEntry.java
+ com.wehi.TableTreeViewHelpers.AxisValue
+ com.wehi.TableTreeViewHelpers.PhenotypeEntry
+com/wehi/ChartVisualiseHelpers/IndependentBivariateNormalDistribution.java
+ com.wehi.ChartVisualiseHelpers.IndependentBivariateNormalDistribution
+com/wehi/ChartVisualiseHelpers/BivariateKDE.java
+ com.wehi.ChartVisualiseHelpers.BivariateKDE
 com/wehi/ThresholdedScatterChartWrapper.java
  com.wehi.ThresholdedScatterChartWrapper
 com/wehi/ThresholdTableEntry.java
  com.wehi.ThresholdTableEntry
  com.wehi.ThresholdTableEntry$DecimalTextField
-com/wehi/ManualGatingWindow.java
- com.wehi.ManualGatingWindow
-com/wehi/TableTreeViewHelpers/PhenotypeEntry.java
- com.wehi.TableTreeViewHelpers.AxisValue
- com.wehi.TableTreeViewHelpers.PhenotypeEntry
-com/wehi/TableTreeViewHelpers/AxisTableEntry.java
- com.wehi.TableTreeViewHelpers.AxisTableEntry
+com/wehi/ManualGatingExtension.java
+ com.wehi.ManualGatingExtension
+com/wehi/TableTreeViewHelpers/TreeTableCreator.java
+ com.wehi.TableTreeViewHelpers.TreeTableCreator

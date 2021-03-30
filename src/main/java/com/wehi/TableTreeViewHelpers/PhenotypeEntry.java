@@ -171,6 +171,7 @@ public class PhenotypeEntry {
                     updatePhenotypeCreationCreator(axis1.getMarkersBox().getValue(), axis2.getMarkersBox().getValue());
                     updateMeasurementNames();
                     cytometryChart.updateAxisLabels(xAxisMarkerMeasurementName, yAxisMarkerMeasurementName);
+                    cytometryChart.populateScatterChart(cells, xAxisMarkerMeasurementName, yAxisMarkerMeasurementName);
                 }
             }
         });
@@ -180,6 +181,7 @@ public class PhenotypeEntry {
                     updatePhenotypeCreationCreator(axis1.getMarkersBox().getValue(), axis2.getMarkersBox().getValue());
                     updateMeasurementNames();
                     cytometryChart.updateAxisLabels(xAxisMarkerMeasurementName, yAxisMarkerMeasurementName);
+                    cytometryChart.populateScatterChart(cells, xAxisMarkerMeasurementName, yAxisMarkerMeasurementName);
                 }
             }
         });
@@ -189,6 +191,8 @@ public class PhenotypeEntry {
     private void initialiseCytometryChart(Stage stage){
         cytometryChart = new CytometryChart(stage);
         cytometryChart.getXSlider().valueProperty().addListener((arg0, oldValue, newValue) -> xAxis.setThresholdTextFields(newValue.doubleValue()));
+
+
         cytometryChart.getYSlider().valueProperty().addListener((arg0, oldValue, newValue) -> yAxis.setThresholdTextFields(newValue.doubleValue()));
 
         xAxis.getLogThresholdTextField().setOnAction(e -> {

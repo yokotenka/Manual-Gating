@@ -1,16 +1,8 @@
 package com.wehi.TableTreeViewHelpers;
 
+import com.wehi.ChartVisualiseHelpers.BivariateKDE;
 import com.wehi.ThresholdedScatterChartWrapper;
-import javafx.beans.binding.Bindings;
-import javafx.beans.property.DoubleProperty;
-import javafx.beans.value.ChangeListener;
-import javafx.beans.value.ObservableNumberValue;
-import javafx.beans.value.ObservableValue;
-import javafx.geometry.Bounds;
 import javafx.geometry.Insets;
-import javafx.geometry.Orientation;
-import javafx.geometry.Point2D;
-import javafx.scene.Group;
 import javafx.scene.Node;
 import javafx.scene.chart.LineChart;
 import javafx.scene.chart.NumberAxis;
@@ -18,18 +10,20 @@ import javafx.scene.chart.ScatterChart;
 import javafx.scene.chart.XYChart;
 import javafx.scene.chart.XYChart.Series;
 import javafx.scene.control.Slider;
-import javafx.scene.control.TextField;
 import javafx.scene.layout.GridPane;
-import javafx.scene.layout.HBox;
 import javafx.scene.layout.Pane;
-import javafx.scene.layout.VBox;
 import javafx.scene.paint.Color;
-import javafx.scene.shape.Line;
 import javafx.stage.Stage;
 import org.apache.commons.math3.stat.descriptive.DescriptiveStatistics;
+import qupath.lib.gui.dialogs.Dialogs;
 import qupath.lib.objects.PathObject;
 
-import java.util.Collection;
+import java.io.File;
+import java.io.IOException;
+import java.io.PrintWriter;
+import java.util.*;
+import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 
 public class CytometryChart {
@@ -102,6 +96,7 @@ public class CytometryChart {
         scatterChart.prefHeightProperty().bind(stage.heightProperty());
         scatterChart.setLayoutX(20);
         scatterChart.setLayoutY(10);
+        scatterChart.setLegendVisible(false);
     }
 
 
@@ -110,7 +105,7 @@ public class CytometryChart {
 
         chartWrapper = new ThresholdedScatterChartWrapper(scatterChart);
         chartWrapper.setIsInteractive(true);
-        chartWrapper.addThreshold(Color.rgb(255, 0, 0, 0.2));
+        chartWrapper.addThreshold(Color.rgb(255, 0, 0));
 
 
         double xAxisPosition = xAxis.getDisplayPosition(xAxis.getLowerBound());
@@ -136,48 +131,69 @@ public class CytometryChart {
     }
 
     public void populateScatterChart(Collection<PathObject> cells, String xMeasurement, String yMeasurement){
-        double[] xLogMarkerIntensities = cells.stream()
-                .parallel()
-                .mapToDouble(p -> Math.log(p.getMeasurementList().getMeasurementValue(xMeasurement)))
-                .filter(d -> !Double.isNaN(d)).toArray();
 
-        DescriptiveStatistics xDS = new DescriptiveStatistics(xLogMarkerIntensities);
-        double xMedian = xDS.getPercentile(50);
-        double xIQR = xDS.getPercentile(75) - xDS.getPercentile(25);
-        double xUpperBound = xDS.getMax();
-        double xLowerBound = xDS.getPercentile(25) - 1.5 * xIQR;
+        if (!scatterChart.getData().isEmpty()){
+            scatterChart.getData().clear();
+        }
 
-        double[] yMarkerIntensities = cells.stream()
-                .parallel()
-                .mapToDouble(p -> Math.log(p.getMeasurementList().getMeasurementValue(yMeasurement)))
-                .filter(d -> !Double.isNaN(d)).toArray();
-
-        DescriptiveStatistics yDS = new DescriptiveStatistics(xLogMarkerIntensities);
-        double yMedian = yDS.getPercentile(50);
-        double yIQR = yDS.getPercentile(75) - yDS.getPercentile(25);
-        double yUpperBound = yDS.getMax();
-        double yLowerBound = yDS.getPercentile(25) - 1.5 * yIQR;
-
-        Series<Number, Number> series = new Series<Number, Number>();
+        // Assume that the event of a missing value is low. We will ignore such cells for our KDE.
+        ArrayList<Point> dataPoints = new ArrayList<>();
+        ArrayList<Double> x = new ArrayList<>();
+        ArrayList<Double> y = new ArrayList<>();
+        Series<Number, Number> series = new Series<>();
 
         for (PathObject cell : cells){
-            if (Double.isNaN(cell.getMeasurementList().getMeasurementValue(xMeasurement))){
-                cell.getMeasurementList().putMeasurement(xMeasurement, xMedian);
+            if (Double.isNaN(cell.getMeasurementList().getMeasurementValue(xMeasurement)) ||
+                    Double.isNaN(cell.getMeasurementList().getMeasurementValue(yMeasurement))){
+                continue;
             }
+            if (Double.isFinite(Math.log(cell.getMeasurementList().getMeasurementValue(xMeasurement))) && Double.isFinite(Math.log(cell.getMeasurementList().getMeasurementValue(yMeasurement)))) {
+                x.add(Math.log(cell.getMeasurementList().getMeasurementValue(xMeasurement)));
+                y.add(Math.log(cell.getMeasurementList().getMeasurementValue(yMeasurement)));
 
-            if (Double.isNaN(cell.getMeasurementList().getMeasurementValue(yMeasurement))){
-                cell.getMeasurementList().putMeasurement(yMeasurement, yMedian);
+
+                Point point = new Point(Math.log(cell.getMeasurementList().getMeasurementValue(xMeasurement)),
+                        Math.log(cell.getMeasurementList().getMeasurementValue(yMeasurement))
+                );
+
+                series.getData().add(new XYChart.Data<>(Math.log(cell.getMeasurementList().getMeasurementValue(xMeasurement)),
+                        Math.log(cell.getMeasurementList().getMeasurementValue(yMeasurement))));
+
+                dataPoints.add(point);
             }
-
-
-            series.getData().add(new XYChart.Data<>(
-                    cell.getMeasurementList().getMeasurementValue(xMeasurement),
-                    cell.getMeasurementList().getMeasurementValue(yMeasurement)
-            ));
         }
-        updateXBounds(xLowerBound, xUpperBound);
-        updateYBounds(yLowerBound, yUpperBound);
+
+        BivariateKDE kde = new BivariateKDE(x, y);
+        double[] density = kde.estimate();
+        int k=0;
+        for (PathObject cell : cells){
+            if (k < density.length) {
+                cell.getMeasurementList().putMeasurement("KDE", density[k]);
+                cell.getMeasurementList().putMeasurement("Logged x", x.get(k));
+                cell.getMeasurementList().putMeasurement("Logged y", y.get(k++));
+
+            }
+        }
+
+
+        double max = new DescriptiveStatistics(density).getMax();
+        int i=0;
+
+
         scatterChart.getData().add(series);
+
+
+        Set<Node> nodes = scatterChart.lookupAll(".series0");
+        for (Node n : nodes) {
+            double normalisedValue = density[i]/max;
+            Color color = ColourMapper.mapToColor(normalisedValue);
+            n.setStyle("-fx-background-color: rgb("+(int) Math.floor(color.getRed())+","+(int) Math.floor(color.getGreen())+","+(int) Math.floor(color.getBlue())+");"
+            +"-fx-background-radius: 1px;"
+            );
+            n.setScaleX(0.1);
+            n.setScaleY(0.1);
+            i++;
+        }
     }
 
 
@@ -218,4 +234,63 @@ public class CytometryChart {
     // TODO: Add in method to populate the charts
     // TODO: Add in method to label the chart axis
 
+    public static class Point {
+        private final double x;
+        private final double y;
+
+        private double density;
+
+        public Point(double x, double y){
+            this.x = x;
+            this.y = y;
+        }
+
+        public double getX() {
+            return x;
+        }
+
+        public double getY() {
+            return y;
+        }
+
+        public void setDensity(double density) {
+            this.density = density;
+        }
+
+        public void incrementDensity(double additionalDensity){
+            this.density += additionalDensity;
+        }
+
+        public void normaliseDensity(double divisor){
+            this.density /= divisor;
+        }
+
+        public double getDensity() {
+            return density;
+        }
+    }
+
+    public static class ColourMapper {
+
+
+        public static Color mapToColor(double x){
+            Color colour = null;
+
+            if (Double.compare(x, 1) > 0){
+                colour = Color.rgb(255, 255, 0);
+            } else if (Double.compare(1, x) >= 0 && Double.compare(x, 0.666) > 0){
+                colour = Color.rgb((int) Math.floor((x - 0.666)* 255/(0.333)), 255, 0);
+            } else if (Double.compare(0.666, x) >= 0 && Double.compare(x, 0.333) > 0){
+                colour = Color.rgb(0, 255, (int) Math.floor((1-((x - 0.333))/(0.333))*255));
+            } else if (Double.compare(0.333, x) >= 0 && Double.compare(x, 0) > 0){
+                colour = Color.rgb(0, (int) Math.floor((x)* 255/(0.333)), 255);
+            } else{
+                colour = Color.rgb(0, 0, 255);
+            }
+
+
+            return colour;
+        }
+
+    }
 }
