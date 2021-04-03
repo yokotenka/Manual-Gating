@@ -84,12 +84,12 @@ public class AxisTableEntry {
         return axisValue;
     }
 
-    public void setThresholdTextFields(double logThreshold) {
+    public void setThresholdTextFields(double logThreshold, double lowerBound) {
         this.logThresholdTextField.setText(String.valueOf(logThreshold));
 
-        if (Double.compare(logThreshold, -6) <= 0){
+        if (Double.compare(logThreshold, lowerBound) <= 0){
             this.thresholdTextField.setText(String.valueOf(0));
-            this.logThresholdTextField.setText(String.valueOf(-6));
+            this.logThresholdTextField.setText(String.valueOf(lowerBound));
             threshold = (double) 0;
         } else if (Double.compare(Math.exp(logThreshold), 255) > 0){
             threshold = (double) 255;

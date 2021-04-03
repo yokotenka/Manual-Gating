@@ -2,6 +2,7 @@ package com.wehi.TableTreeViewHelpers;
 
 import com.wehi.ChartVisualiseHelpers.BivariateKDE;
 import com.wehi.ThresholdedScatterChartWrapper;
+import javafx.collections.FXCollections;
 import javafx.geometry.Insets;
 import javafx.scene.Node;
 import javafx.scene.chart.LineChart;
@@ -52,6 +53,8 @@ public class CytometryChart {
     private String xAxisName;
     private String yAxisName;
 
+    private Series<Number, Number> series;
+    private boolean isFirstTime = true;
     private boolean isTwoDimensional = true;
 
     public static final double MAX_LOG_INTENSITY = 6;
@@ -97,6 +100,9 @@ public class CytometryChart {
         scatterChart.setLayoutX(20);
         scatterChart.setLayoutY(10);
         scatterChart.setLegendVisible(false);
+
+        series = new Series<>();
+        scatterChart.getData().add(series);
     }
 
 
@@ -132,15 +138,20 @@ public class CytometryChart {
 
     public void populateScatterChart(Collection<PathObject> cells, String xMeasurement, String yMeasurement){
 
-        if (!scatterChart.getData().isEmpty()){
-            scatterChart.getData().clear();
-        }
+//        if (!scatterChart.getData().isEmpty()){
+//            scatterChart.getData().clear();
+//        }
 
         // Assume that the event of a missing value is low. We will ignore such cells for our KDE.
         ArrayList<Point> dataPoints = new ArrayList<>();
         ArrayList<Double> x = new ArrayList<>();
         ArrayList<Double> y = new ArrayList<>();
-        Series<Number, Number> series = new Series<>();
+
+        if (!isFirstTime){
+
+            series = new Series<>();
+            scatterChart.setData(FXCollections.observableArrayList(series));
+        }
 
         for (PathObject cell : cells){
             if (Double.isNaN(cell.getMeasurementList().getMeasurementValue(xMeasurement)) ||
@@ -162,42 +173,34 @@ public class CytometryChart {
                 dataPoints.add(point);
             }
         }
-
+        isFirstTime = false;
         BivariateKDE kde = new BivariateKDE(x, y);
         double[] density = kde.estimate();
-        int k=0;
-//        for (PathObject cell : cells){
-//            if (k < density.length) {
-//                cell.getMeasurementList().putMeasurement("KDE", density[k]);
-//                cell.getMeasurementList().putMeasurement("Logged x", x.get(k));
-//                cell.getMeasurementList().putMeasurement("Logged y", y.get(k++));
-//
-//            }
-//        }
 
+        updateXBound(kde.getXOutlier(), MAX_LOG_INTENSITY);
+        updateYBounds(kde.getYOutlier(), MAX_LOG_INTENSITY);
 
         double max = new DescriptiveStatistics(density).getMax();
         int i=0;
 
 
-        scatterChart.getData().add(series);
-
-
         Set<Node> nodes = scatterChart.lookupAll(".series0");
+
+
         for (Node n : nodes) {
             double normalisedValue = density[i]/max;
             ColourMapper.Triplet color = ColourMapper.mapToColor(normalisedValue);
             n.setStyle("-fx-background-color: rgb("+color.getRed()+","+color.getGreen()+","+color.getBlue()+");"
             +"-fx-background-radius: 1px;"
             );
-            n.setScaleX(0.1);
-            n.setScaleY(0.1);
+            n.setScaleX(0.25);
+            n.setScaleY(0.25);
             i++;
         }
     }
 
 
-    public void updateXBounds(double lowerBound, double upperBound){
+    public void updateXBound(double lowerBound, double upperBound){
         xAxis.setLowerBound(lowerBound);
         xAxis.setUpperBound(upperBound);
 

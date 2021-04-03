@@ -9,8 +9,12 @@ import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
 import javafx.geometry.Orientation;
 import javafx.scene.chart.NumberAxis;
+import javafx.scene.control.Button;
 import javafx.scene.control.SplitPane;
+import javafx.scene.layout.HBox;
 import javafx.stage.Stage;
+import org.bytedeco.opencv.opencv_ml.DTrees;
+import qupath.lib.gui.dialogs.Dialogs;
 import qupath.lib.objects.PathObject;
 
 import java.util.ArrayList;
@@ -47,7 +51,7 @@ public class PhenotypeEntry {
     private String yAxisMarkerMeasurementName;
     // Deliminator
     private static String MEASUREMENT_DELIMINATOR = ": ";
-
+    private static String title = "Manual Gating";
     /* We will have a Column for each phenotype */
 
 
@@ -86,19 +90,25 @@ public class PhenotypeEntry {
         initialiseAxisOptionsTableCreator();
 
 
-
-
         /* Graph */
         initialiseCytometryChart(stage);
+
+
+
+
+        SplitPane loadChart = new SplitPane(
+                ManualGatingWindow.createColumn(
+                axisOptionsTableCreator.getTable(),
+                initialisePlotButton()),
+                phenotypeCreationTableCreator.getTable()
+        );
+        loadChart.setOrientation(Orientation.VERTICAL);
 
 
         /* Create column on the right */
         pane.setOrientation(Orientation.VERTICAL);
         pane.getItems().addAll(
-                ManualGatingWindow.createColumn(
-                        axisOptionsTableCreator.getTable(),
-                        phenotypeCreationTableCreator.getTable()
-                ),
+                loadChart,
                 cytometryChart.getPane()
         );
 
@@ -170,8 +180,6 @@ public class PhenotypeEntry {
                 if (axis2.getMeasurementsBox().getValue() != null && axis2.getMarkersBox().getValue() != null) {
                     updatePhenotypeCreationCreator(axis1.getMarkersBox().getValue(), axis2.getMarkersBox().getValue());
                     updateMeasurementNames();
-                    cytometryChart.updateAxisLabels(xAxisMarkerMeasurementName, yAxisMarkerMeasurementName);
-                    cytometryChart.populateScatterChart(cells, xAxisMarkerMeasurementName, yAxisMarkerMeasurementName);
                 }
             }
         });
@@ -180,8 +188,6 @@ public class PhenotypeEntry {
                 if (axis2.getMeasurementsBox().getValue() != null && axis2.getMarkersBox().getValue() != null) {
                     updatePhenotypeCreationCreator(axis1.getMarkersBox().getValue(), axis2.getMarkersBox().getValue());
                     updateMeasurementNames();
-                    cytometryChart.updateAxisLabels(xAxisMarkerMeasurementName, yAxisMarkerMeasurementName);
-                    cytometryChart.populateScatterChart(cells, xAxisMarkerMeasurementName, yAxisMarkerMeasurementName);
                 }
             }
         });
@@ -190,10 +196,20 @@ public class PhenotypeEntry {
     // The behaviour of the Sliders in the ChartWrapper to get the threshold values for each of the markers
     private void initialiseCytometryChart(Stage stage){
         cytometryChart = new CytometryChart(stage);
-        cytometryChart.getXSlider().valueProperty().addListener((arg0, oldValue, newValue) -> xAxis.setThresholdTextFields(newValue.doubleValue()));
+        cytometryChart.getXSlider().valueProperty().addListener(
+                (arg0, oldValue, newValue) -> xAxis.setThresholdTextFields(
+                        newValue.doubleValue(),
+                        cytometryChart.getXSlider().getMin()
+                )
+        );
 
 
-        cytometryChart.getYSlider().valueProperty().addListener((arg0, oldValue, newValue) -> yAxis.setThresholdTextFields(newValue.doubleValue()));
+        cytometryChart.getYSlider().valueProperty().addListener(
+                (arg0, oldValue, newValue) -> yAxis.setThresholdTextFields(
+                        newValue.doubleValue(),
+                        cytometryChart.getYSlider().getMin()
+                )
+        );
 
         xAxis.getLogThresholdTextField().setOnAction(e -> {
             if (xAxis.getLogThresholdTextField().getText(0, 1).equals(".")){
@@ -208,13 +224,15 @@ public class PhenotypeEntry {
             if (xAxis.getLogThresholdTextField().getText().equals("-0")){
                 xAxis.getLogThresholdTextField().setText("0");
             }
+
+
             if (Double.valueOf(xAxis.getLogThresholdTextField().getText()).compareTo(6.0) > 0){
                 xAxis.getLogThresholdTextField().setText("6");
             }
             if (Double.valueOf(xAxis.getLogThresholdTextField().getText()).compareTo(-6.0) < 0){
                 xAxis.getLogThresholdTextField().setText("-6");
             }
-            xAxis.setThresholdTextFields(Double.parseDouble(xAxis.getLogThresholdTextField().getText()));
+            xAxis.setThresholdTextFields(Double.parseDouble(xAxis.getLogThresholdTextField().getText()), cytometryChart.getXSlider().getMin());
             cytometryChart.getXSlider().setValue(Double.parseDouble(xAxis.getLogThresholdTextField().getText()));
         });
 
@@ -237,7 +255,7 @@ public class PhenotypeEntry {
             if (Double.valueOf(xAxis.getThresholdTextField().getText()).compareTo(0.0) < 0){
                 xAxis.getThresholdTextField().setText("0");
             }
-            xAxis.setThresholdTextFields(Math.log(Double.parseDouble(xAxis.getThresholdTextField().getText())));
+            xAxis.setThresholdTextFields(Math.log(Double.parseDouble(xAxis.getThresholdTextField().getText())), cytometryChart.getXSlider().getMin());
             cytometryChart.getXSlider().setValue(Math.log(Double.parseDouble(xAxis.getThresholdTextField().getText())));
         });
 
@@ -261,7 +279,7 @@ public class PhenotypeEntry {
             if (Double.valueOf(yAxis.getLogThresholdTextField().getText()).compareTo(-6.0) < 0){
                 yAxis.getLogThresholdTextField().setText("-6");
             }
-            yAxis.setThresholdTextFields(Double.parseDouble(yAxis.getLogThresholdTextField().getText()));
+            yAxis.setThresholdTextFields(Double.parseDouble(yAxis.getLogThresholdTextField().getText()), cytometryChart.getYSlider().getMin());
             cytometryChart.getYSlider().setValue(Double.parseDouble(yAxis.getLogThresholdTextField().getText()));
         });
 
@@ -284,10 +302,35 @@ public class PhenotypeEntry {
             if (Double.valueOf(yAxis.getThresholdTextField().getText()).compareTo(0.0) < 0){
                 yAxis.getThresholdTextField().setText("0");
             }
-            yAxis.setThresholdTextFields(Math.log(Double.parseDouble(yAxis.getThresholdTextField().getText())));
+            yAxis.setThresholdTextFields(Math.log(Double.parseDouble(yAxis.getThresholdTextField().getText())), cytometryChart.getYSlider().getMin());
             cytometryChart.getYSlider().setValue(Math.log(Double.parseDouble(yAxis.getThresholdTextField().getText())));
         });
 
+    }
+
+
+    private HBox initialisePlotButton(){
+
+        Button plotGraphButton = new Button("Plot Density Chart");
+        plotGraphButton.setOnAction(e -> {
+            if (xAxisMarkerMeasurementName!=null && yAxisMarkerMeasurementName!=null) {
+                cytometryChart.updateAxisLabels(xAxisMarkerMeasurementName, yAxisMarkerMeasurementName);
+                cytometryChart.populateScatterChart(cells, xAxisMarkerMeasurementName, yAxisMarkerMeasurementName);
+            } else{
+                Dialogs.showErrorMessage(title, "Please select the marker and the measurement to be used.");
+            }
+
+        });
+
+        return new HBox(plotGraphButton);
+    }
+
+    private HBox initialiseApplyThresholdButton(){
+
+        Button applyThresholdButton = new Button("Apply Threshold");
+
+
+        return new HBox(applyThresholdButton);
     }
 
 

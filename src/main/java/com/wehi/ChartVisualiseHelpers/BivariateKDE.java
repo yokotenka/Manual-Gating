@@ -82,5 +82,11 @@ public class BivariateKDE {
     }
 
 
+    public double getXOutlier(){
+        return ds1.getPercentile(25) - (ds1.getPercentile(75) - ds1.getPercentile(25)) * 3;
+    }
 
+    public double getYOutlier(){
+        return ds2.getPercentile(25) - (ds2.getPercentile(75) - ds2.getPercentile(25)) * 3;
+    }
 }
