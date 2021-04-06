@@ -3,12 +3,10 @@ package com.wehi.TableTreeViewHelpers;
 import javafx.scene.control.CheckBox;
 import javafx.scene.control.TextField;
 
-enum MARKER_COMBINATION{
-    TWO_POSITIVE,
-    TWO_NEGATIVE,
-    ONE_OF_EACH
-}
 
+
+// If MARKER_COMBINATION is ONE_OF_EACH, then markerOne is the positive marker,
+// markerTwo is the negative marker.
 public class PhenotypeCreationTableEntry {
 
     // TextField to write the phenotype in
@@ -18,6 +16,14 @@ public class PhenotypeCreationTableEntry {
     // Negative marker
     private String markerTwo;
 
+    // Measurement name;
+    private String measurementOne;
+    private String measurementTwo;
+
+    // Threshold value
+    private double thresholdOne;
+    private double thresholdTwo; 
+
     // Number of positive / negative
     private MARKER_COMBINATION markerCombination;
 
@@ -25,9 +31,13 @@ public class PhenotypeCreationTableEntry {
     private CheckBox selectedAsChildCheckBox = new CheckBox();
 
 
-    public PhenotypeCreationTableEntry(String markerOne, String markerTwo, MARKER_COMBINATION markerCombination){
+    public PhenotypeCreationTableEntry(String markerOne, String markerTwo, MARKER_COMBINATION markerCombination,
+    String measurementOne, String measurementTwo
+    ){
         this.markerOne = markerOne;
         this.markerTwo = markerTwo;
+        this.measurementOne = measurementOne;
+        this.measurementTwo = measurementTwo;
         this.markerCombination = markerCombination;
     }
 
@@ -89,11 +99,54 @@ public class PhenotypeCreationTableEntry {
         return markerTwo;
     }
 
+    public String getMarkerOne(){
+        return markerOne;
+    }
+
+
     public String getPositiveMarker() {
         return markerOne;
     }
 
     public String getPhenotypeName(){
         return phenotypeTextField.getText();
+    }
+
+    public boolean getIsSelected(){
+        return selectedAsChildCheckBox.isSelected();
+    }
+
+    public MARKER_COMBINATION getMARKERCOMBINATION(){
+        return markerCombination;
+    }
+
+    public String getMeasurementOne() {
+        return measurementOne;
+    }
+
+    public String getMeasurementTwo() {
+        return measurementTwo;
+    }
+
+    public void setThresholdOne(double thresholdOne) {
+        this.thresholdOne = thresholdOne;
+    }
+
+    public void setThresholdTwo(double thresholdTwo) {
+        this.thresholdTwo = thresholdTwo;
+    }
+
+    public double getThresholdOne() {
+        return thresholdOne;
+    }
+
+    public double getThresholdTwo() {
+        return thresholdTwo;
+    }
+
+    public enum MARKER_COMBINATION{
+        TWO_POSITIVE,
+        TWO_NEGATIVE,
+        ONE_OF_EACH
     }
 }

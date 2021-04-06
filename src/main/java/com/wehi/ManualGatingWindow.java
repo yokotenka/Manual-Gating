@@ -5,6 +5,7 @@ import javafx.beans.value.ChangeListener;
 import javafx.beans.value.ObservableValue;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
+import javafx.collections.ObservableListBase;
 import javafx.geometry.HPos;
 import javafx.geometry.Insets;
 import javafx.geometry.Pos;
@@ -17,6 +18,7 @@ import javafx.scene.layout.HBox;
 import javafx.scene.layout.VBox;
 import javafx.stage.Stage;
 import qupath.lib.gui.QuPathGUI;
+import qupath.lib.gui.dialogs.Dialogs;
 import qupath.lib.gui.viewer.QuPathViewer;
 import qupath.lib.images.ImageData;
 import qupath.lib.images.servers.ImageServer;
@@ -26,6 +28,7 @@ import qupath.lib.projects.Projects;
 
 import java.awt.image.BufferedImage;
 import java.io.File;
+import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
 import java.util.stream.Collectors;
@@ -41,19 +44,22 @@ public class ManualGatingWindow implements Runnable, ChangeListener<ImageData<Bu
 
 
     private VBox mainBox;
+    private SplitPane splitPane;
     private Stage stage;
     private TreeTableCreator<PhenotypeEntry> phenotypeHierarchy;
 
-    private ComboBox<String> dimensionsBox;
     private ComboBox<String> manualGatingOptionsBox;
     private Button confirmManualGatingOptionButton;
-    private CytometryChart cytometryChart;
 
-    private TableCreator<AxisTableEntry> axisOptionsTableCreator;
-    private TableCreator<PhenotypeCreationTableEntry> markerSignalCombinationTableEntryTableCreator;
+    private Button applyThresholdButton;
+    private HBox applyThresholdBox;
+    private VBox optionsColumn;
 
     private ObservableList<String> markers;
     private ObservableList<String> measurements;
+
+//    private PhenotypeEntry currentPhenotypeEntry;
+    private TreeItem<PhenotypeEntry> currentNode;
 
     public ManualGatingWindow(QuPathGUI quPathGUI){
         this.qupath = quPathGUI;
@@ -94,7 +100,7 @@ public class ManualGatingWindow implements Runnable, ChangeListener<ImageData<Bu
 
 
         /* The body of the options */
-        SplitPane splitPane = new SplitPane();
+        splitPane = new SplitPane();
 
 
         /* Initialise Phenotype Hierarchy */
@@ -106,7 +112,22 @@ public class ManualGatingWindow implements Runnable, ChangeListener<ImageData<Bu
         /* ***** Options column **************/
 
         /* Adding the main body to the scene */
-        splitPane.getItems().add(phenotypeHierarchy.getRoot().getValue().createPane(stage));
+        applyThresholdButton = new Button("Apply Threshold");
+        applyThresholdButton.setOnAction(e -> {
+            if (currentNode.getValue().getXAxisMarkerMeasurementName() != null &&
+                    currentNode.getValue().getYAxisMarkerMeasurementName()!=null)
+                createPhenotypes();
+        });
+        applyThresholdBox =  createHBox();
+        applyThresholdBox.getChildren().add(applyThresholdButton);
+        optionsColumn = createColumn(
+                phenotypeHierarchy.getRoot().getValue().createPane(stage),
+                applyThresholdBox
+        );
+
+        splitPane.getItems().add(
+                optionsColumn
+        );
 
         mainBox.getChildren().add(splitPane);
         stage.initOwner(QuPathGUI.getInstance().getStage());
@@ -162,25 +183,56 @@ public class ManualGatingWindow implements Runnable, ChangeListener<ImageData<Bu
 
     private void initialiseTreeTableView(){
         phenotypeHierarchy = new TreeTableCreator<>();
+
+        phenotypeHierarchy.getTreeTable().setRowFactory(tv -> {
+            TreeTableRow<PhenotypeEntry> row = new TreeTableRow<>();
+            row.setOnMouseClicked(event -> {
+                if (event.getClickCount() == 2 && (! row.isEmpty()) ) {
+                    PhenotypeEntry rowData = row.getItem();
+                    splitPane.getItems().remove(optionsColumn);
+
+                    if (rowData.getPane() == null) {
+                        optionsColumn = createColumn(
+                                rowData.createPane(stage),
+                                applyThresholdBox
+                        );
+                    } else{
+                        optionsColumn = createColumn(
+                                rowData.getPane(),
+                                applyThresholdBox
+                        );
+                    }
+
+                    splitPane.getItems().add(
+                            optionsColumn
+                    );
+                    currentNode = row.getTreeItem();
+                }
+            });
+            return row ;
+        });
+
+
         phenotypeHierarchy.getTreeTable().prefHeightProperty().bind(stage.heightProperty());
         phenotypeHierarchy.addColumn("Phenotype", "phenotypeName", 0.2);
-        phenotypeHierarchy.addColumn("Positive Markers", "positiveMarkersString", 0.4);
-        phenotypeHierarchy.addColumn("Negative Markers", "negativeMarkersString", 0.4);
+        phenotypeHierarchy.addColumn("Positive Markers", "positiveMarkers", 0.4);
+        phenotypeHierarchy.addColumn("Negative Markers", "negativeMarkers", 0.4);
 
         extractMarkers();
         extractMarkerMeasurements();
 
-        TreeItem<PhenotypeEntry> cell = new TreeItem<>(
-                new PhenotypeEntry(
-                        cells,
-                        "Cell",
-                        null,
-                        null,
-                        markers,
-                        measurements
-                )
+        PhenotypeEntry currentPhenotypeEntry = new PhenotypeEntry(
+                cells,
+                "Cell",
+                null,
+                null,
+                markers,
+                measurements
+        );
+        currentNode = new TreeItem<>(
+                currentPhenotypeEntry
             );
-        phenotypeHierarchy.setRoot(cell);
+        phenotypeHierarchy.setRoot(currentNode);
     }
 
     public static VBox createColumn(Node... nodes){
@@ -238,6 +290,130 @@ public class ManualGatingWindow implements Runnable, ChangeListener<ImageData<Bu
         return vBox;
     }
 
+
+    public void createPhenotypes(){
+        ObservableList<TreeItem<PhenotypeEntry>> newPhenotypes = FXCollections.observableArrayList();
+        for (PhenotypeCreationTableEntry entry : currentNode.getValue().getPhenotypeCreationTableCreator().getItems()){
+            if (entry.getIsSelected()){
+                if (entry.getMARKERCOMBINATION() == PhenotypeCreationTableEntry.MARKER_COMBINATION.TWO_POSITIVE){
+                    Collection<PathObject> filteredCells = currentNode.getValue().getCells()
+                            .stream()
+                            .filter(p -> p.getMeasurementList()
+                                    .getMeasurementValue(entry.getMeasurementOne()) > entry.getThresholdOne())
+                            .filter(p -> p.getMeasurementList()
+                                    .getMeasurementValue(entry.getMeasurementTwo()) > entry.getThresholdTwo())
+                            .collect(Collectors.toList());
+
+                    ArrayList<String> newPositiveMarkers;
+                    if (currentNode.getValue().getPositiveMarkers() != null) {
+                        newPositiveMarkers = new ArrayList<>(currentNode.getValue().getPositiveMarkers());
+                    } else{
+                        newPositiveMarkers = new ArrayList<>();
+                    }
+                    // Checks if markerOne is already in the positive array list
+                    if (!newPositiveMarkers.stream().anyMatch(p -> p.equals(entry.getMarkerOne()))){
+                        newPositiveMarkers.add(entry.getMarkerOne());
+                    }
+                    if (!newPositiveMarkers.stream().anyMatch(p -> p.equals(entry.getMarkerTwo()))){
+                        newPositiveMarkers.add(entry.getMarkerTwo());
+                    }
+
+                    PhenotypeEntry newPhenotype = new PhenotypeEntry(
+                            filteredCells,
+                            entry.getPhenotypeName(),
+                            newPositiveMarkers,
+                            new ArrayList<>(currentNode.getValue().getNegativeMarkers()),
+                            markers,
+                            measurements
+                    );
+                    newPhenotypes.add(new TreeItem<>(newPhenotype));
+                } else if (entry.getMARKERCOMBINATION() == PhenotypeCreationTableEntry.MARKER_COMBINATION.TWO_NEGATIVE){
+                    Collection<PathObject> filteredCells = currentNode.getValue().getCells()
+                            .stream()
+                            .filter(p -> p.getMeasurementList()
+                                    .getMeasurementValue(entry.getMeasurementOne()) < entry.getThresholdOne())
+                            .filter(p -> p.getMeasurementList()
+                                    .getMeasurementValue(entry.getMeasurementTwo()) < entry.getThresholdTwo())
+                            .collect(Collectors.toList());
+
+                    ArrayList<String> newNegativeMarkers;
+                    if (currentNode.getValue().getPositiveMarkers() != null) {
+                        newNegativeMarkers = new ArrayList<>(currentNode.getValue().getNegativeMarkers());
+                    } else{
+                        newNegativeMarkers = new ArrayList<>();
+                    }
+                    if (!newNegativeMarkers.stream().anyMatch(p -> p.equals(entry.getMarkerOne()))){
+                        newNegativeMarkers.add(entry.getMarkerOne());
+                    }
+                    if (!newNegativeMarkers.stream().anyMatch(p -> p.equals(entry.getMarkerTwo()))){
+                        newNegativeMarkers.add(entry.getMarkerTwo());
+                    }
+
+
+                    PhenotypeEntry newPhenotype = new PhenotypeEntry(
+                            filteredCells,
+                            entry.getPhenotypeName(),
+                            new ArrayList<>(currentNode.getValue().getPositiveMarkers()),
+                            newNegativeMarkers,
+                            markers,
+                            measurements
+                    );
+                    newPhenotypes.add(new TreeItem<>(newPhenotype));
+                } else {
+                    Collection<PathObject> filteredCells = currentNode.getValue().getCells()
+                            .stream()
+                            .filter(p -> p.getMeasurementList()
+                                    .getMeasurementValue(entry.getMeasurementOne()) > entry.getThresholdOne())
+                            .filter(p -> p.getMeasurementList()
+                                    .getMeasurementValue(entry.getMeasurementTwo()) < entry.getThresholdTwo())
+                            .collect(Collectors.toList());
+
+
+                    ArrayList<String> newPositiveMarkers;
+                    if (currentNode.getValue().getPositiveMarkers() != null) {
+                        newPositiveMarkers = new ArrayList<>(currentNode.getValue().getPositiveMarkers());
+                    } else{
+                        newPositiveMarkers = new ArrayList<>();
+                    }
+
+                    // Checks if markerOne is already in the positive array list
+                    if (!newPositiveMarkers.stream().anyMatch(p -> p.equals(entry.getMarkerOne()))){
+                        newPositiveMarkers.add(entry.getMarkerOne());
+                    }
+
+
+                    ArrayList<String> newNegativeMarkers;
+                    if (currentNode.getValue().getPositiveMarkers() != null) {
+                        newNegativeMarkers = new ArrayList<>(currentNode.getValue().getNegativeMarkers());
+                    } else{
+                        newNegativeMarkers = new ArrayList<>();
+                    }
+                    newNegativeMarkers.add(entry.getMarkerTwo());
+                    // Checks if markerTwo is already in the negative array list
+                    if (!newNegativeMarkers.stream().anyMatch(p -> p.equals(entry.getMarkerTwo()))){
+                        newNegativeMarkers.add(entry.getMarkerTwo());
+                    }
+
+
+                    PhenotypeEntry newPhenotype = new PhenotypeEntry(
+                            filteredCells,
+                            entry.getPhenotypeName(),
+                            newPositiveMarkers,
+                            newNegativeMarkers,
+                            markers,
+                            measurements
+                    );
+                    Dialogs.showInfoNotification(title, entry.getMeasurementOne());
+                    Dialogs.showInfoNotification(title, entry.getMeasurementTwo());
+                    Dialogs.showInfoNotification(title, String.valueOf(entry.getThresholdOne()));
+                    Dialogs.showInfoNotification(title, String.valueOf(0 == entry.getThresholdTwo()));
+                    newPhenotypes.add(new TreeItem<>(newPhenotype));
+                }
+
+            }
+        }
+        currentNode.getChildren().setAll(newPhenotypes);
+    }
 
 
     // Tree view helpers *****

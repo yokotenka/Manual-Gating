@@ -22,7 +22,7 @@ public class AxisTableEntry {
     private TextField thresholdTextField = new TextField((String.valueOf(Math.exp(0))));
 
     // Threshold value
-    private Double threshold = (double) 0;
+    private double threshold = (double) 0;
 
     public AxisTableEntry(AxisValue axisValue, ObservableList<String> markers, ObservableList<String> measurements){
         this.axisValue = axisValue;
@@ -76,7 +76,7 @@ public class AxisTableEntry {
         return measurementsBox.getValue();
     }
 
-    public Double getThreshold() {
+    public double getThreshold() {
         return threshold;
     }
 
@@ -90,11 +90,12 @@ public class AxisTableEntry {
         if (Double.compare(logThreshold, lowerBound) <= 0){
             this.thresholdTextField.setText(String.valueOf(0));
             this.logThresholdTextField.setText(String.valueOf(lowerBound));
-            threshold = (double) 0;
+            threshold = 0;
         } else if (Double.compare(Math.exp(logThreshold), 255) > 0){
-            threshold = (double) 255;
+            threshold = 255;
             this.thresholdTextField.setText(String.valueOf(255));
         } else {
+            threshold = Math.exp(logThreshold);
             this.thresholdTextField.setText(String.valueOf(Math.exp(logThreshold)));
         }
     }

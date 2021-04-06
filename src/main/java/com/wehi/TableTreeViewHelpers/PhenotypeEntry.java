@@ -150,10 +150,10 @@ public class PhenotypeEntry {
 
         ObservableList<PhenotypeCreationTableEntry> list = FXCollections.observableArrayList();
 
-        list.add(new PhenotypeCreationTableEntry(marker2, marker1, MARKER_COMBINATION.TWO_POSITIVE));
-        list.add(new PhenotypeCreationTableEntry(marker1, marker2, MARKER_COMBINATION.ONE_OF_EACH));
-        list.add(new PhenotypeCreationTableEntry(marker2, marker1, MARKER_COMBINATION.ONE_OF_EACH));
-        list.add(new PhenotypeCreationTableEntry(marker1, marker2, MARKER_COMBINATION.TWO_NEGATIVE));
+        list.add(new PhenotypeCreationTableEntry(marker2, marker1, PhenotypeCreationTableEntry.MARKER_COMBINATION.TWO_POSITIVE, yAxisMarkerMeasurementName, xAxisMarkerMeasurementName));
+        list.add(new PhenotypeCreationTableEntry(marker1, marker2, PhenotypeCreationTableEntry.MARKER_COMBINATION.ONE_OF_EACH, xAxisMarkerMeasurementName, yAxisMarkerMeasurementName));
+        list.add(new PhenotypeCreationTableEntry(marker2, marker1, PhenotypeCreationTableEntry.MARKER_COMBINATION.ONE_OF_EACH, yAxisMarkerMeasurementName, xAxisMarkerMeasurementName));
+        list.add(new PhenotypeCreationTableEntry(marker1, marker2, PhenotypeCreationTableEntry.MARKER_COMBINATION.TWO_NEGATIVE, xAxisMarkerMeasurementName, yAxisMarkerMeasurementName));
 
         phenotypeCreationTableCreator.getTable().setItems(list);
     }
@@ -164,8 +164,19 @@ public class PhenotypeEntry {
     }
 
 
+    private void updatePhenotypeCreationXAxisThresholds(double xAxisThreshold){
+        phenotypeCreationTableCreator.getItems().get(0).setThresholdTwo(xAxisThreshold);
+        phenotypeCreationTableCreator.getItems().get(1).setThresholdOne(xAxisThreshold);
+        phenotypeCreationTableCreator.getItems().get(2).setThresholdTwo(xAxisThreshold);
+        phenotypeCreationTableCreator.getItems().get(3).setThresholdOne(xAxisThreshold);
+    }
 
-
+    private void updatePhenotypeCreationYAxisThresholds(double yAxisThreshold){
+        phenotypeCreationTableCreator.getItems().get(0).setThresholdOne(yAxisThreshold);
+        phenotypeCreationTableCreator.getItems().get(1).setThresholdTwo(yAxisThreshold);
+        phenotypeCreationTableCreator.getItems().get(2).setThresholdOne(yAxisThreshold);
+        phenotypeCreationTableCreator.getItems().get(3).setThresholdTwo(yAxisThreshold);
+    }
 
 
 
@@ -173,21 +184,24 @@ public class PhenotypeEntry {
 
     /* ******************** The behaviour of the nodes which exists in other classes ******************************* */
 
+    // TODO: NEEd to fix this. DOes not make sense 
     // The behaviour for the ComboBoxes in the AxisTableEntry to set the marker and measurement names
     private void createSetOnAction(AxisTableEntry axis1, AxisTableEntry axis2){
         axis1.getMarkersBox().setOnAction(e -> {
             if (axis1.getMeasurementsBox().getValue() != null) {
                 if (axis2.getMeasurementsBox().getValue() != null && axis2.getMarkersBox().getValue() != null) {
-                    updatePhenotypeCreationCreator(axis1.getMarkersBox().getValue(), axis2.getMarkersBox().getValue());
                     updateMeasurementNames();
+                    updatePhenotypeCreationCreator(axis1.getMarkersBox().getValue(), axis2.getMarkersBox().getValue());
+
                 }
             }
         });
         axis1.getMeasurementsBox().setOnAction(e -> {
             if (axis1.getMarkersBox().getValue() != null) {
                 if (axis2.getMeasurementsBox().getValue() != null && axis2.getMarkersBox().getValue() != null) {
-                    updatePhenotypeCreationCreator(axis1.getMarkersBox().getValue(), axis2.getMarkersBox().getValue());
                     updateMeasurementNames();
+                    updatePhenotypeCreationCreator(axis1.getMarkersBox().getValue(), axis2.getMarkersBox().getValue());
+
                 }
             }
         });
@@ -197,18 +211,23 @@ public class PhenotypeEntry {
     private void initialiseCytometryChart(Stage stage){
         cytometryChart = new CytometryChart(stage);
         cytometryChart.getXSlider().valueProperty().addListener(
-                (arg0, oldValue, newValue) -> xAxis.setThresholdTextFields(
+                (arg0, oldValue, newValue) -> {
+                    xAxis.setThresholdTextFields(
                         newValue.doubleValue(),
-                        cytometryChart.getXSlider().getMin()
-                )
+                        cytometryChart.getXSlider().getMin());
+                    updatePhenotypeCreationXAxisThresholds(xAxis.getThreshold());
+                }
+
         );
 
-
         cytometryChart.getYSlider().valueProperty().addListener(
-                (arg0, oldValue, newValue) -> yAxis.setThresholdTextFields(
-                        newValue.doubleValue(),
-                        cytometryChart.getYSlider().getMin()
-                )
+                (arg0, oldValue, newValue) -> {
+                    yAxis.setThresholdTextFields(
+                            newValue.doubleValue(),
+                            cytometryChart.getYSlider().getMin()
+                    );
+                    updatePhenotypeCreationYAxisThresholds(yAxis.getThreshold());
+                }
         );
 
         xAxis.getLogThresholdTextField().setOnAction(e -> {
@@ -234,6 +253,8 @@ public class PhenotypeEntry {
             }
             xAxis.setThresholdTextFields(Double.parseDouble(xAxis.getLogThresholdTextField().getText()), cytometryChart.getXSlider().getMin());
             cytometryChart.getXSlider().setValue(Double.parseDouble(xAxis.getLogThresholdTextField().getText()));
+            updatePhenotypeCreationXAxisThresholds(xAxis.getThreshold());
+
         });
 
         xAxis.getThresholdTextField().setOnAction(e -> {
@@ -257,6 +278,7 @@ public class PhenotypeEntry {
             }
             xAxis.setThresholdTextFields(Math.log(Double.parseDouble(xAxis.getThresholdTextField().getText())), cytometryChart.getXSlider().getMin());
             cytometryChart.getXSlider().setValue(Math.log(Double.parseDouble(xAxis.getThresholdTextField().getText())));
+            updatePhenotypeCreationXAxisThresholds(xAxis.getThreshold());
         });
 
 
@@ -281,6 +303,7 @@ public class PhenotypeEntry {
             }
             yAxis.setThresholdTextFields(Double.parseDouble(yAxis.getLogThresholdTextField().getText()), cytometryChart.getYSlider().getMin());
             cytometryChart.getYSlider().setValue(Double.parseDouble(yAxis.getLogThresholdTextField().getText()));
+            updatePhenotypeCreationYAxisThresholds(yAxis.getThreshold());
         });
 
         yAxis.getThresholdTextField().setOnAction(e -> {
@@ -304,6 +327,7 @@ public class PhenotypeEntry {
             }
             yAxis.setThresholdTextFields(Math.log(Double.parseDouble(yAxis.getThresholdTextField().getText())), cytometryChart.getYSlider().getMin());
             cytometryChart.getYSlider().setValue(Math.log(Double.parseDouble(yAxis.getThresholdTextField().getText())));
+            updatePhenotypeCreationYAxisThresholds(yAxis.getThreshold());
         });
 
     }
@@ -325,13 +349,8 @@ public class PhenotypeEntry {
         return new HBox(plotGraphButton);
     }
 
-    private HBox initialiseApplyThresholdButton(){
-
-        Button applyThresholdButton = new Button("Apply Threshold");
 
 
-        return new HBox(applyThresholdButton);
-    }
 
 
 
@@ -358,7 +377,7 @@ public class PhenotypeEntry {
     }
 
     public String getNegativeMarkersString(){
-        return negativeMarkers.toString().substring(1, positiveMarkers.toString().length()-1);
+        return negativeMarkers.toString().substring(1, negativeMarkers.toString().length()-1);
     }
 
     /**
@@ -370,6 +389,28 @@ public class PhenotypeEntry {
     }
 
 
+    public TableCreator<PhenotypeCreationTableEntry> getPhenotypeCreationTableCreator() {
+        return phenotypeCreationTableCreator;
+    }
 
 
+    public double getXAxisThreshold(){
+        return xAxis.getThreshold();
+    }
+
+    public double getYAxisThreshold(){
+        return yAxis.getThreshold();
+    }
+
+    public String getXAxisMarkerMeasurementName(){
+        return xAxisMarkerMeasurementName;
+    }
+
+    public String getYAxisMarkerMeasurementName() {
+        return yAxisMarkerMeasurementName;
+    }
+
+    public Collection<PathObject> getCells(){
+        return cells;
+    }
 }
