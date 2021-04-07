@@ -1,14 +1,13 @@
 package com.wehi.TableTreeViewHelpers;
 
-import javafx.beans.value.ChangeListener;
-import javafx.beans.value.ObservableValue;
-import javafx.collections.FXCollections;
+
 import javafx.collections.ObservableList;
 import javafx.scene.control.ComboBox;
 import javafx.scene.control.TextField;
 
 public class AxisTableEntry {
 
+    private static String MEASUREMENT_DELIMINATOR = ": ";
     // Axis the marker is on
     private AxisValue axisValue;
 
@@ -20,6 +19,8 @@ public class AxisTableEntry {
     private TextField logThresholdTextField = new TextField("0");
 
     private TextField thresholdTextField = new TextField((String.valueOf(Math.exp(0))));
+
+    private String measurementName;
 
     // Threshold value
     private double threshold = (double) 0;
@@ -106,5 +107,9 @@ public class AxisTableEntry {
 
     public TextField getThresholdTextField() {
         return thresholdTextField;
+    }
+
+    public String getFullMeasurementName(){
+        return getMarkerName()+ MEASUREMENT_DELIMINATOR +getMeasurementName();
     }
 }

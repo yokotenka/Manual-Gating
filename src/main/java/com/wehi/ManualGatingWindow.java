@@ -293,7 +293,7 @@ public class ManualGatingWindow implements Runnable, ChangeListener<ImageData<Bu
 
     public void createPhenotypes(){
         ObservableList<TreeItem<PhenotypeEntry>> newPhenotypes = FXCollections.observableArrayList();
-        for (PhenotypeCreationTableEntry entry : currentNode.getValue().getPhenotypeCreationTableCreator().getItems()){
+        for (PhenotypeCreationTableEntry entry : currentNode.getValue().getPhenotypeCreationTableCreator().getTable().getItems()){
             if (entry.getIsSelected()){
                 if (entry.getMARKERCOMBINATION() == PhenotypeCreationTableEntry.MARKER_COMBINATION.TWO_POSITIVE){
                     Collection<PathObject> filteredCells = currentNode.getValue().getCells()
@@ -375,7 +375,13 @@ public class ManualGatingWindow implements Runnable, ChangeListener<ImageData<Bu
                     } else{
                         newPositiveMarkers = new ArrayList<>();
                     }
-
+                    Dialogs.showConfirmDialog(title, entry.getPhenotypeName());
+                    Dialogs.showConfirmDialog(title, entry.getMarkerOne());
+                    Dialogs.showConfirmDialog(title, entry.getMarkerTwo());
+                    Dialogs.showConfirmDialog(title, entry.getPhenotypeName());
+                    Dialogs.showConfirmDialog(title, entry.getMeasurementOne());
+                    Dialogs.showConfirmDialog(title, entry.getMeasurementTwo());
+                    Dialogs.showConfirmDialog(title, String.valueOf(filteredCells.size()));
                     // Checks if markerOne is already in the positive array list
                     if (!newPositiveMarkers.stream().anyMatch(p -> p.equals(entry.getMarkerOne()))){
                         newPositiveMarkers.add(entry.getMarkerOne());
@@ -403,10 +409,6 @@ public class ManualGatingWindow implements Runnable, ChangeListener<ImageData<Bu
                             markers,
                             measurements
                     );
-                    Dialogs.showInfoNotification(title, entry.getMeasurementOne());
-                    Dialogs.showInfoNotification(title, entry.getMeasurementTwo());
-                    Dialogs.showInfoNotification(title, String.valueOf(entry.getThresholdOne()));
-                    Dialogs.showInfoNotification(title, String.valueOf(0 == entry.getThresholdTwo()));
                     newPhenotypes.add(new TreeItem<>(newPhenotype));
                 }
 

@@ -50,7 +50,7 @@ public class PhenotypeEntry {
     // y-Axis Marker measurement name
     private String yAxisMarkerMeasurementName;
     // Deliminator
-    private static String MEASUREMENT_DELIMINATOR = ": ";
+
     private static String title = "Manual Gating";
     /* We will have a Column for each phenotype */
 
@@ -132,8 +132,7 @@ public class PhenotypeEntry {
         axisOptionsTableCreator.addRow(xAxis);
         axisOptionsTableCreator.addRow(yAxis);
 
-        createSetOnAction(xAxis, yAxis);
-        createSetOnAction(yAxis, xAxis);
+        createSetOnAction();
     }
 
     public void initialisePhenotypeCreationTableCreator(){
@@ -146,36 +145,60 @@ public class PhenotypeEntry {
     }
 
 
-    private void updatePhenotypeCreationCreator(String marker1, String marker2){
+    private void updatePhenotypeCreationCreator(){
 
         ObservableList<PhenotypeCreationTableEntry> list = FXCollections.observableArrayList();
+        // Two positive
+        list.add(
+                new PhenotypeCreationTableEntry(
+                    yAxis.getMarkerName(),
+                    xAxis.getMarkerName(),
+                    PhenotypeCreationTableEntry.MARKER_COMBINATION.TWO_POSITIVE,
+                    yAxis.getFullMeasurementName(),
+                    xAxis.getFullMeasurementName()
+                )
+        );
 
-        list.add(new PhenotypeCreationTableEntry(marker2, marker1, PhenotypeCreationTableEntry.MARKER_COMBINATION.TWO_POSITIVE, yAxisMarkerMeasurementName, xAxisMarkerMeasurementName));
-        list.add(new PhenotypeCreationTableEntry(marker1, marker2, PhenotypeCreationTableEntry.MARKER_COMBINATION.ONE_OF_EACH, xAxisMarkerMeasurementName, yAxisMarkerMeasurementName));
-        list.add(new PhenotypeCreationTableEntry(marker2, marker1, PhenotypeCreationTableEntry.MARKER_COMBINATION.ONE_OF_EACH, yAxisMarkerMeasurementName, xAxisMarkerMeasurementName));
-        list.add(new PhenotypeCreationTableEntry(marker1, marker2, PhenotypeCreationTableEntry.MARKER_COMBINATION.TWO_NEGATIVE, xAxisMarkerMeasurementName, yAxisMarkerMeasurementName));
+        // X axis positive
+        list.add(new PhenotypeCreationTableEntry(xAxis.getMarkerName(),
+                yAxis.getMarkerName(),
+                PhenotypeCreationTableEntry.MARKER_COMBINATION.ONE_OF_EACH,
+                xAxis.getFullMeasurementName(),
+                yAxis.getFullMeasurementName()));
+
+        // Y axis positive
+        list.add(new PhenotypeCreationTableEntry(yAxis.getMarkerName(),
+                xAxis.getMarkerName(),
+                PhenotypeCreationTableEntry.MARKER_COMBINATION.ONE_OF_EACH,
+                yAxis.getFullMeasurementName(),
+                xAxis.getFullMeasurementName()));
+        list.add(new PhenotypeCreationTableEntry(xAxis.getMarkerName(),
+                yAxis.getMarkerName(), PhenotypeCreationTableEntry.MARKER_COMBINATION.TWO_NEGATIVE,
+                xAxis.getFullMeasurementName(), yAxis.getFullMeasurementName()));
 
         phenotypeCreationTableCreator.getTable().setItems(list);
     }
 
     private void updateMeasurementNames(){
-        xAxisMarkerMeasurementName = xAxis.getMarkersBox().getValue() + MEASUREMENT_DELIMINATOR + xAxis.getMeasurementsBox().getValue();
-        yAxisMarkerMeasurementName = yAxis.getMarkersBox().getValue() + MEASUREMENT_DELIMINATOR + yAxis.getMeasurementsBox().getValue();
+        xAxisMarkerMeasurementName = xAxis.getFullMeasurementName();
+        yAxisMarkerMeasurementName = yAxis.getFullMeasurementName();
+
     }
 
 
     private void updatePhenotypeCreationXAxisThresholds(double xAxisThreshold){
-        phenotypeCreationTableCreator.getItems().get(0).setThresholdTwo(xAxisThreshold);
-        phenotypeCreationTableCreator.getItems().get(1).setThresholdOne(xAxisThreshold);
-        phenotypeCreationTableCreator.getItems().get(2).setThresholdTwo(xAxisThreshold);
-        phenotypeCreationTableCreator.getItems().get(3).setThresholdOne(xAxisThreshold);
+//        Dialogs.showInfoNotification(title, String.valueOf(phenotypeCreationTableCreator.getItems()==null));
+        phenotypeCreationTableCreator.getTable().getItems().get(0).setThresholdTwo(xAxisThreshold);
+        phenotypeCreationTableCreator.getTable().getItems().get(1).setThresholdOne(xAxisThreshold);
+        phenotypeCreationTableCreator.getTable().getItems().get(2).setThresholdTwo(xAxisThreshold);
+        phenotypeCreationTableCreator.getTable().getItems().get(3).setThresholdOne(xAxisThreshold);
     }
 
     private void updatePhenotypeCreationYAxisThresholds(double yAxisThreshold){
-        phenotypeCreationTableCreator.getItems().get(0).setThresholdOne(yAxisThreshold);
-        phenotypeCreationTableCreator.getItems().get(1).setThresholdTwo(yAxisThreshold);
-        phenotypeCreationTableCreator.getItems().get(2).setThresholdOne(yAxisThreshold);
-        phenotypeCreationTableCreator.getItems().get(3).setThresholdTwo(yAxisThreshold);
+        phenotypeCreationTableCreator.getTable().getItems().get(0).setThresholdOne(yAxisThreshold);
+        phenotypeCreationTableCreator.getTable().getItems().get(1).setThresholdTwo(yAxisThreshold);
+        phenotypeCreationTableCreator.getTable().getItems().get(2).setThresholdOne(yAxisThreshold);
+        phenotypeCreationTableCreator.getTable().getItems().get(3).setThresholdTwo(yAxisThreshold);
     }
 
 
@@ -186,25 +209,41 @@ public class PhenotypeEntry {
 
     // TODO: NEEd to fix this. DOes not make sense 
     // The behaviour for the ComboBoxes in the AxisTableEntry to set the marker and measurement names
-    private void createSetOnAction(AxisTableEntry axis1, AxisTableEntry axis2){
-        axis1.getMarkersBox().setOnAction(e -> {
-            if (axis1.getMeasurementsBox().getValue() != null) {
-                if (axis2.getMeasurementsBox().getValue() != null && axis2.getMarkersBox().getValue() != null) {
+    private void createSetOnAction(){
+        xAxis.getMarkersBox().setOnAction(e -> {
+            if (xAxis.getMeasurementsBox().getValue() != null) {
+                if (yAxis.getMeasurementsBox().getValue() != null && yAxis.getMarkersBox().getValue() != null) {
                     updateMeasurementNames();
-                    updatePhenotypeCreationCreator(axis1.getMarkersBox().getValue(), axis2.getMarkersBox().getValue());
-
+                    updatePhenotypeCreationCreator();
                 }
             }
         });
-        axis1.getMeasurementsBox().setOnAction(e -> {
-            if (axis1.getMarkersBox().getValue() != null) {
-                if (axis2.getMeasurementsBox().getValue() != null && axis2.getMarkersBox().getValue() != null) {
+        xAxis.getMeasurementsBox().setOnAction(e -> {
+            if (xAxis.getMarkersBox().getValue() != null) {
+                if (yAxis.getMeasurementsBox().getValue() != null && yAxis.getMarkersBox().getValue() != null) {
                     updateMeasurementNames();
-                    updatePhenotypeCreationCreator(axis1.getMarkersBox().getValue(), axis2.getMarkersBox().getValue());
-
+                    updatePhenotypeCreationCreator();
                 }
             }
         });
+
+        yAxis.getMarkersBox().setOnAction(e -> {
+            if (yAxis.getMeasurementsBox().getValue() != null) {
+                if (xAxis.getMeasurementsBox().getValue() != null && xAxis.getMarkersBox().getValue() != null) {
+                    updateMeasurementNames();
+                    updatePhenotypeCreationCreator();
+                }
+            }
+        });
+        yAxis.getMeasurementsBox().setOnAction(e -> {
+            if (yAxis.getMarkersBox().getValue() != null) {
+                if (xAxis.getMeasurementsBox().getValue() != null && xAxis.getMarkersBox().getValue() != null) {
+                    updateMeasurementNames();
+                    updatePhenotypeCreationCreator();
+                }
+            }
+        });
+
     }
 
     // The behaviour of the Sliders in the ChartWrapper to get the threshold values for each of the markers
