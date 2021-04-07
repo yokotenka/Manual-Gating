@@ -1,43 +1,44 @@
 package com.wehi.ChartVisualiseHelpers;
 
-import com.wehi.TableTreeViewHelpers.CytometryChart;
-import javafx.geometry.Point2D;
 import org.apache.commons.math3.stat.descriptive.DescriptiveStatistics;
-import qupath.lib.objects.PathObject;
-
 import java.util.ArrayList;
-import java.util.Collection;
-import java.util.Collections;
 
+/**
+ * Bi-Variate KDE Assuming the Bi-variate Gaussian are independent
+ */
 public class BivariateKDE {
-
-
+    // Number of dimensions
     public static final int dimensions = 2;
-    private double[][] bandwidthMatrix;
+    // The bandwidth matrix
+    private final double[][] bandwidthMatrix;
 
-    private ArrayList<CytometryChart.Point> dataPoints;
-
+    // stats for x
     private DescriptiveStatistics ds1;
+    // stats for y
     private DescriptiveStatistics ds2;
 
+    // x
     private ArrayList<Double> x;
+    // y
     private ArrayList<Double> y;
 
-    private double[] density;
-
-
+    /**
+     * Constructor
+     * @param x x values
+     * @param y y values
+     */
     public BivariateKDE(ArrayList<Double> x, ArrayList<Double> y){
         this.x = x;
         this.y = y;
-
         bandwidthMatrix = new double[dimensions][dimensions];
         calculateBandwidths();
     }
 
 
-
-
-
+    /**
+     * Estimate the densities
+     * @return double[] containing the estimates at each point (x,y)
+     */
     public double[] estimate(){
 
         double[] densities = new double[x.size()];
@@ -49,21 +50,24 @@ public class BivariateKDE {
             bivariateNormalDistribution.setMean(x.get(i), y.get(i));
             for (int j=0; j < x.size(); j++){
                 if (isFirstPoint) {
-                    densities[j] = bivariateNormalDistribution.density(x.get(j), y.get(j));
+                    densities[j] = bivariateNormalDistribution.density(x.get(j), y.get(j)) / x.size();
                     isFirstPoint = false;
                 } else {
-                    densities[j] += bivariateNormalDistribution.density(x.get(j), y.get(j));
+                    densities[j] += bivariateNormalDistribution.density(x.get(j), y.get(j)) / x.size();
                 }
             }
         }
 
-        for (int k=0; k< densities.length; k++){
-            densities[k] = densities[k] / x.size();
-        }
-
+//        // Normalises each point
+//        for (int k=0; k< densities.length; k++){
+//            densities[k] = densities[k];
+//        }
         return densities;
     }
 
+    /**
+     * Calculates the bandwidth matrix
+     */
     public void calculateBandwidths(){
         ds1 = new DescriptiveStatistics(x.stream().mapToDouble(p -> p).toArray());
         ds2 = new DescriptiveStatistics(y.stream().mapToDouble(p -> p).toArray());
@@ -81,12 +85,63 @@ public class BivariateKDE {
         bandwidthMatrix[1][1] = Math.pow(num * ds2.getStandardDeviation(),2);
     }
 
-
+    /**
+     * Get the X outlier. Needed to rescale the chart
+     * @return lower outlier cutoff
+     */
     public double getXOutlier(){
         return ds1.getPercentile(25) - (ds1.getPercentile(75) - ds1.getPercentile(25)) * 3;
     }
 
+    /**
+     * Get the Y outlier. Needed to rescale the chart
+     * @return lower outlier cutoff
+     */
     public double getYOutlier(){
         return ds2.getPercentile(25) - (ds2.getPercentile(75) - ds2.getPercentile(25)) * 3;
     }
+
+
+    /**
+     * The Independent Bi-Variate Normal Distribution
+     */
+    public class IndependentBivariateNormalDistribution {
+        // Covariance matrix
+        private double[][] covarianceMatrix;
+        // mean of the two variables
+        private double[] mean;
+
+        /**
+         * Constructor
+         * @param covarianceMatrix covariance matrix
+         */
+        public IndependentBivariateNormalDistribution(double[][] covarianceMatrix){
+            this.covarianceMatrix = covarianceMatrix;
+            this.mean = new double[2];
+        }
+
+        /**
+         * set means for the two variables
+         * @param mean1 mean for variable 1
+         * @param mean2 mean for variable 2
+         */
+        public void setMean(double mean1, double mean2){
+            mean[0] = mean1;
+            mean[1] = mean2;
+        }
+
+        /**
+         * Get the density for the specified point (x1, x2)
+         * @param x1 x1
+         * @param x2 x2
+         * @return density at that point
+         */
+        public double density(double x1, double x2){
+            double exponent1 = (x1 - mean[0]) * (x1 - mean[0]) / covarianceMatrix[0][0];
+            double exponent2 = (x2 - mean[1]) * (x2 - mean[1]) / covarianceMatrix[1][1];
+            return (1 / (2 * Math.PI * Math.sqrt(covarianceMatrix[0][0]) * Math.sqrt(covarianceMatrix[1][1])))
+                    * Math.exp(-0.5 * (exponent1 + exponent2));
+        }
+    }
+
 }

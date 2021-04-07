@@ -1,11 +1,10 @@
 package com.wehi;
 
-import com.wehi.TableTreeViewHelpers.*;
+import com.wehi.TableViewHelpers.*;
 import javafx.beans.value.ChangeListener;
 import javafx.beans.value.ObservableValue;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
-import javafx.collections.ObservableListBase;
 import javafx.geometry.HPos;
 import javafx.geometry.Insets;
 import javafx.geometry.Pos;
@@ -23,8 +22,9 @@ import qupath.lib.gui.viewer.QuPathViewer;
 import qupath.lib.images.ImageData;
 import qupath.lib.images.servers.ImageServer;
 import qupath.lib.objects.PathObject;
+import qupath.lib.objects.classes.PathClass;
+import qupath.lib.objects.classes.PathClassFactory;
 import qupath.lib.projects.Projects;
-
 
 import java.awt.image.BufferedImage;
 import java.io.File;
@@ -33,34 +33,60 @@ import java.util.Collection;
 import java.util.List;
 import java.util.stream.Collectors;
 
+/**
+ * The main window which will be displayed upon opening the extension.
+ *
+ */
+// TODO: Need to implement a way to switch between images and remember them
 public class ManualGatingWindow implements Runnable, ChangeListener<ImageData<BufferedImage>> {
+    // The instance of qupath
     private QuPathGUI qupath;
+    // The instance of the qupath viewer
     private QuPathViewer viewer;
+    // The currently displayed image data
     private ImageData<BufferedImage> imageData;
+    // The currently displayed image
     private ImageServer<BufferedImage> imageServer;
+    // The cells in the image
     private Collection<PathObject> cells;
 
+    // Title
     private final String title = "Manual Gating";
 
-
+    // The main scene to be displayed in the stage
     private VBox mainBox;
+    // The middle bit
     private SplitPane splitPane;
+    // The stage
     private Stage stage;
+
+    // The phenotype hierarchy
     private TreeTableCreator<PhenotypeEntry> phenotypeHierarchy;
 
+    // for selecting previously saved options
     private ComboBox<String> manualGatingOptionsBox;
+    // button to confirm gating option
     private Button confirmManualGatingOptionButton;
 
+    // apply threshold
     private Button applyThresholdButton;
     private HBox applyThresholdBox;
+
+    // Where the pane for each phenotype is
     private VBox optionsColumn;
 
+    // The markers in the image
     private ObservableList<String> markers;
+    // The  available measurements
     private ObservableList<String> measurements;
 
-//    private PhenotypeEntry currentPhenotypeEntry;
+    // The current phenotype
     private TreeItem<PhenotypeEntry> currentNode;
 
+    /**
+     * Constructor for the ManualGatingWindow
+     * @param quPathGUI
+     */
     public ManualGatingWindow(QuPathGUI quPathGUI){
         this.qupath = quPathGUI;
     }
@@ -71,7 +97,9 @@ public class ManualGatingWindow implements Runnable, ChangeListener<ImageData<Bu
         stage.show();
     }
 
-
+    /**
+     * Creates the stage for the plugin
+     */
     public void createDialog(){
         stage = new Stage();
 
@@ -136,7 +164,12 @@ public class ManualGatingWindow implements Runnable, ChangeListener<ImageData<Bu
         stage.setHeight(500);
     }
 
-
+    /**
+     * To observe when image changes
+     * @param observableValue
+     * @param bufferedImageImageData
+     * @param t1
+     */
     @Override
     public void changed(ObservableValue<? extends ImageData<BufferedImage>> observableValue,
                         ImageData<BufferedImage> bufferedImageImageData, ImageData<BufferedImage> t1) {
@@ -183,7 +216,6 @@ public class ManualGatingWindow implements Runnable, ChangeListener<ImageData<Bu
 
     private void initialiseTreeTableView(){
         phenotypeHierarchy = new TreeTableCreator<>();
-
         phenotypeHierarchy.getTreeTable().setRowFactory(tv -> {
             TreeTableRow<PhenotypeEntry> row = new TreeTableRow<>();
             row.setOnMouseClicked(event -> {
@@ -211,7 +243,6 @@ public class ManualGatingWindow implements Runnable, ChangeListener<ImageData<Bu
             });
             return row ;
         });
-
 
         phenotypeHierarchy.getTreeTable().prefHeightProperty().bind(stage.heightProperty());
         phenotypeHierarchy.addColumn("Phenotype", "phenotypeName", 0.2);
@@ -242,7 +273,9 @@ public class ManualGatingWindow implements Runnable, ChangeListener<ImageData<Bu
         return column;
     }
 
-
+    /**
+     * Method to extract the markers
+     */
     public void extractMarkers(){
         markers = FXCollections.observableArrayList();
         for (int i=0; i < imageServer.nChannels(); i++){
@@ -250,6 +283,9 @@ public class ManualGatingWindow implements Runnable, ChangeListener<ImageData<Bu
         }
     }
 
+    /**
+     * Method to extract the measurement names
+     */
     public void extractMarkerMeasurements() {
 
         // Do something for when no cell detected
@@ -270,7 +306,11 @@ public class ManualGatingWindow implements Runnable, ChangeListener<ImageData<Bu
     }
 
 
-
+    /**
+     * Static method to create a label
+     * @param msg the message to be displayed
+     * @return label
+     */
     public static Label createLabel(String msg) {
         Label label = new Label(msg);
         label.setFont(javafx.scene.text.Font.font(14));
@@ -278,12 +318,20 @@ public class ManualGatingWindow implements Runnable, ChangeListener<ImageData<Bu
         return label;
     }
 
+    /**
+     * Static helper to create a HBox
+     * @return
+     */
     public static HBox createHBox(){
         HBox hBox = new HBox();
         hBox.setSpacing(5);
         return hBox;
     }
 
+    /**
+     * Static helper to create a VBox
+     * @return
+     */
     public static VBox createVBox(){
         VBox vBox = new VBox();
         vBox.setSpacing(5);
@@ -291,12 +339,21 @@ public class ManualGatingWindow implements Runnable, ChangeListener<ImageData<Bu
     }
 
 
+    /**
+     * Action taken upon pressing the button applyThreshold
+     */
     public void createPhenotypes(){
+        // List of new phenotypes
         ObservableList<TreeItem<PhenotypeEntry>> newPhenotypes = FXCollections.observableArrayList();
         for (PhenotypeCreationTableEntry entry : currentNode.getValue().getPhenotypeCreationTableCreator().getTable().getItems()){
-            if (entry.getIsSelected()){
-                if (entry.getMARKERCOMBINATION() == PhenotypeCreationTableEntry.MARKER_COMBINATION.TWO_POSITIVE){
-                    Collection<PathObject> filteredCells = currentNode.getValue().getCells()
+            if (entry.getIsSelected() && entry.getPhenotypeName() != null){
+
+                ArrayList<String> newPositiveMarkers;
+                ArrayList<String> newNegativeMarkers;
+                Collection<PathObject> filteredCells;
+
+                if (entry.getMarkerCombination() == PhenotypeCreationTableEntry.MARKER_COMBINATION.TWO_POSITIVE){
+                     filteredCells = currentNode.getValue().getCells()
                             .stream()
                             .filter(p -> p.getMeasurementList()
                                     .getMeasurementValue(entry.getMeasurementOne()) > entry.getThresholdOne())
@@ -304,7 +361,7 @@ public class ManualGatingWindow implements Runnable, ChangeListener<ImageData<Bu
                                     .getMeasurementValue(entry.getMeasurementTwo()) > entry.getThresholdTwo())
                             .collect(Collectors.toList());
 
-                    ArrayList<String> newPositiveMarkers;
+
                     if (currentNode.getValue().getPositiveMarkers() != null) {
                         newPositiveMarkers = new ArrayList<>(currentNode.getValue().getPositiveMarkers());
                     } else{
@@ -317,18 +374,13 @@ public class ManualGatingWindow implements Runnable, ChangeListener<ImageData<Bu
                     if (!newPositiveMarkers.stream().anyMatch(p -> p.equals(entry.getMarkerTwo()))){
                         newPositiveMarkers.add(entry.getMarkerTwo());
                     }
-
-                    PhenotypeEntry newPhenotype = new PhenotypeEntry(
-                            filteredCells,
-                            entry.getPhenotypeName(),
-                            newPositiveMarkers,
-                            new ArrayList<>(currentNode.getValue().getNegativeMarkers()),
-                            markers,
-                            measurements
-                    );
-                    newPhenotypes.add(new TreeItem<>(newPhenotype));
-                } else if (entry.getMARKERCOMBINATION() == PhenotypeCreationTableEntry.MARKER_COMBINATION.TWO_NEGATIVE){
-                    Collection<PathObject> filteredCells = currentNode.getValue().getCells()
+                    if (currentNode.getValue().getNegativeMarkers()==null){
+                        newNegativeMarkers = null;
+                    }else{
+                        newNegativeMarkers = new ArrayList<>(currentNode.getValue().getNegativeMarkers());
+                    }
+                } else if (entry.getMarkerCombination() == PhenotypeCreationTableEntry.MARKER_COMBINATION.TWO_NEGATIVE){
+                    filteredCells = currentNode.getValue().getCells()
                             .stream()
                             .filter(p -> p.getMeasurementList()
                                     .getMeasurementValue(entry.getMeasurementOne()) < entry.getThresholdOne())
@@ -336,7 +388,6 @@ public class ManualGatingWindow implements Runnable, ChangeListener<ImageData<Bu
                                     .getMeasurementValue(entry.getMeasurementTwo()) < entry.getThresholdTwo())
                             .collect(Collectors.toList());
 
-                    ArrayList<String> newNegativeMarkers;
                     if (currentNode.getValue().getPositiveMarkers() != null) {
                         newNegativeMarkers = new ArrayList<>(currentNode.getValue().getNegativeMarkers());
                     } else{
@@ -348,19 +399,13 @@ public class ManualGatingWindow implements Runnable, ChangeListener<ImageData<Bu
                     if (!newNegativeMarkers.stream().anyMatch(p -> p.equals(entry.getMarkerTwo()))){
                         newNegativeMarkers.add(entry.getMarkerTwo());
                     }
-
-
-                    PhenotypeEntry newPhenotype = new PhenotypeEntry(
-                            filteredCells,
-                            entry.getPhenotypeName(),
-                            new ArrayList<>(currentNode.getValue().getPositiveMarkers()),
-                            newNegativeMarkers,
-                            markers,
-                            measurements
-                    );
-                    newPhenotypes.add(new TreeItem<>(newPhenotype));
+                    if (currentNode.getValue().getNegativeMarkers()==null){
+                        newPositiveMarkers = null;
+                    }else{
+                        newPositiveMarkers = new ArrayList<>(currentNode.getValue().getNegativeMarkers());
+                    }
                 } else {
-                    Collection<PathObject> filteredCells = currentNode.getValue().getCells()
+                    filteredCells = currentNode.getValue().getCells()
                             .stream()
                             .filter(p -> p.getMeasurementList()
                                     .getMeasurementValue(entry.getMeasurementOne()) > entry.getThresholdOne())
@@ -368,27 +413,16 @@ public class ManualGatingWindow implements Runnable, ChangeListener<ImageData<Bu
                                     .getMeasurementValue(entry.getMeasurementTwo()) < entry.getThresholdTwo())
                             .collect(Collectors.toList());
 
-
-                    ArrayList<String> newPositiveMarkers;
                     if (currentNode.getValue().getPositiveMarkers() != null) {
                         newPositiveMarkers = new ArrayList<>(currentNode.getValue().getPositiveMarkers());
                     } else{
                         newPositiveMarkers = new ArrayList<>();
                     }
-                    Dialogs.showConfirmDialog(title, entry.getPhenotypeName());
-                    Dialogs.showConfirmDialog(title, entry.getMarkerOne());
-                    Dialogs.showConfirmDialog(title, entry.getMarkerTwo());
-                    Dialogs.showConfirmDialog(title, entry.getPhenotypeName());
-                    Dialogs.showConfirmDialog(title, entry.getMeasurementOne());
-                    Dialogs.showConfirmDialog(title, entry.getMeasurementTwo());
-                    Dialogs.showConfirmDialog(title, String.valueOf(filteredCells.size()));
                     // Checks if markerOne is already in the positive array list
                     if (!newPositiveMarkers.stream().anyMatch(p -> p.equals(entry.getMarkerOne()))){
                         newPositiveMarkers.add(entry.getMarkerOne());
                     }
 
-
-                    ArrayList<String> newNegativeMarkers;
                     if (currentNode.getValue().getPositiveMarkers() != null) {
                         newNegativeMarkers = new ArrayList<>(currentNode.getValue().getNegativeMarkers());
                     } else{
@@ -399,25 +433,42 @@ public class ManualGatingWindow implements Runnable, ChangeListener<ImageData<Bu
                     if (!newNegativeMarkers.stream().anyMatch(p -> p.equals(entry.getMarkerTwo()))){
                         newNegativeMarkers.add(entry.getMarkerTwo());
                     }
-
-
-                    PhenotypeEntry newPhenotype = new PhenotypeEntry(
-                            filteredCells,
-                            entry.getPhenotypeName(),
-                            newPositiveMarkers,
-                            newNegativeMarkers,
-                            markers,
-                            measurements
-                    );
-                    newPhenotypes.add(new TreeItem<>(newPhenotype));
                 }
 
+
+
+                PhenotypeEntry newPhenotype = new PhenotypeEntry(
+                        filteredCells,
+                        entry.getPhenotypeName(),
+                        newPositiveMarkers,
+                        newNegativeMarkers,
+                        markers,
+                        measurements
+                );
+                newPhenotypes.add(new TreeItem<>(newPhenotype));
+                setCellPathClass(filteredCells, entry.getPhenotypeName());
             }
         }
         currentNode.getChildren().setAll(newPhenotypes);
     }
 
 
-    // Tree view helpers *****
+    // Method for setting cell path class
+    private void setCellPathClass(Collection<PathObject> positive, String phenotypeName) {
+        positive.forEach(it -> {
+                    PathClass currentClass = it.getPathClass();
+                    PathClass pathClass;
 
+                    if (currentClass == null) {
+                        pathClass = PathClassFactory.getPathClass(phenotypeName);
+                    } else {
+                        pathClass = PathClassFactory.getDerivedPathClass(
+                                currentClass,
+                                phenotypeName,
+                                null);
+                    }
+                    it.setPathClass(pathClass);
+                }
+        );
+    }
 }
