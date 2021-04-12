@@ -13,24 +13,31 @@ import javafx.scene.Scene;
 import javafx.scene.control.*;
 import javafx.scene.control.Button;
 import javafx.scene.control.Label;
+import javafx.scene.input.MouseEvent;
 import javafx.scene.layout.HBox;
 import javafx.scene.layout.VBox;
 import javafx.stage.Stage;
+import qupath.lib.classifiers.PathClassifierTools;
+import qupath.lib.classifiers.object.ObjectClassifier;
+import qupath.lib.classifiers.object.ObjectClassifiers;
+import qupath.lib.common.ThreadTools;
 import qupath.lib.gui.QuPathGUI;
 import qupath.lib.gui.dialogs.Dialogs;
 import qupath.lib.gui.viewer.QuPathViewer;
 import qupath.lib.images.ImageData;
 import qupath.lib.images.servers.ImageServer;
 import qupath.lib.objects.PathObject;
+import qupath.lib.objects.PathObjectFilter;
 import qupath.lib.objects.classes.PathClass;
 import qupath.lib.objects.classes.PathClassFactory;
+import qupath.lib.objects.hierarchy.PathObjectHierarchy;
 import qupath.lib.projects.Projects;
-
+import qupath.process.gui.commands.SingleMeasurementClassificationCommand;
 import java.awt.image.BufferedImage;
 import java.io.File;
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.List;
+import java.util.*;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
 import java.util.stream.Collectors;
 
 /**
@@ -60,6 +67,8 @@ public class ManualGatingWindow implements Runnable, ChangeListener<ImageData<Bu
     // The stage
     private Stage stage;
 
+    private Scene scene;
+
     // The phenotype hierarchy
     private TreeTableCreator<PhenotypeEntry> phenotypeHierarchy;
 
@@ -83,6 +92,9 @@ public class ManualGatingWindow implements Runnable, ChangeListener<ImageData<Bu
     // The current phenotype
     private TreeItem<PhenotypeEntry> currentNode;
 
+
+    private ExecutorService pool;
+
     /**
      * Constructor for the ManualGatingWindow
      * @param quPathGUI
@@ -102,7 +114,7 @@ public class ManualGatingWindow implements Runnable, ChangeListener<ImageData<Bu
      */
     public void createDialog(){
         stage = new Stage();
-
+        pool = Executors.newSingleThreadExecutor(ThreadTools.createThreadFactory("manual-gating", true));
         // Update qupath data
         updateQupath();
         // Update title
@@ -149,7 +161,7 @@ public class ManualGatingWindow implements Runnable, ChangeListener<ImageData<Bu
         applyThresholdBox =  createHBox();
         applyThresholdBox.getChildren().add(applyThresholdButton);
         optionsColumn = createColumn(
-                phenotypeHierarchy.getRoot().getValue().createPane(stage),
+                phenotypeHierarchy.getRoot().getValue().getSplitPane(),
                 applyThresholdBox
         );
 
@@ -159,7 +171,9 @@ public class ManualGatingWindow implements Runnable, ChangeListener<ImageData<Bu
 
         mainBox.getChildren().add(splitPane);
         stage.initOwner(QuPathGUI.getInstance().getStage());
-        stage.setScene(new Scene(mainBox));
+
+        scene = new Scene(mainBox);
+        stage.setScene(scene);
         stage.setWidth(850);
         stage.setHeight(500);
     }
@@ -219,7 +233,7 @@ public class ManualGatingWindow implements Runnable, ChangeListener<ImageData<Bu
         phenotypeHierarchy.getTreeTable().setRowFactory(tv -> {
             TreeTableRow<PhenotypeEntry> row = new TreeTableRow<>();
             row.setOnMouseClicked(event -> {
-                if (event.getClickCount() == 2 && (! row.isEmpty()) ) {
+                if (event.getClickCount() == 1 && (! row.isEmpty()) ) {
                     PhenotypeEntry rowData = row.getItem();
                     splitPane.getItems().remove(optionsColumn);
 
@@ -239,6 +253,7 @@ public class ManualGatingWindow implements Runnable, ChangeListener<ImageData<Bu
                             optionsColumn
                     );
                     currentNode = row.getTreeItem();
+                    resetClassifications(imageData.getHierarchy(), mapPrevious.get(imageData.getHierarchy()));
                 }
             });
             return row ;
@@ -258,13 +273,17 @@ public class ManualGatingWindow implements Runnable, ChangeListener<ImageData<Bu
                 null,
                 null,
                 markers,
-                measurements
+                measurements,
+                stage
         );
         currentNode = new TreeItem<>(
                 currentPhenotypeEntry
             );
         phenotypeHierarchy.setRoot(currentNode);
+        currentPhenotypeEntry.getXAxisSlider().valueProperty().addListener((v, o, n) -> maybePreview(currentPhenotypeEntry.getXAxis()));
+        currentPhenotypeEntry.getYAxisSlider().valueProperty().addListener((v, o, n) -> maybePreview(currentPhenotypeEntry.getYAxis()));
     }
+
 
     public static VBox createColumn(Node... nodes){
         VBox column = createVBox();
@@ -443,10 +462,12 @@ public class ManualGatingWindow implements Runnable, ChangeListener<ImageData<Bu
                         newPositiveMarkers,
                         newNegativeMarkers,
                         markers,
-                        measurements
+                        measurements,
+                        stage
                 );
                 newPhenotypes.add(new TreeItem<>(newPhenotype));
                 setCellPathClass(filteredCells, entry.getPhenotypeName());
+                storeClassificationMap(imageData.getHierarchy());
             }
         }
         currentNode.getChildren().setAll(newPhenotypes);
@@ -471,4 +492,102 @@ public class ManualGatingWindow implements Runnable, ChangeListener<ImageData<Bu
                 }
         );
     }
+
+
+
+
+    // The current Cell Phenotypes. The hierarchy
+    private HashMap<PathObjectHierarchy, Map<PathObject, PathClass>> mapPrevious = new HashMap<>();
+
+    /**
+     * Store the classifications for the current hierarchy, so these may be reset if the user cancels.
+     */
+    public void storeClassificationMap(PathObjectHierarchy hierarchy) {
+        if (hierarchy == null)
+            return;
+        List<PathObject> pathObjects = hierarchy.getFlattenedObjectList(null);
+        mapPrevious.put(
+                hierarchy,
+                PathClassifierTools.createClassificationMap(pathObjects)
+        );
+    }
+
+    public void resetClassifications(PathObjectHierarchy hierarchy, Map<PathObject, PathClass> mapPrevious) {
+        // Restore classifications if the user cancelled
+        Collection<PathObject> changed = PathClassifierTools.restoreClassificationsFromMap(mapPrevious);
+        if (hierarchy != null && !changed.isEmpty())
+            hierarchy.fireObjectClassificationsChangedEvent(this, changed);
+    }
+
+
+
+
+    private ClassificationRequest<BufferedImage> nextRequest;
+    void maybePreview(AxisTableEntry axisTableEntry) {
+        nextRequest = getUpdatedRequest(axisTableEntry);
+        pool.execute(() -> processRequest());
+    }
+
+    ClassificationRequest<BufferedImage> getUpdatedRequest(AxisTableEntry axisTableEntry) {
+        if (imageData == null) {
+            return null;
+        }
+        var classifier = updateClassifier(axisTableEntry);
+        if (classifier == null)
+            return null;
+        return new ClassificationRequest<>(imageData, classifier);
+    }
+
+    ObjectClassifier<BufferedImage> updateClassifier(AxisTableEntry axisTableEntry) {
+        PathObjectFilter filter = PathObjectFilter.CELLS;
+        String measurement = axisTableEntry.getFullMeasurementName();
+        double threshold = axisTableEntry.getThreshold();
+        var classAbove = axisTableEntry.getMarkerName();
+        var classEquals = classAbove; // We use >= and if this changes the tooltip must change too!
+
+        if (measurement == null || Double.isNaN(threshold))
+            return null;
+
+        return new ObjectClassifiers.ClassifyByMeasurementBuilder<BufferedImage>(measurement)
+                .threshold(threshold)
+                .filter(filter)
+                .above(classAbove)
+                .equalTo(classAbove)
+                .build();
+    }
+
+    synchronized void processRequest() {
+        if (nextRequest == null || nextRequest.isComplete())
+            return;
+        nextRequest.doClassification();
+    }
+
+    /**
+     * Encapsulate the requirements for a intensity classification into a single object.
+     */
+    static class ClassificationRequest<T> {
+
+        private ImageData<T> imageData;
+        private ObjectClassifier<T> classifier;
+
+        private boolean isComplete = false;
+
+        ClassificationRequest(ImageData<T> imageData, ObjectClassifier<T> classifier) {
+            this.imageData = imageData;
+            this.classifier = classifier;
+        }
+
+        public synchronized void doClassification() {
+            var pathObjects = classifier.getCompatibleObjects(imageData);
+            classifier.classifyObjects(imageData, pathObjects, true);
+            imageData.getHierarchy().fireObjectClassificationsChangedEvent(classifier, pathObjects);
+            isComplete = true;
+        }
+
+        public synchronized boolean isComplete() {
+            return isComplete;
+        }
+
+    }
+
 }

@@ -6,6 +6,7 @@ import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
 import javafx.geometry.Orientation;
 import javafx.scene.control.Button;
+import javafx.scene.control.Slider;
 import javafx.scene.control.SplitPane;
 import javafx.scene.layout.HBox;
 import javafx.stage.Stage;
@@ -62,7 +63,7 @@ public class PhenotypeEntry {
 
     public PhenotypeEntry(Collection<PathObject> cells, String phenotypeName,
                           ArrayList<String> positiveMarkers, ArrayList<String> negativeMarkers,
-                          ObservableList<String> markers, ObservableList<String> measurements
+                          ObservableList<String> markers, ObservableList<String> measurements, Stage stage
     ){
         this.cells = cells;
         this.phenotypeName = phenotypeName;
@@ -71,10 +72,12 @@ public class PhenotypeEntry {
 
         this.markers = markers;
         this.measurements = measurements;
-
+        createPane(stage);
     }
 
-
+    public SplitPane getSplitPane(){
+        return pane;
+    }
 
     public SplitPane createPane(Stage stage){
         pane = new SplitPane();
@@ -201,8 +204,6 @@ public class PhenotypeEntry {
 
 
     /* ******************** The behaviour of the nodes which exists in other classes ******************************* */
-
-    // TODO: NEEd to fix this. DOes not make sense 
     // The behaviour for the ComboBoxes in the AxisTableEntry to set the marker and measurement names
     private void createSetOnAction(){
         xAxis.getMarkersBox().setOnAction(e -> {
@@ -444,11 +445,28 @@ public class PhenotypeEntry {
         return yAxisMarkerMeasurementName;
     }
 
+    public Slider getXAxisSlider(){
+        return cytometryChart.getXSlider();
+    }
+
+    public Slider getYAxisSlider(){
+        return cytometryChart.getYSlider();
+    }
+
     public Collection<PathObject> getCells(){
         return cells;
     }
 
     public void setCells(Collection<PathObject> cells){
         this.cells = cells;
+    }
+
+
+    public AxisTableEntry getXAxis() {
+        return xAxis;
+    }
+
+    public AxisTableEntry getYAxis() {
+        return yAxis;
     }
 }
