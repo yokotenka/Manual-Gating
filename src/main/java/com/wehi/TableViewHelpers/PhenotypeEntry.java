@@ -2,6 +2,7 @@ package com.wehi.TableViewHelpers;
 
 import com.wehi.ChartVisualiseHelpers.CytometryChart;
 import com.wehi.ManualGatingWindow;
+import javafx.beans.binding.Bindings;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
 import javafx.geometry.Orientation;
@@ -266,13 +267,22 @@ public class PhenotypeEntry {
         );
 
         xAxis.getLogThresholdTextField().setOnAction(e -> {
+            if (xAxis.getLogThresholdTextField().getText().isBlank()){
+                return;
+            }
+
+            if (xAxis.getLogThresholdTextField().getText().length() == 1 && xAxis.getLogThresholdTextField().getText(0,1).equals("-")){
+                xAxis.getLogThresholdTextField().setText("0");
+            }
+
             if (xAxis.getLogThresholdTextField().getText(0, 1).equals(".")){
                 xAxis.getLogThresholdTextField().setText("0" + xAxis.getLogThresholdTextField().getText());
             }
-            if (xAxis.getLogThresholdTextField().getText(0,2).equals("-.")){
+            if (xAxis.getLogThresholdTextField().getText().length() > 1 && xAxis.getLogThresholdTextField().getText(0,2).equals("-.")){
                 xAxis.getLogThresholdTextField().setText("-0"+xAxis.getLogThresholdTextField().getText(1, xAxis.getLogThresholdTextField().getText().length()));
             }
-            if (xAxis.getLogThresholdTextField().getText(xAxis.getLogThresholdTextField().getText().length()-1, xAxis.getLogThresholdTextField().getText().length()).equals(".")){
+            if (xAxis.getLogThresholdTextField().getText(xAxis.getLogThresholdTextField().getText().length()-1, xAxis.getLogThresholdTextField().getText().length()).equals(".")||
+                    xAxis.getLogThresholdTextField().getText(xAxis.getLogThresholdTextField().getText().length()-1, xAxis.getLogThresholdTextField().getText().length()).equals("-")){
                 xAxis.getLogThresholdTextField().setText(xAxis.getLogThresholdTextField().getText(0, xAxis.getLogThresholdTextField().getText().length()-1));
             }
             if (xAxis.getLogThresholdTextField().getText().equals("-0")){
@@ -288,18 +298,31 @@ public class PhenotypeEntry {
             }
             xAxis.setThresholdTextFields(Double.parseDouble(xAxis.getLogThresholdTextField().getText()), cytometryChart.getXSlider().getMin());
             cytometryChart.getXSlider().setValue(Double.parseDouble(xAxis.getLogThresholdTextField().getText()));
-            updatePhenotypeCreationXAxisThresholds(xAxis.getThreshold());
+
+            if (!Bindings.isEmpty(phenotypeCreationTableCreator.getTable().getItems()).get()) {
+                updatePhenotypeCreationXAxisThresholds(xAxis.getThreshold());
+            }
 
         });
 
         xAxis.getThresholdTextField().setOnAction(e -> {
+            if (xAxis.getThresholdTextField().getText().isBlank()){
+                return;
+            }
+
+
+            if (xAxis.getThresholdTextField().getText().length() == 1 && xAxis.getThresholdTextField().getText(0,1).equals("-")){
+                xAxis.getThresholdTextField().setText("0");
+            }
+
             if (xAxis.getThresholdTextField().getText(0, 1).equals(".")){
                 xAxis.getThresholdTextField().setText("0" + xAxis.getThresholdTextField().getText());
             }
-            if (xAxis.getThresholdTextField().getText(0,2).equals("-.")){
+            if (xAxis.getThresholdTextField().getText().length() > 1 && xAxis.getThresholdTextField().getText(0,2).equals("-.")){
                 xAxis.getThresholdTextField().setText("-0"+xAxis.getThresholdTextField().getText(1, xAxis.getThresholdTextField().getText().length()));
             }
-            if (xAxis.getThresholdTextField().getText(xAxis.getThresholdTextField().getText().length()-1, xAxis.getThresholdTextField().getText().length()).equals(".")){
+            if (xAxis.getThresholdTextField().getText(xAxis.getThresholdTextField().getText().length()-1, xAxis.getThresholdTextField().getText().length()).equals(".")||
+                    xAxis.getThresholdTextField().getText(xAxis.getThresholdTextField().getText().length()-1, xAxis.getThresholdTextField().getText().length()).equals("-")){
                 xAxis.getThresholdTextField().setText(xAxis.getThresholdTextField().getText(0, xAxis.getThresholdTextField().getText().length()-1));
             }
             if (xAxis.getThresholdTextField().getText().equals("-0")){
@@ -313,18 +336,32 @@ public class PhenotypeEntry {
             }
             xAxis.setThresholdTextFields(Math.log(Double.parseDouble(xAxis.getThresholdTextField().getText())), cytometryChart.getXSlider().getMin());
             cytometryChart.getXSlider().setValue(Math.log(Double.parseDouble(xAxis.getThresholdTextField().getText())));
-            updatePhenotypeCreationXAxisThresholds(xAxis.getThreshold());
+//            updatePhenotypeCreationXAxisThresholds(xAxis.getThreshold());
+
+            if (!Bindings.isEmpty(phenotypeCreationTableCreator.getTable().getItems()).get()) {
+                updatePhenotypeCreationXAxisThresholds(xAxis.getThreshold());
+            }
         });
 
 
         yAxis.getLogThresholdTextField().setOnAction(e -> {
+            if (yAxis.getLogThresholdTextField().getText().isBlank()){
+                return;
+            }
+
+            if (yAxis.getLogThresholdTextField().getText().length() == 1 && yAxis.getLogThresholdTextField().getText(0,1).equals("-")){
+                yAxis.getLogThresholdTextField().setText("0");
+            }
+
+
             if (yAxis.getLogThresholdTextField().getText(0, 1).equals(".")){
                 yAxis.getLogThresholdTextField().setText("0" + yAxis.getLogThresholdTextField().getText());
             }
             if (yAxis.getLogThresholdTextField().getText(0,2).equals("-.")){
                 yAxis.getLogThresholdTextField().setText("-0"+yAxis.getLogThresholdTextField().getText(1, yAxis.getLogThresholdTextField().getText().length()));
             }
-            if (yAxis.getLogThresholdTextField().getText(yAxis.getLogThresholdTextField().getText().length()-1, yAxis.getLogThresholdTextField().getText().length()).equals(".")){
+            if (yAxis.getLogThresholdTextField().getText(yAxis.getLogThresholdTextField().getText().length()-1, yAxis.getLogThresholdTextField().getText().length()).equals(".")||
+                    yAxis.getLogThresholdTextField().getText(yAxis.getLogThresholdTextField().getText().length()-1, yAxis.getLogThresholdTextField().getText().length()).equals("-")){
                 yAxis.getLogThresholdTextField().setText(yAxis.getLogThresholdTextField().getText(0, yAxis.getLogThresholdTextField().getText().length()-1));
             }
             if (yAxis.getLogThresholdTextField().getText().equals("-0")){
@@ -338,17 +375,27 @@ public class PhenotypeEntry {
             }
             yAxis.setThresholdTextFields(Double.parseDouble(yAxis.getLogThresholdTextField().getText()), cytometryChart.getYSlider().getMin());
             cytometryChart.getYSlider().setValue(Double.parseDouble(yAxis.getLogThresholdTextField().getText()));
-            updatePhenotypeCreationYAxisThresholds(yAxis.getThreshold());
+            if (!Bindings.isEmpty(phenotypeCreationTableCreator.getTable().getItems()).get()) {
+                updatePhenotypeCreationYAxisThresholds(yAxis.getThreshold());
+            }
         });
 
         yAxis.getThresholdTextField().setOnAction(e -> {
+            if (yAxis.getThresholdTextField().getText().isBlank()){
+                return;
+            }
+            if (yAxis.getThresholdTextField().getText().length() == 1 && yAxis.getThresholdTextField().getText(0,1).equals("-")){
+                yAxis.getThresholdTextField().setText("0");
+            }
+
             if (yAxis.getThresholdTextField().getText(0, 1).equals(".")){
                 yAxis.getThresholdTextField().setText("0" + yAxis.getThresholdTextField().getText());
             }
             if (yAxis.getThresholdTextField().getText(0,2).equals("-.")){
                 yAxis.getThresholdTextField().setText("-0"+yAxis.getThresholdTextField().getText(1, yAxis.getThresholdTextField().getText().length()));
             }
-            if (yAxis.getThresholdTextField().getText(yAxis.getThresholdTextField().getText().length()-1, yAxis.getThresholdTextField().getText().length()).equals(".")){
+            if (yAxis.getThresholdTextField().getText(yAxis.getThresholdTextField().getText().length()-1, yAxis.getThresholdTextField().getText().length()).equals(".")||
+                    yAxis.getThresholdTextField().getText(yAxis.getThresholdTextField().getText().length()-1, yAxis.getThresholdTextField().getText().length()).equals("-")){
                 yAxis.getThresholdTextField().setText(yAxis.getThresholdTextField().getText(0, yAxis.getThresholdTextField().getText().length()-1));
             }
             if (yAxis.getThresholdTextField().getText().equals("-0")){
@@ -362,7 +409,9 @@ public class PhenotypeEntry {
             }
             yAxis.setThresholdTextFields(Math.log(Double.parseDouble(yAxis.getThresholdTextField().getText())), cytometryChart.getYSlider().getMin());
             cytometryChart.getYSlider().setValue(Math.log(Double.parseDouble(yAxis.getThresholdTextField().getText())));
-            updatePhenotypeCreationYAxisThresholds(yAxis.getThreshold());
+            if (!Bindings.isEmpty(phenotypeCreationTableCreator.getTable().getItems()).get()) {
+                updatePhenotypeCreationYAxisThresholds(yAxis.getThreshold());
+            }
         });
 
     }

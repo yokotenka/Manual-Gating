@@ -1,26 +1,26 @@
+com/wehi/TableViewHelpers/PhenotypeCreationTableEntry.java
+ com.wehi.TableViewHelpers.PhenotypeCreationTableEntry
+ com.wehi.TableViewHelpers.PhenotypeCreationTableEntry$MARKER_COMBINATION
+com/wehi/ManualGatingExtension.java
+ com.wehi.ManualGatingExtension
+com/wehi/ChartVisualiseHelpers/ThresholdedScatterChartWrapper.java
+ com.wehi.ChartVisualiseHelpers.ThresholdedScatterChartWrapper
+com/wehi/TableViewHelpers/TreeTableCreator.java
+ com.wehi.TableViewHelpers.TreeTableCreator
 com/wehi/ChartVisualiseHelpers/BivariateKDE.java
  com.wehi.ChartVisualiseHelpers.BivariateKDE
  com.wehi.ChartVisualiseHelpers.BivariateKDE$IndependentBivariateNormalDistribution
 com/wehi/TableViewHelpers/TableCreator.java
  com.wehi.TableViewHelpers.TableCreator
-com/wehi/TableViewHelpers/PhenotypeCreationTableEntry.java
- com.wehi.TableViewHelpers.PhenotypeCreationTableEntry
- com.wehi.TableViewHelpers.PhenotypeCreationTableEntry$MARKER_COMBINATION
 com/wehi/ChartVisualiseHelpers/CytometryChart.java
  com.wehi.ChartVisualiseHelpers.CytometryChart
  com.wehi.ChartVisualiseHelpers.CytometryChart$ColourMapper
  com.wehi.ChartVisualiseHelpers.CytometryChart$ColourMapper$Triplet
-com/wehi/ChartVisualiseHelpers/ThresholdedScatterChartWrapper.java
- com.wehi.ChartVisualiseHelpers.ThresholdedScatterChartWrapper
-com/wehi/TableViewHelpers/TreeTableCreator.java
- com.wehi.TableViewHelpers.TreeTableCreator
-com/wehi/TableViewHelpers/AxisTableEntry.java
- com.wehi.TableViewHelpers.AxisTableEntry
 com/wehi/ManualGatingWindow.java
  com.wehi.ManualGatingWindow
  com.wehi.ManualGatingWindow$ClassificationRequest
-com/wehi/ManualGatingExtension.java
- com.wehi.ManualGatingExtension
+com/wehi/TableViewHelpers/AxisTableEntry.java
+ com.wehi.TableViewHelpers.AxisTableEntry
 com/wehi/TableViewHelpers/PhenotypeEntry.java
  com.wehi.TableViewHelpers.AxisValue
  com.wehi.TableViewHelpers.PhenotypeEntry

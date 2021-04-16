@@ -169,6 +169,8 @@ public class ManualGatingWindow implements Runnable, ChangeListener<ImageData<Bu
                 optionsColumn
         );
 
+
+
         mainBox.getChildren().add(splitPane);
         stage.initOwner(QuPathGUI.getInstance().getStage());
 
@@ -176,6 +178,12 @@ public class ManualGatingWindow implements Runnable, ChangeListener<ImageData<Bu
         stage.setScene(scene);
         stage.setWidth(850);
         stage.setHeight(500);
+
+
+        if(Dialogs.showYesNoDialog("Manual Gating", "Do you wish to reset existing classifications on your cells?")){
+            resetCellPathClass();
+            storeClassificationMap(imageData.getHierarchy());
+        }
     }
 
     /**
@@ -465,7 +473,10 @@ public class ManualGatingWindow implements Runnable, ChangeListener<ImageData<Bu
                         measurements,
                         stage
                 );
+                newPhenotype.getXAxisSlider().valueProperty().addListener((v, o, n) -> maybePreview(newPhenotype.getXAxis()));
+                newPhenotype.getYAxisSlider().valueProperty().addListener((v, o, n) -> maybePreview(newPhenotype.getYAxis()));
                 newPhenotypes.add(new TreeItem<>(newPhenotype));
+                resetClassifications(imageData.getHierarchy(), mapPrevious.get(imageData.getHierarchy()));
                 setCellPathClass(filteredCells, entry.getPhenotypeName());
                 storeClassificationMap(imageData.getHierarchy());
             }
@@ -493,7 +504,11 @@ public class ManualGatingWindow implements Runnable, ChangeListener<ImageData<Bu
         );
     }
 
-
+    private void resetCellPathClass(){
+        cells.forEach(it ->
+                    it.setPathClass(null)
+                );
+    }
 
 
     // The current Cell Phenotypes. The hierarchy
