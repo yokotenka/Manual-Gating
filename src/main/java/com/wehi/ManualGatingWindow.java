@@ -13,10 +13,10 @@ import javafx.scene.Scene;
 import javafx.scene.control.*;
 import javafx.scene.control.Button;
 import javafx.scene.control.Label;
-import javafx.scene.input.MouseEvent;
 import javafx.scene.layout.HBox;
 import javafx.scene.layout.VBox;
 import javafx.stage.Stage;
+import org.json.JSONException;
 import qupath.lib.classifiers.PathClassifierTools;
 import qupath.lib.classifiers.object.ObjectClassifier;
 import qupath.lib.classifiers.object.ObjectClassifiers;
@@ -32,7 +32,6 @@ import qupath.lib.objects.classes.PathClass;
 import qupath.lib.objects.classes.PathClassFactory;
 import qupath.lib.objects.hierarchy.PathObjectHierarchy;
 import qupath.lib.projects.Projects;
-import qupath.process.gui.commands.SingleMeasurementClassificationCommand;
 import java.awt.image.BufferedImage;
 import java.io.File;
 import java.util.*;
@@ -58,7 +57,7 @@ public class ManualGatingWindow implements Runnable, ChangeListener<ImageData<Bu
     private Collection<PathObject> cells;
 
     // Title
-    private final String title = "Manual Gating";
+    public static final String TITLE = "Manual Gating";
 
     // The main scene to be displayed in the stage
     private VBox mainBox;
@@ -78,8 +77,10 @@ public class ManualGatingWindow implements Runnable, ChangeListener<ImageData<Bu
     private Button confirmManualGatingOptionButton;
 
     // apply threshold
-    private Button applyThresholdButton;
-    private HBox applyThresholdBox;
+    private Button createSubPhenotypeButton;
+    private Button updateSubPhenotypeButton;
+    private HBox createSubPhenotypeBox;
+    private HBox updateSubPhenotypeBox;
 
     // Where the pane for each phenotype is
     private VBox optionsColumn;
@@ -152,17 +153,33 @@ public class ManualGatingWindow implements Runnable, ChangeListener<ImageData<Bu
         /* ***** Options column **************/
 
         /* Adding the main body to the scene */
-        applyThresholdButton = new Button("Apply Threshold");
-        applyThresholdButton.setOnAction(e -> {
+        createSubPhenotypeButton = new Button("Create Subphenotypes");
+        createSubPhenotypeButton.setOnAction(e -> {
             if (currentNode.getValue().getXAxisMarkerMeasurementName() != null &&
                     currentNode.getValue().getYAxisMarkerMeasurementName()!=null)
                 createPhenotypes();
         });
-        applyThresholdBox =  createHBox();
-        applyThresholdBox.getChildren().add(applyThresholdButton);
+        createSubPhenotypeBox =  createHBox();
+        createSubPhenotypeBox.getChildren().addAll(
+                createLabel("Creates subphenotypes. Deletes any existing subphenotypes."),
+                createSubPhenotypeButton);
+
+
+        updateSubPhenotypeButton = new Button("Update Subphenotypes");
+        updateSubPhenotypeButton.setOnAction(e -> {
+            if (currentNode.getValue().getXAxisMarkerMeasurementName() != null &&
+                    currentNode.getValue().getYAxisMarkerMeasurementName()!=null)
+                updateSubPhenotypes();
+        });
+        updateSubPhenotypeBox =  createHBox();
+        updateSubPhenotypeBox.getChildren().addAll(
+                createLabel("Update existing subphenotypes with new thresholds."),
+                createSubPhenotypeButton);
+
+
         optionsColumn = createColumn(
                 phenotypeHierarchy.getRoot().getValue().getSplitPane(),
-                applyThresholdBox
+                createSubPhenotypeBox
         );
 
         splitPane.getItems().add(
@@ -172,6 +189,33 @@ public class ManualGatingWindow implements Runnable, ChangeListener<ImageData<Bu
 
 
         mainBox.getChildren().add(splitPane);
+
+        Separator sep2 = new Separator();
+        sep2.setHalignment(HPos.CENTER);
+        HBox saveOptions = createHBox();
+        TextField phenotypeHierarchyNameField = new TextField();
+        Button saveButton = new Button("Save");
+        saveOptions.getChildren().addAll(
+                createLabel("Phenotype Hierarchy Name"),
+                phenotypeHierarchyNameField,
+                saveButton
+        );
+
+        saveButton.setOnAction(e -> {
+            String fileName = phenotypeHierarchyNameField.getText();
+            if (fileName == null){
+                Dialogs.showErrorMessage(ManualGatingWindow.TITLE, "Phenotype Hierarchy Name is empty");
+            }
+            File baseDir = Projects.getBaseDirectory(qupath.getProject());
+            try {
+                JSONTreeSaver.writeTreeToJSON(phenotypeHierarchy.getTreeTable(), baseDir, fileName);
+            } catch (JSONException jsonException) {
+                jsonException.printStackTrace();
+            }
+        });
+        mainBox.getChildren().add(sep2);
+        mainBox.getChildren().add(saveOptions);
+
         stage.initOwner(QuPathGUI.getInstance().getStage());
 
         scene = new Scene(mainBox);
@@ -210,9 +254,9 @@ public class ManualGatingWindow implements Runnable, ChangeListener<ImageData<Bu
 
     private void updateTitle() {
         try {
-            stage.setTitle(title + " (" + imageData.getServer().getMetadata().getName() + ")");
+            stage.setTitle(TITLE + " (" + imageData.getServer().getMetadata().getName() + ")");
         }catch(Exception e){
-            stage.setTitle(title);
+            stage.setTitle(TITLE);
         }
     }
 
@@ -248,12 +292,12 @@ public class ManualGatingWindow implements Runnable, ChangeListener<ImageData<Bu
                     if (rowData.getPane() == null) {
                         optionsColumn = createColumn(
                                 rowData.createPane(stage),
-                                applyThresholdBox
+                                createSubPhenotypeBox
                         );
                     } else{
                         optionsColumn = createColumn(
                                 rowData.getPane(),
-                                applyThresholdBox
+                                createSubPhenotypeBox
                         );
                     }
 
@@ -471,7 +515,9 @@ public class ManualGatingWindow implements Runnable, ChangeListener<ImageData<Bu
                         newNegativeMarkers,
                         markers,
                         measurements,
-                        stage
+                        stage,
+                        entry.getMarkerOne(),
+                        entry.getMarkerTwo()
                 );
                 newPhenotype.getXAxisSlider().valueProperty().addListener((v, o, n) -> maybePreview(newPhenotype.getXAxis()));
                 newPhenotype.getYAxisSlider().valueProperty().addListener((v, o, n) -> maybePreview(newPhenotype.getYAxis()));
@@ -482,6 +528,50 @@ public class ManualGatingWindow implements Runnable, ChangeListener<ImageData<Bu
             }
         }
         currentNode.getChildren().setAll(newPhenotypes);
+
+    }
+
+    public void updateSubPhenotypes(){
+        List<PathObject> filteredCells;
+        for (PhenotypeCreationTableEntry entry : currentNode.getValue().getPhenotypeCreationTableCreator().getTable().getItems()) {
+            if (entry.getIsSelected() && entry.getPhenotypeName() != null) {
+                for (TreeItem<PhenotypeEntry> subPhenotype : currentNode.getChildren()){
+                    if (!entry.getMarkerOne().equals(subPhenotype.getValue().getSplitMarkerOne()) ||
+                            !entry.getMarkerTwo().equals(subPhenotype.getValue().getSplitMarkerTwo())){
+                        Dialogs.showErrorMessage(TITLE, "The markers have been changed.");
+                        return;
+                    }
+                    if (entry.getMarkerCombination() == PhenotypeCreationTableEntry.MARKER_COMBINATION.TWO_POSITIVE){
+                        filteredCells = currentNode.getValue().getCells()
+                                .stream()
+                                .filter(p -> p.getMeasurementList()
+                                        .getMeasurementValue(entry.getMeasurementOne()) > entry.getThresholdOne())
+                                .filter(p -> p.getMeasurementList()
+                                        .getMeasurementValue(entry.getMeasurementTwo()) > entry.getThresholdTwo())
+                                .collect(Collectors.toList());
+                        subPhenotype.getValue().setCells(filteredCells);
+                    } else if (entry.getMarkerCombination() == PhenotypeCreationTableEntry.MARKER_COMBINATION.TWO_NEGATIVE) {
+                        filteredCells = currentNode.getValue().getCells()
+                                .stream()
+                                .filter(p -> p.getMeasurementList()
+                                        .getMeasurementValue(entry.getMeasurementOne()) < entry.getThresholdOne())
+                                .filter(p -> p.getMeasurementList()
+                                        .getMeasurementValue(entry.getMeasurementTwo()) < entry.getThresholdTwo())
+                                .collect(Collectors.toList());
+                        subPhenotype.getValue().setCells(filteredCells);
+                    } else {
+                        filteredCells = currentNode.getValue().getCells()
+                                .stream()
+                                .filter(p -> p.getMeasurementList()
+                                        .getMeasurementValue(entry.getMeasurementOne()) > entry.getThresholdOne())
+                                .filter(p -> p.getMeasurementList()
+                                        .getMeasurementValue(entry.getMeasurementTwo()) < entry.getThresholdTwo())
+                                .collect(Collectors.toList());
+                        subPhenotype.getValue().setCells(filteredCells);
+                    }
+                }
+            }
+        }
     }
 
 

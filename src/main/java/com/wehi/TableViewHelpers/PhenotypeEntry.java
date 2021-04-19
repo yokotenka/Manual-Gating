@@ -38,7 +38,8 @@ public class PhenotypeEntry {
     // The measurements
     private ObservableList<String> measurements;
 
-
+    private String splitMarkerOne;
+    private String splitMarkerTwo;
 
     private AxisTableEntry xAxis;
     private AxisTableEntry yAxis;
@@ -75,6 +76,24 @@ public class PhenotypeEntry {
         this.measurements = measurements;
         createPane(stage);
     }
+
+    public PhenotypeEntry(Collection<PathObject> cells, String phenotypeName,
+                          ArrayList<String> positiveMarkers, ArrayList<String> negativeMarkers,
+                          ObservableList<String> markers, ObservableList<String> measurements, Stage stage, String splitPositive,
+                          String splitNegative
+    ){
+        this.cells = cells;
+        this.phenotypeName = phenotypeName;
+        this.positiveMarkers = positiveMarkers;
+        this.negativeMarkers = negativeMarkers;
+
+        this.markers = markers;
+        this.measurements = measurements;
+        this.splitMarkerOne = splitPositive;
+        this.splitMarkerTwo = splitNegative;
+        createPane(stage);
+    }
+
 
     public SplitPane getSplitPane(){
         return pane;
@@ -518,4 +537,34 @@ public class PhenotypeEntry {
     public AxisTableEntry getYAxis() {
         return yAxis;
     }
+
+    public String getXAxisMarkerName(){
+        return xAxis.getMarkerName();
+    }
+
+    public String getXAxisMeasurementName(){
+        return xAxis.getMeasurementName();
+    }
+
+    public String getYAxisMarkerName(){
+        return yAxis.getMarkerName();
+    }
+
+    public String getYAxisMeasurementName(){
+        return yAxis.getMeasurementName();
+    }
+
+    public String getSplitMarkerOne() {
+        return splitMarkerOne;
+    }
+
+    public String getSplitMarkerTwo(){
+        return splitMarkerTwo;
+    }
+
+    public void setPhenotypeName(String name){
+        this.phenotypeName = name;
+    }
+
+
 }

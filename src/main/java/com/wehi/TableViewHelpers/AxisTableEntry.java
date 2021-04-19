@@ -10,7 +10,7 @@ import javafx.scene.control.TextField;
 public class AxisTableEntry {
 
     // The Measurement Deliminator
-    private static String MEASUREMENT_DELIMINATOR = ": ";
+    public static final String MEASUREMENT_DELIMINATOR = ": ";
 
     // Axis the marker is on
     private AxisValue axisValue;
