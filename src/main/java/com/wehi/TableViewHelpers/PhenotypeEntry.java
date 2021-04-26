@@ -38,8 +38,8 @@ public class PhenotypeEntry {
     // The measurements
     private ObservableList<String> measurements;
 
-    private String splitMarkerOne;
-    private String splitMarkerTwo;
+    private String splitMarkerOne = "";
+    private String splitMarkerTwo = "";
 
     private AxisTableEntry xAxis;
     private AxisTableEntry yAxis;
@@ -52,7 +52,7 @@ public class PhenotypeEntry {
     private static String title = "Manual Gating";
     /* We will have a Column for each phenotype */
 
-
+    private PhenotypeCreationTableEntry.MARKER_COMBINATION combination = PhenotypeCreationTableEntry.MARKER_COMBINATION.ONE_OF_EACH;
     // ComboBox to select the number of dimensions
     private SplitPane pane;
 
@@ -79,8 +79,10 @@ public class PhenotypeEntry {
 
     public PhenotypeEntry(Collection<PathObject> cells, String phenotypeName,
                           ArrayList<String> positiveMarkers, ArrayList<String> negativeMarkers,
-                          ObservableList<String> markers, ObservableList<String> measurements, Stage stage, String splitPositive,
-                          String splitNegative
+                          ObservableList<String> markers, ObservableList<String> measurements, Stage stage,
+                          String splitPositive,
+                          String splitNegative,
+                          PhenotypeCreationTableEntry.MARKER_COMBINATION combination
     ){
         this.cells = cells;
         this.phenotypeName = phenotypeName;
@@ -91,6 +93,7 @@ public class PhenotypeEntry {
         this.measurements = measurements;
         this.splitMarkerOne = splitPositive;
         this.splitMarkerTwo = splitNegative;
+        this.combination = combination;
         createPane(stage);
     }
 
@@ -163,7 +166,7 @@ public class PhenotypeEntry {
     }
 
 
-    private void updatePhenotypeCreationCreator(){
+    public void updatePhenotypeCreationCreator(){
 
         ObservableList<PhenotypeCreationTableEntry> list = FXCollections.observableArrayList();
         // Two positive
@@ -195,6 +198,26 @@ public class PhenotypeEntry {
                 xAxis.getFullMeasurementName(), yAxis.getFullMeasurementName()));
 
         phenotypeCreationTableCreator.getTable().setItems(list);
+    }
+
+    public void updateNames(ArrayList<PhenotypeEntry> phenotypes){
+
+        for (PhenotypeCreationTableEntry row : phenotypeCreationTableCreator.getTable().getItems()){
+            for (PhenotypeEntry phenotype : phenotypes){
+                if (row.getMarkerCombination() == phenotype.getCombination()){
+                    if (row.getMarkerCombination() == PhenotypeCreationTableEntry.MARKER_COMBINATION.TWO_NEGATIVE ||
+                    row.getMarkerCombination() == PhenotypeCreationTableEntry.MARKER_COMBINATION.TWO_POSITIVE) {
+                        row.setName(phenotype.getPhenotypeName());
+                        break;
+                    } else {
+                        if (phenotype.getPositiveMarkers().contains(row.getMarkerOne())){
+                            row.setName(phenotype.getPhenotypeName());
+                            break;
+                        }
+                    }
+                }
+            }
+        }
     }
 
     private void updateMeasurementNames(){
@@ -566,5 +589,37 @@ public class PhenotypeEntry {
         this.phenotypeName = name;
     }
 
+
+    public void setYAxisMarkerName(String markerName){
+        yAxis.setMarkerName(markerName);
+    }
+
+    public void setXAxisMarkerName(String markerName){
+        xAxis.setMarkerName(markerName);
+    }
+
+    public void setYAxisMeasurementName(String measurementName){
+        yAxis.setMeasurementName(measurementName);
+    }
+
+    public void setXAxisMeasurementName(String measurementName){
+        xAxis.setMeasurementName(measurementName);
+    }
+
+    public void setXAxisThreshold(double unLoggedThreshold){
+        cytometryChart.getXSlider().setValue(Math.log(unLoggedThreshold));
+    }
+
+    public void setYAxisThreshold(double unLoggedThreshold){
+        cytometryChart.getYSlider().setValue(Math.log(unLoggedThreshold));
+    }
+
+    public void setFullMeasurementName(){
+        xAxisMarkerMeasurementName = xAxis.getFullMeasurementName();
+        yAxisMarkerMeasurementName = yAxis.getFullMeasurementName();
+    }
+    public PhenotypeCreationTableEntry.MARKER_COMBINATION getCombination(){
+        return combination;
+    }
 
 }

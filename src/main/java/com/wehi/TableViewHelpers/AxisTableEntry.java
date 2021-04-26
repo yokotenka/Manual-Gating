@@ -25,7 +25,7 @@ public class AxisTableEntry {
     private TextField thresholdTextField = new TextField((String.valueOf(Math.exp(0))));
 
     // Threshold value
-    private double threshold = 0;
+    private double threshold = 1;
 
     /**
      * Constructor
@@ -75,12 +75,20 @@ public class AxisTableEntry {
         return markersBox.getValue();
     }
 
+    public void setMarkerName(String markerName){
+        markersBox.setValue(markerName);
+    }
+
     /**
      * Getter for the selected measurement
      * @return selected measurement
      */
     public String getMeasurementName() {
         return measurementsBox.getValue();
+    }
+
+    public void setMeasurementName(String measurementName) {
+        measurementsBox.setValue(measurementName);
     }
 
     /**

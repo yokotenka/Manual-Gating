@@ -1,8 +1,8 @@
-com/wehi/TableViewHelpers/AxisTableEntry.java
- com.wehi.TableViewHelpers.AxisTableEntry
 com/wehi/ManualGatingWindow.java
  com.wehi.ManualGatingWindow
  com.wehi.ManualGatingWindow$ClassificationRequest
+com/wehi/TableViewHelpers/AxisTableEntry.java
+ com.wehi.TableViewHelpers.AxisTableEntry
 com/wehi/ChartVisualiseHelpers/ThresholdedScatterChartWrapper.java
  com.wehi.ChartVisualiseHelpers.ThresholdedScatterChartWrapper
 com/wehi/TableViewHelpers/TreeTableCreator.java

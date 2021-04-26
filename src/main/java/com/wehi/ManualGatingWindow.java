@@ -34,6 +34,7 @@ import qupath.lib.objects.hierarchy.PathObjectHierarchy;
 import qupath.lib.projects.Projects;
 import java.awt.image.BufferedImage;
 import java.io.File;
+import java.io.IOException;
 import java.util.*;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
@@ -126,15 +127,7 @@ public class ManualGatingWindow implements Runnable, ChangeListener<ImageData<Bu
 
 
         /* For loading previously saved options */
-        HBox loadOptionsBox = createHBox();
-        updateManualGatingOptionsBox();
-        confirmManualGatingOptionButton = new Button("Load Options");
-
-        loadOptionsBox.getChildren().addAll(
-                                            createLabel("Load saved options"),
-                                            manualGatingOptionsBox,
-                                            confirmManualGatingOptionButton
-                                        );
+        HBox loadOptionsBox = updateManualGatingOptionsBox();
         Separator sep = new Separator();
         sep.setHalignment(HPos.CENTER);
         mainBox.getChildren().addAll(loadOptionsBox, sep);
@@ -174,12 +167,13 @@ public class ManualGatingWindow implements Runnable, ChangeListener<ImageData<Bu
         updateSubPhenotypeBox =  createHBox();
         updateSubPhenotypeBox.getChildren().addAll(
                 createLabel("Update existing subphenotypes with new thresholds."),
-                createSubPhenotypeButton);
+                updateSubPhenotypeButton);
 
 
         optionsColumn = createColumn(
                 phenotypeHierarchy.getRoot().getValue().getSplitPane(),
-                createSubPhenotypeBox
+                createSubPhenotypeBox,
+                updateSubPhenotypeBox
         );
 
         splitPane.getItems().add(
@@ -260,14 +254,36 @@ public class ManualGatingWindow implements Runnable, ChangeListener<ImageData<Bu
         }
     }
 
-    private void updateManualGatingOptionsBox(){
-        File folderName = new File(Projects.getBaseDirectory(qupath.getProject()), "Manual Gating Options");
+    private HBox updateManualGatingOptionsBox(){
+
+        HBox loadOptionsBox = createHBox();
+        File folderName = new File(Projects.getBaseDirectory(qupath.getProject()), JSONTreeSaver.FOLDER);
         manualGatingOptionsBox = new ComboBox<>();
         if (!folderName.exists()){
             folderName.mkdirs();
         }
         manualGatingOptionsBox.setItems(FXCollections.observableArrayList(folderName.list()));
 
+
+
+        confirmManualGatingOptionButton = new Button("Load Options");
+        confirmManualGatingOptionButton.setOnAction(e -> {
+            try {
+                phenotypeHierarchy.setRoot(JSONTreeSaver.readLoadOptions(folderName, manualGatingOptionsBox.getValue(), markers, measurements, stage));
+                phenotypeHierarchy.getTreeTable().refresh();
+            } catch (IOException | JSONException ioException) {
+                ioException.printStackTrace();
+            }
+        });
+
+        loadOptionsBox.getChildren().addAll(
+                createLabel("Load saved options"),
+                manualGatingOptionsBox,
+                confirmManualGatingOptionButton
+        );
+
+
+        return loadOptionsBox;
     }
 
 
@@ -292,12 +308,14 @@ public class ManualGatingWindow implements Runnable, ChangeListener<ImageData<Bu
                     if (rowData.getPane() == null) {
                         optionsColumn = createColumn(
                                 rowData.createPane(stage),
-                                createSubPhenotypeBox
+                                createSubPhenotypeBox,
+                                updateSubPhenotypeBox
                         );
                     } else{
                         optionsColumn = createColumn(
                                 rowData.getPane(),
-                                createSubPhenotypeBox
+                                createSubPhenotypeBox,
+                                updateSubPhenotypeBox
                         );
                     }
 
@@ -517,7 +535,8 @@ public class ManualGatingWindow implements Runnable, ChangeListener<ImageData<Bu
                         measurements,
                         stage,
                         entry.getMarkerOne(),
-                        entry.getMarkerTwo()
+                        entry.getMarkerTwo(),
+                        entry.getMarkerCombination()
                 );
                 newPhenotype.getXAxisSlider().valueProperty().addListener((v, o, n) -> maybePreview(newPhenotype.getXAxis()));
                 newPhenotype.getYAxisSlider().valueProperty().addListener((v, o, n) -> maybePreview(newPhenotype.getYAxis()));
@@ -538,8 +557,7 @@ public class ManualGatingWindow implements Runnable, ChangeListener<ImageData<Bu
                 for (TreeItem<PhenotypeEntry> subPhenotype : currentNode.getChildren()){
                     if (!entry.getMarkerOne().equals(subPhenotype.getValue().getSplitMarkerOne()) ||
                             !entry.getMarkerTwo().equals(subPhenotype.getValue().getSplitMarkerTwo())){
-                        Dialogs.showErrorMessage(TITLE, "The markers have been changed.");
-                        return;
+                        continue;
                     }
                     if (entry.getMarkerCombination() == PhenotypeCreationTableEntry.MARKER_COMBINATION.TWO_POSITIVE){
                         filteredCells = currentNode.getValue().getCells()
@@ -569,6 +587,8 @@ public class ManualGatingWindow implements Runnable, ChangeListener<ImageData<Bu
                                 .collect(Collectors.toList());
                         subPhenotype.getValue().setCells(filteredCells);
                     }
+                    subPhenotype.getValue().setPhenotypeName(entry.getPhenotypeName());
+                    phenotypeHierarchy.getTreeTable().refresh();
                 }
             }
         }

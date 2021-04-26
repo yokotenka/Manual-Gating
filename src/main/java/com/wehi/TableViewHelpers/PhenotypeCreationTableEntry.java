@@ -193,4 +193,8 @@ public class PhenotypeCreationTableEntry {
         TWO_NEGATIVE,
         ONE_OF_EACH
     }
+
+    public void setName(String name){
+        phenotypeTextField.setText(name);
+    }
 }
