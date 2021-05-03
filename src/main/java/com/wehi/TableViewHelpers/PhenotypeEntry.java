@@ -406,7 +406,7 @@ public class PhenotypeEntry {
             if (yAxis.getLogThresholdTextField().getText(0, 1).equals(".")){
                 yAxis.getLogThresholdTextField().setText("0" + yAxis.getLogThresholdTextField().getText());
             }
-            if (yAxis.getLogThresholdTextField().getText(0,2).equals("-.")){
+            if (yAxis.getLogThresholdTextField().getText().length() > 1 &&yAxis.getLogThresholdTextField().getText(0,2).equals("-.")){
                 yAxis.getLogThresholdTextField().setText("-0"+yAxis.getLogThresholdTextField().getText(1, yAxis.getLogThresholdTextField().getText().length()));
             }
             if (yAxis.getLogThresholdTextField().getText(yAxis.getLogThresholdTextField().getText().length()-1, yAxis.getLogThresholdTextField().getText().length()).equals(".")||
@@ -440,7 +440,7 @@ public class PhenotypeEntry {
             if (yAxis.getThresholdTextField().getText(0, 1).equals(".")){
                 yAxis.getThresholdTextField().setText("0" + yAxis.getThresholdTextField().getText());
             }
-            if (yAxis.getThresholdTextField().getText(0,2).equals("-.")){
+            if (yAxis.getThresholdTextField().getText().length() > 1 && yAxis.getThresholdTextField().getText(0,2).equals("-.")){
                 yAxis.getThresholdTextField().setText("-0"+yAxis.getThresholdTextField().getText(1, yAxis.getThresholdTextField().getText().length()));
             }
             if (yAxis.getThresholdTextField().getText(yAxis.getThresholdTextField().getText().length()-1, yAxis.getThresholdTextField().getText().length()).equals(".")||

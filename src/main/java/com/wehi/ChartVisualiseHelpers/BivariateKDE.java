@@ -2,6 +2,8 @@ package com.wehi.ChartVisualiseHelpers;
 
 import org.apache.commons.math3.stat.descriptive.DescriptiveStatistics;
 import java.util.ArrayList;
+import java.util.stream.Collectors;
+import java.util.stream.IntStream;
 
 /**
  * Bi-Variate KDE Assuming the Bi-variate Gaussian are independent
@@ -22,6 +24,7 @@ public class BivariateKDE {
     // y
     private ArrayList<Double> y;
 
+    private final int INCREMENT = 100;
     /**
      * Constructor
      * @param x x values
@@ -44,36 +47,13 @@ public class BivariateKDE {
         double[] densities = new double[x.size()];
         IndependentBivariateNormalDistribution bivariateNormalDistribution = new IndependentBivariateNormalDistribution(bandwidthMatrix);
 
-        boolean isFirstPoint = true;
-
-        int increment;
-        if (x.size() < 10000){
-            increment = 1;
-        }
-        else if (100000 >x.size()){
-            increment = 100;
-        } else if(1000000 > x.size()){
-            increment = 1000;
-        } else{
-            increment = 10000;
-        }
-
-        for (int i=0; i < x.size(); i+=increment){
+        int n = x.size();
+        for (int i=n; --i>=0; ){
             bivariateNormalDistribution.setMean(x.get(i), y.get(i));
-            for (int j=0; j < x.size(); j++){
-                if (isFirstPoint) {
-                    densities[j] = bivariateNormalDistribution.density(x.get(j), y.get(j)) / x.size();
-                    isFirstPoint = false;
-                } else {
-                    densities[j] += bivariateNormalDistribution.density(x.get(j), y.get(j)) / x.size();
-                }
+            for (int j=n; --j>=0; ){
+                densities[j] += bivariateNormalDistribution.density(x.get(j), y.get(j)) / x.size();
             }
         }
-
-//        // Normalises each point
-//        for (int k=0; k< densities.length; k++){
-//            densities[k] = densities[k];
-//        }
         return densities;
     }
 
@@ -81,10 +61,18 @@ public class BivariateKDE {
      * Calculates the bandwidth matrix
      */
     public void calculateBandwidths(){
-        ds1 = new DescriptiveStatistics(x.stream().mapToDouble(p -> p).toArray());
-        ds2 = new DescriptiveStatistics(y.stream().mapToDouble(p -> p).toArray());
+        int n = x.size();
+        double[] arr1 = new double[n];
+        double[] arr2 = new double[n];
 
-        double n = x.size();
+        for (int i=n; --i>=0;){
+            arr1[i] = x.get(i);
+            arr2[i] = y.get(i);
+        }
+
+        ds1 = new DescriptiveStatistics(arr1);
+        ds2 = new DescriptiveStatistics(arr2);
+
         double num = Math.pow(4.0 / (n * (2 + dimensions)), 1.0/(dimensions + 4));
 
         bandwidthMatrix[0] = new double[2];

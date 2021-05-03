@@ -274,6 +274,26 @@ public class ManualGatingWindow implements Runnable, ChangeListener<ImageData<Bu
                 currentNode.getValue().getYAxisSlider().valueProperty().addListener((v, o, n) -> maybePreview(currentNode.getValue().getYAxis()));
                 phenotypeHierarchy.setRoot(currentNode);
 
+
+                splitPane.getItems().remove(optionsColumn);
+
+                if (currentNode.getValue().getPane() == null) {
+                    optionsColumn = createColumn(
+                            currentNode.getValue().createPane(stage),
+                            createSubPhenotypeBox,
+                            updateSubPhenotypeBox
+                    );
+                } else{
+                    optionsColumn = createColumn(
+                            currentNode.getValue().getPane(),
+                            createSubPhenotypeBox,
+                            updateSubPhenotypeBox
+                    );
+                }
+                splitPane.getItems().add(
+                        optionsColumn
+                );
+                resetClassifications(imageData.getHierarchy(), mapPrevious.get(imageData.getHierarchy()));
                 phenotypeHierarchy.getTreeTable().refresh();
             } catch (IOException | JSONException ioException) {
                 ioException.printStackTrace();
@@ -328,8 +348,6 @@ public class ManualGatingWindow implements Runnable, ChangeListener<ImageData<Bu
                     );
                     currentNode = row.getTreeItem();
                     resetClassifications(imageData.getHierarchy(), mapPrevious.get(imageData.getHierarchy()));
-//                    currentNode.getValue().getXAxisSlider().valueProperty().addListener((v, o, n) -> maybePreview(currentNode.getValue().getXAxis()));
-//                    currentNode.getValue().getXAxisSlider().valueProperty().addListener((v, o, n) -> maybePreview(currentNode.getValue().getYAxis()));
                 }
             });
             return row ;
