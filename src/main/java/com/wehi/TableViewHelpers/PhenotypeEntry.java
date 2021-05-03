@@ -208,13 +208,16 @@ public class PhenotypeEntry {
                     if (row.getMarkerCombination() == PhenotypeCreationTableEntry.MARKER_COMBINATION.TWO_NEGATIVE ||
                     row.getMarkerCombination() == PhenotypeCreationTableEntry.MARKER_COMBINATION.TWO_POSITIVE) {
                         row.setName(phenotype.getPhenotypeName());
+                        row.selectedAsChildCheckBox();
                         break;
                     } else {
                         if (phenotype.getPositiveMarkers().contains(row.getMarkerOne())){
                             row.setName(phenotype.getPhenotypeName());
+                            row.selectedAsChildCheckBox();
                             break;
                         }
                     }
+
                 }
             }
         }
@@ -293,7 +296,9 @@ public class PhenotypeEntry {
                     xAxis.setThresholdTextFields(
                         newValue.doubleValue(),
                         cytometryChart.getXSlider().getMin());
-                    updatePhenotypeCreationXAxisThresholds(xAxis.getThreshold());
+                    if (!phenotypeCreationTableCreator.getItems().isEmpty()) {
+                        updatePhenotypeCreationXAxisThresholds(xAxis.getThreshold());
+                    }
                 }
 
         );
@@ -304,7 +309,9 @@ public class PhenotypeEntry {
                             newValue.doubleValue(),
                             cytometryChart.getYSlider().getMin()
                     );
-                    updatePhenotypeCreationYAxisThresholds(yAxis.getThreshold());
+                    if (!phenotypeCreationTableCreator.getItems().isEmpty()) {
+                        updatePhenotypeCreationYAxisThresholds(yAxis.getThreshold());
+                    }
                 }
         );
 

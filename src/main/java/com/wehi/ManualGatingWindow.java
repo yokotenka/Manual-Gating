@@ -269,7 +269,11 @@ public class ManualGatingWindow implements Runnable, ChangeListener<ImageData<Bu
         confirmManualGatingOptionButton = new Button("Load Options");
         confirmManualGatingOptionButton.setOnAction(e -> {
             try {
-                phenotypeHierarchy.setRoot(JSONTreeSaver.readLoadOptions(folderName, manualGatingOptionsBox.getValue(), markers, measurements, stage));
+                currentNode = JSONTreeSaver.readLoadOptions(folderName, manualGatingOptionsBox.getValue(), markers, measurements, cells, stage);
+                currentNode.getValue().getXAxisSlider().valueProperty().addListener((v, o, n) -> maybePreview(currentNode.getValue().getXAxis()));
+                currentNode.getValue().getYAxisSlider().valueProperty().addListener((v, o, n) -> maybePreview(currentNode.getValue().getYAxis()));
+                phenotypeHierarchy.setRoot(currentNode);
+
                 phenotypeHierarchy.getTreeTable().refresh();
             } catch (IOException | JSONException ioException) {
                 ioException.printStackTrace();
@@ -324,6 +328,8 @@ public class ManualGatingWindow implements Runnable, ChangeListener<ImageData<Bu
                     );
                     currentNode = row.getTreeItem();
                     resetClassifications(imageData.getHierarchy(), mapPrevious.get(imageData.getHierarchy()));
+//                    currentNode.getValue().getXAxisSlider().valueProperty().addListener((v, o, n) -> maybePreview(currentNode.getValue().getXAxis()));
+//                    currentNode.getValue().getXAxisSlider().valueProperty().addListener((v, o, n) -> maybePreview(currentNode.getValue().getYAxis()));
                 }
             });
             return row ;
@@ -353,7 +359,9 @@ public class ManualGatingWindow implements Runnable, ChangeListener<ImageData<Bu
         currentPhenotypeEntry.getXAxisSlider().valueProperty().addListener((v, o, n) -> maybePreview(currentPhenotypeEntry.getXAxis()));
         currentPhenotypeEntry.getYAxisSlider().valueProperty().addListener((v, o, n) -> maybePreview(currentPhenotypeEntry.getYAxis()));
     }
+    private void firePaneChange(){
 
+    }
 
     public static VBox createColumn(Node... nodes){
         VBox column = createVBox();
@@ -588,6 +596,8 @@ public class ManualGatingWindow implements Runnable, ChangeListener<ImageData<Bu
                         subPhenotype.getValue().setCells(filteredCells);
                     }
                     subPhenotype.getValue().setPhenotypeName(entry.getPhenotypeName());
+                    subPhenotype.getValue().getXAxisSlider().valueProperty().addListener((v, o, n) -> maybePreview(subPhenotype.getValue().getXAxis()));
+                    subPhenotype.getValue().getYAxisSlider().valueProperty().addListener((v, o, n) -> maybePreview(subPhenotype.getValue().getYAxis()));
                     phenotypeHierarchy.getTreeTable().refresh();
                 }
             }

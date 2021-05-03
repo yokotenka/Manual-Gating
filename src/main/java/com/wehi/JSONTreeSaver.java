@@ -15,6 +15,7 @@ import org.json.JSONObject;
 import javafx.scene.control.TreeTableColumn;
 import javafx.scene.control.TreeTableView;
 import qupath.lib.gui.dialogs.Dialogs;
+import qupath.lib.objects.PathObject;
 
 import java.io.File;
 import java.io.FileWriter;
@@ -23,6 +24,7 @@ import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.List;
 
 import java.nio.charset.StandardCharsets;
@@ -106,19 +108,19 @@ public class JSONTreeSaver {
         }
     }
 
-    public static TreeItem<PhenotypeEntry> readLoadOptions(File baseDirectory, String fileName, ObservableList<String> markers, ObservableList<String> measurements, Stage stage) throws IOException, JSONException {
+    public static TreeItem<PhenotypeEntry> readLoadOptions(File baseDirectory, String fileName, ObservableList<String> markers, ObservableList<String> measurements, Collection<PathObject> cells, Stage stage) throws IOException, JSONException {
         File fullFileName = new File(baseDirectory, fileName);
         String content = Files.readString(Path.of(fullFileName.getPath()));
 
 
         JSONObject jsonObject = new JSONObject(content);
-        return createTree(jsonObject, markers, measurements, stage);
+        return createTree(jsonObject, markers, measurements, cells, stage);
 
     }
 
     private static TreeItem<PhenotypeEntry> createTree(JSONObject jsonObject,
-                                   ObservableList<String> markers, ObservableList<String> measurements, Stage stage) throws JSONException {
-        TreeItem<PhenotypeEntry> node = createNewItem(jsonObject, markers, measurements, stage);
+                                                       ObservableList<String> markers, ObservableList<String> measurements, Collection<PathObject> cells, Stage stage) throws JSONException {
+        TreeItem<PhenotypeEntry> node = createNewItem(jsonObject, markers, measurements, cells, stage);
 
         if (node == null){
             return null;
@@ -128,7 +130,7 @@ public class JSONTreeSaver {
         JSONArray subPhenotypes = (JSONArray) jsonObject.get("subPhenotypes");
         for (int i = 0; i < subPhenotypes.length(); i++) {
 
-            TreeItem<PhenotypeEntry> child = createTree((JSONObject) subPhenotypes.get(i), markers, measurements, stage);
+            TreeItem<PhenotypeEntry> child = createTree((JSONObject) subPhenotypes.get(i), markers, measurements, cells, stage);
             if (child != null) {
                 subPhenotypesList.add(child);
             }
@@ -139,7 +141,7 @@ public class JSONTreeSaver {
     }
 
     private static TreeItem<PhenotypeEntry> createNewItem(JSONObject jsonObject,
-                                                          ObservableList<String> markers, ObservableList<String> measurements, Stage stage) throws JSONException {
+                                                          ObservableList<String> markers, ObservableList<String> measurements, Collection<PathObject> cells, Stage stage) throws JSONException {
         String phenotypeName = (String) jsonObject.get("phenotypeName");
 
         String markerOne = getEqualMarker(markers, (String) jsonObject.get("splitMarkerOne"));
@@ -149,8 +151,8 @@ public class JSONTreeSaver {
 
 //
 //
-        String yAxisMarkerName = (String) jsonObject.get("yAxisMarker");
-        String xAxisMarkerName = (String) jsonObject.get("xAxisMarker");
+        String yAxisMarkerName = getEqualMarker(markers,(String) jsonObject.get("yAxisMarker"));
+        String xAxisMarkerName = getEqualMarker(markers,(String) jsonObject.get("xAxisMarker"));
 
         String yAxisMeasurementName = (String) jsonObject.get("yAxisMeasurementName");
         String xAxisMeasurementName = (String) jsonObject.get("xAxisMeasurementName");
@@ -174,7 +176,7 @@ public class JSONTreeSaver {
             return null;
         }
         PhenotypeEntry phenotypeEntry = new PhenotypeEntry(
-                null,
+                cells,
                 phenotypeName,
                 positiveMarkers,
                 negativeMarkers,

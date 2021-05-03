@@ -46,7 +46,19 @@ public class BivariateKDE {
 
         boolean isFirstPoint = true;
 
-        for (int i=0; i < x.size(); i++){
+        int increment;
+        if (x.size() < 10000){
+            increment = 1;
+        }
+        else if (100000 >x.size()){
+            increment = 100;
+        } else if(1000000 > x.size()){
+            increment = 1000;
+        } else{
+            increment = 10000;
+        }
+
+        for (int i=0; i < x.size(); i+=increment){
             bivariateNormalDistribution.setMean(x.get(i), y.get(i));
             for (int j=0; j < x.size(); j++){
                 if (isFirstPoint) {

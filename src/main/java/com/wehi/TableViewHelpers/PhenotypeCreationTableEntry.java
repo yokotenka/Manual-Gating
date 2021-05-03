@@ -197,4 +197,8 @@ public class PhenotypeCreationTableEntry {
     public void setName(String name){
         phenotypeTextField.setText(name);
     }
+
+    public void selectedAsChildCheckBox(){
+        selectedAsChildCheckBox.setSelected(true);
+    }
 }
