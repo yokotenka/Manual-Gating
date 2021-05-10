@@ -262,8 +262,8 @@ public class CytometryChart {
                             "    a 25,25 0 1,1 50,0\n" +
                             "    a 25,25 0 1,1 -50,0\";"
             );
-            n.setScaleX(1);
-            n.setScaleY(1);
+            n.setScaleX(2);
+            n.setScaleY(2);
             i++;
         }
     }
