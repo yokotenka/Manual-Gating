@@ -472,7 +472,7 @@ public class PhenotypeEntry {
         plotGraphButton.setOnAction(e -> {
             if (xAxisMarkerMeasurementName!=null && yAxisMarkerMeasurementName!=null) {
                 cytometryChart.updateAxisLabels(xAxisMarkerMeasurementName, yAxisMarkerMeasurementName);
-                cytometryChart.populateScatterChart(cells, xAxisMarkerMeasurementName, yAxisMarkerMeasurementName);
+                cytometryChart.populateScatterChartHistogram(cells, xAxisMarkerMeasurementName, yAxisMarkerMeasurementName, 1);
             } else{
                 Dialogs.showErrorMessage(title, "Please select the marker and the measurement to be used.");
             }

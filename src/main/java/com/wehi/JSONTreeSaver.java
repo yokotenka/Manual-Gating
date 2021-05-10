@@ -108,18 +108,24 @@ public class JSONTreeSaver {
         }
     }
 
-    public static TreeItem<PhenotypeEntry> readLoadOptions(File baseDirectory, String fileName, ObservableList<String> markers, ObservableList<String> measurements, Collection<PathObject> cells, Stage stage) throws IOException, JSONException {
+    public static TreeItem<PhenotypeEntry> readLoadOptions(File baseDirectory,
+                                                           String fileName,
+                                                           ObservableList<String> markers,
+                                                           ObservableList<String> measurements,
+                                                           Collection<PathObject> cells, Stage stage) throws IOException, JSONException {
+
         File fullFileName = new File(baseDirectory, fileName);
         String content = Files.readString(Path.of(fullFileName.getPath()));
-
-
         JSONObject jsonObject = new JSONObject(content);
         return createTree(jsonObject, markers, measurements, cells, stage);
 
     }
 
     private static TreeItem<PhenotypeEntry> createTree(JSONObject jsonObject,
-                                                       ObservableList<String> markers, ObservableList<String> measurements, Collection<PathObject> cells, Stage stage) throws JSONException {
+                                                       ObservableList<String> markers,
+                                                       ObservableList<String> measurements,
+                                                       Collection<PathObject> cells,
+                                                       Stage stage) throws JSONException {
         TreeItem<PhenotypeEntry> node = createNewItem(jsonObject, markers, measurements, cells, stage);
 
         if (node == null){
@@ -149,8 +155,6 @@ public class JSONTreeSaver {
         ArrayList<String> positiveMarkers = convertJSONArrayToArrayList((JSONArray) jsonObject.get("positiveMarkers"), markers);
         ArrayList<String> negativeMarkers = convertJSONArrayToArrayList((JSONArray) jsonObject.get("negativeMarkers"), markers);
 
-//
-//
         String yAxisMarkerName = getEqualMarker(markers,(String) jsonObject.get("yAxisMarker"));
         String xAxisMarkerName = getEqualMarker(markers,(String) jsonObject.get("xAxisMarker"));
 
@@ -172,7 +176,6 @@ public class JSONTreeSaver {
         }
 
         if (markerOne==null || markerTwo==null || positiveMarkers ==null || negativeMarkers == null){
-
             return null;
         }
         PhenotypeEntry phenotypeEntry = new PhenotypeEntry(

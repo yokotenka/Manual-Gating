@@ -1,7 +1,9 @@
 package com.wehi.ChartVisualiseHelpers;
 
+import com.wehi.ManualGatingWindow;
 import javafx.collections.FXCollections;
 import javafx.geometry.Insets;
+import javafx.geometry.Point2D;
 import javafx.scene.Node;
 import javafx.scene.chart.NumberAxis;
 import javafx.scene.chart.ScatterChart;
@@ -12,7 +14,11 @@ import javafx.scene.layout.GridPane;
 import javafx.scene.paint.Color;
 import javafx.stage.Stage;
 import org.apache.commons.math3.stat.descriptive.DescriptiveStatistics;
+import qupath.lib.gui.dialogs.Dialogs;
 import qupath.lib.objects.PathObject;
+
+import java.math.RoundingMode;
+import java.text.DecimalFormat;
 import java.util.*;
 
 /**
@@ -173,14 +179,99 @@ public class CytometryChart {
         for (Node n : nodes) {
             double normalisedValue = density[i]/max;
             ColourMapper.Triplet color = ColourMapper.mapToColor(normalisedValue);
-            n.setStyle("-fx-background-color: rgb("+color.getRed()+","+color.getGreen()+","+color.getBlue()+");"
-            +"-fx-background-radius: 1px;"
+            n.setStyle(
+//                    "-fx-background-color: rgb("+color.getRed()+","+color.getGreen()+","+color.getBlue()+");\n"
+                    "-fx-background-radius: 1px;"
+                    +"-fx-shape: \"M 10 10 H 90 V 90 H 10 L 10 10\";"
+
             );
             n.setScaleX(0.25);
             n.setScaleY(0.25);
             i++;
         }
     }
+
+    /**
+     * Plots without calculating the KDE. Bins each value and assigns a colour.
+     * @param cells
+     * @param xMeasurement
+     * @param yMeasurement
+     * @param nThDecimal
+     */
+    public void populateScatterChartHistogram(Collection<PathObject> cells, String xMeasurement, String yMeasurement, int nThDecimal){
+        // Assume that the event of a missing value is low. We will ignore such cells for our KDE.
+        HashMap<Point2D, Integer> squareWeightMap = new HashMap<>();
+
+        // This is to make sure we remove the previous plot before we plot our new points.
+        if (!isFirstTime){
+            series = new Series<>();
+            scatterChart.setData(FXCollections.observableArrayList(series));
+        }
+        isFirstTime = false;
+        int total = 0;
+        for (PathObject cell : cells){
+            if (!cell.getMeasurementList().containsNamedMeasurement(xMeasurement) ||!cell.getMeasurementList().containsNamedMeasurement(yMeasurement) ){
+                if (!cell.getMeasurementList().containsNamedMeasurement(xMeasurement) && cell.getMeasurementList().containsNamedMeasurement(yMeasurement) ){
+                    Dialogs.showErrorMessage(ManualGatingWindow.TITLE, "The following measurement does not exist: " + xMeasurement);
+                } else if (cell.getMeasurementList().containsNamedMeasurement(xMeasurement) && !cell.getMeasurementList().containsNamedMeasurement(yMeasurement) ) {
+                    Dialogs.showErrorMessage(ManualGatingWindow.TITLE, "The following measurement does not exist: " + yMeasurement);
+                } else {
+                    Dialogs.showErrorMessage(ManualGatingWindow.TITLE, "The following measurements do not exist: " + xMeasurement + ", " + yMeasurement);
+                }
+                return;
+            }
+
+
+            // Check if either of the measurement is NaN
+            if (Double.isNaN(cell.getMeasurementList().getMeasurementValue(xMeasurement)) ||
+                    Double.isNaN(cell.getMeasurementList().getMeasurementValue(yMeasurement))){
+                continue;
+            }
+            // Check that the logged value is finite
+            if (Double.isFinite(Math.log(cell.getMeasurementList().getMeasurementValue(xMeasurement)))
+                    && Double.isFinite(Math.log(cell.getMeasurementList().getMeasurementValue(yMeasurement)))) {
+                Point2D point = new Point2D(roundValue(Math.log(cell.getMeasurementList().getMeasurementValue(xMeasurement)), nThDecimal),
+                        roundValue(Math.log(cell.getMeasurementList().getMeasurementValue(yMeasurement)), nThDecimal));
+
+                Integer frequency = squareWeightMap.getOrDefault(point, 0) + 1;
+                squareWeightMap.put(point, frequency);
+                total++;
+            }
+        }
+        Set<Map.Entry<Point2D, Integer>> entrySet = squareWeightMap.entrySet();
+        List<Map.Entry<Point2D, Integer>> entryList = new ArrayList<>(entrySet);
+        entryList.sort(Comparator.comparingDouble(Map.Entry::getValue));
+
+        double max = 0;
+        for (Map.Entry<Point2D, Integer> entry : entryList){
+            series.getData().add(new XYChart.Data<>(entry.getKey().getX(), entry.getKey().getY()));
+            if (Double.compare(entry.getValue(), max) > 0){
+                max = entry.getValue();
+            }
+        }
+
+        int i=0;
+        Set<Node> nodes = scatterChart.lookupAll(".series0");
+        for (Node n : nodes) {
+            double normalisedValue = (double) entryList.get(i).getValue()/ max;
+            ColourMapper.Triplet color = ColourMapper.mapToColor(normalisedValue);
+            n.setStyle(
+                    "-fx-background-color: rgb("+color.getRed()+","+color.getGreen()+","+color.getBlue()+");\n"
+                    +"-fx-background-radius: 1px;"
+                    +"-fx-shape: \"M 25, 50\n" +
+                            "    a 25,25 0 1,1 50,0\n" +
+                            "    a 25,25 0 1,1 -50,0\";"
+            );
+            n.setScaleX(1);
+            n.setScaleY(1);
+            i++;
+        }
+    }
+
+    private Double roundValue(double num, int nThDecimal){
+        return Math.round(num * Math.pow(10, nThDecimal)) / Math.pow(10, nThDecimal);
+    }
+
 
     // Update the bounds for the x axis
     private void updateXBound(double lowerBound){
