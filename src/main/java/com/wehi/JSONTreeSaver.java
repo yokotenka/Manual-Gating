@@ -1,9 +1,7 @@
 package com.wehi;
 
-import com.wehi.TableViewHelpers.PhenotypeCreationTableEntry;
-import com.wehi.TableViewHelpers.PhenotypeEntry;
-import com.wehi.TableViewHelpers.TreeTableCreator;
-import groovyjarjarantlr4.runtime.tree.Tree;
+import com.wehi.table.entry.ChildPhenotypeTableEntry;
+import com.wehi.table.entry.PhenotypeEntry;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
 import javafx.scene.control.TreeItem;
@@ -12,7 +10,6 @@ import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
 
-import javafx.scene.control.TreeTableColumn;
 import javafx.scene.control.TreeTableView;
 import qupath.lib.gui.dialogs.Dialogs;
 import qupath.lib.objects.PathObject;
@@ -20,15 +17,12 @@ import qupath.lib.objects.PathObject;
 import java.io.File;
 import java.io.FileWriter;
 import java.io.IOException;
-import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
 
-import java.nio.charset.StandardCharsets;
-import java.nio.file.Paths;
 import java.util.stream.Collectors;
 
 public class JSONTreeSaver {
@@ -75,12 +69,12 @@ public class JSONTreeSaver {
         json.put("splitMarkerOne", node.getValue().getSplitMarkerOne());
         json.put("splitMarkerTwo", node.getValue().getSplitMarkerTwo());
 
-        if (node.getValue().getCombination() == PhenotypeCreationTableEntry.MARKER_COMBINATION.ONE_OF_EACH){
+        if (node.getValue().getCombination() == ChildPhenotypeTableEntry.MARKER_COMBINATION.ONE_OF_EACH){
             json.put("combination", "2");
-        } else if(node.getValue().getCombination() == PhenotypeCreationTableEntry.MARKER_COMBINATION.TWO_NEGATIVE){
+        } else if(node.getValue().getCombination() == ChildPhenotypeTableEntry.MARKER_COMBINATION.TWO_NEGATIVE){
             json.put("combination", "1");
         }
-        else if(node.getValue().getCombination() == PhenotypeCreationTableEntry.MARKER_COMBINATION.TWO_POSITIVE){
+        else if(node.getValue().getCombination() == ChildPhenotypeTableEntry.MARKER_COMBINATION.TWO_POSITIVE){
             json.put("combination", "0");
         }
 
@@ -166,13 +160,13 @@ public class JSONTreeSaver {
         double unLoggedXThreshold =  Double.parseDouble((String)jsonObject.get("xAxisThreshold"));
 
         int combination = Integer.parseInt( (String) jsonObject.get("combination"));
-        PhenotypeCreationTableEntry.MARKER_COMBINATION actual;
+        ChildPhenotypeTableEntry.MARKER_COMBINATION actual;
         if (combination == 0){
-            actual = PhenotypeCreationTableEntry.MARKER_COMBINATION.TWO_POSITIVE;
+            actual = ChildPhenotypeTableEntry.MARKER_COMBINATION.TWO_POSITIVE;
         } else if (combination == 1){
-            actual = PhenotypeCreationTableEntry.MARKER_COMBINATION.TWO_NEGATIVE;
+            actual = ChildPhenotypeTableEntry.MARKER_COMBINATION.TWO_NEGATIVE;
         } else {
-            actual = PhenotypeCreationTableEntry.MARKER_COMBINATION.ONE_OF_EACH;
+            actual = ChildPhenotypeTableEntry.MARKER_COMBINATION.ONE_OF_EACH;
         }
 
         if (markerOne==null || markerTwo==null || positiveMarkers ==null || negativeMarkers == null){
@@ -198,11 +192,11 @@ public class JSONTreeSaver {
         phenotypeEntry.setYAxisMarkerName(yAxisMarkerName);
         phenotypeEntry.setYAxisMeasurementName(yAxisMeasurementName);
 
-        phenotypeEntry.updatePhenotypeCreationCreator();
-
+//        phenotypeEntry.updatePhenotypeCreationCreator();
+        phenotypeEntry.refreshChildPhenotypeTable();
         phenotypeEntry.setYAxisThreshold(unLoggedYThreshold);
         phenotypeEntry.setXAxisThreshold(unLoggedXThreshold);
-        phenotypeEntry.setFullMeasurementName();
+//        phenotypeEntry.setFullMeasurementName();
 
         return new TreeItem<>(phenotypeEntry);
     }

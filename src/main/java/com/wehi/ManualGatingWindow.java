@@ -1,6 +1,10 @@
 package com.wehi;
 
-import com.wehi.TableViewHelpers.*;
+import com.wehi.table.entry.AxisTableEntry;
+import com.wehi.table.entry.ChildPhenotypeTableEntry;
+import com.wehi.table.entry.PhenotypeEntry;
+
+import com.wehi.table.wrapper.TreeTableCreator;
 import javafx.beans.value.ChangeListener;
 import javafx.beans.value.ObservableValue;
 import javafx.collections.FXCollections;
@@ -263,9 +267,6 @@ public class ManualGatingWindow implements Runnable, ChangeListener<ImageData<Bu
             folderName.mkdirs();
         }
         manualGatingOptionsBox.setItems(FXCollections.observableArrayList(folderName.list()));
-
-
-
         confirmManualGatingOptionButton = new Button("Load Options");
         confirmManualGatingOptionButton.setOnAction(e -> {
             try {
@@ -459,15 +460,16 @@ public class ManualGatingWindow implements Runnable, ChangeListener<ImageData<Bu
      */
     public void createPhenotypes(){
         // List of new phenotypes
+        currentNode.getValue().setChildPhenotypeThresholds();
         ObservableList<TreeItem<PhenotypeEntry>> newPhenotypes = FXCollections.observableArrayList();
-        for (PhenotypeCreationTableEntry entry : currentNode.getValue().getPhenotypeCreationTableCreator().getTable().getItems()){
+        for (ChildPhenotypeTableEntry entry : currentNode.getValue().getChildPhenotypeTableWrapper().getTable().getItems()){
             if (entry.getIsSelected() && entry.getPhenotypeName() != null){
 
                 ArrayList<String> newPositiveMarkers;
                 ArrayList<String> newNegativeMarkers;
                 Collection<PathObject> filteredCells;
 
-                if (entry.getMarkerCombination() == PhenotypeCreationTableEntry.MARKER_COMBINATION.TWO_POSITIVE){
+                if (entry.getMarkerCombination() == ChildPhenotypeTableEntry.MARKER_COMBINATION.TWO_POSITIVE){
                      filteredCells = currentNode.getValue().getCells()
                             .stream()
                             .filter(p -> p.getMeasurementList()
@@ -494,7 +496,7 @@ public class ManualGatingWindow implements Runnable, ChangeListener<ImageData<Bu
                     }else{
                         newNegativeMarkers = new ArrayList<>(currentNode.getValue().getNegativeMarkers());
                     }
-                } else if (entry.getMarkerCombination() == PhenotypeCreationTableEntry.MARKER_COMBINATION.TWO_NEGATIVE){
+                } else if (entry.getMarkerCombination() == ChildPhenotypeTableEntry.MARKER_COMBINATION.TWO_NEGATIVE){
                     filteredCells = currentNode.getValue().getCells()
                             .stream()
                             .filter(p -> p.getMeasurementList()
@@ -577,15 +579,16 @@ public class ManualGatingWindow implements Runnable, ChangeListener<ImageData<Bu
     }
 
     public void updateSubPhenotypes(){
+        currentNode.getValue().setChildPhenotypeThresholds();
         List<PathObject> filteredCells;
-        for (PhenotypeCreationTableEntry entry : currentNode.getValue().getPhenotypeCreationTableCreator().getTable().getItems()) {
+        for (ChildPhenotypeTableEntry entry : currentNode.getValue().getChildPhenotypeTableWrapper().getTable().getItems()) {
             if (entry.getIsSelected() && entry.getPhenotypeName() != null) {
                 for (TreeItem<PhenotypeEntry> subPhenotype : currentNode.getChildren()){
                     if (!entry.getMarkerOne().equals(subPhenotype.getValue().getSplitMarkerOne()) ||
                             !entry.getMarkerTwo().equals(subPhenotype.getValue().getSplitMarkerTwo())){
                         continue;
                     }
-                    if (entry.getMarkerCombination() == PhenotypeCreationTableEntry.MARKER_COMBINATION.TWO_POSITIVE){
+                    if (entry.getMarkerCombination() == ChildPhenotypeTableEntry.MARKER_COMBINATION.TWO_POSITIVE){
                         filteredCells = currentNode.getValue().getCells()
                                 .stream()
                                 .filter(p -> p.getMeasurementList()
@@ -594,7 +597,7 @@ public class ManualGatingWindow implements Runnable, ChangeListener<ImageData<Bu
                                         .getMeasurementValue(entry.getMeasurementTwo()) > entry.getThresholdTwo())
                                 .collect(Collectors.toList());
                         subPhenotype.getValue().setCells(filteredCells);
-                    } else if (entry.getMarkerCombination() == PhenotypeCreationTableEntry.MARKER_COMBINATION.TWO_NEGATIVE) {
+                    } else if (entry.getMarkerCombination() == ChildPhenotypeTableEntry.MARKER_COMBINATION.TWO_NEGATIVE) {
                         filteredCells = currentNode.getValue().getCells()
                                 .stream()
                                 .filter(p -> p.getMeasurementList()

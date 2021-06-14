@@ -1,28 +1,36 @@
-com/wehi/TableViewHelpers/AxisTableEntry.java
- com.wehi.TableViewHelpers.AxisTableEntry
+com/wehi/table/entry/AxisTableEntry.java
+ com.wehi.table.entry.AxisTableEntry
+ com.wehi.table.entry.AxisTableEntry$AxisValue
+com/wehi/table/wrapper/TreeTableCreator.java
+ com.wehi.table.wrapper.TreeTableCreator
+com/wehi/table/wrapper/AxisTableWrapper.java
+ com.wehi.table.wrapper.AxisTableWrapper
+com/wehi/chart/ThresholdedScatterChartWrapper.java
+ com.wehi.chart.ThresholdedScatterChartWrapper
+com/wehi/JSONTreeSaver.java
+ com.wehi.JSONTreeSaver
+com/wehi/observer/Subject.java
+ com.wehi.observer.Subject
+com/wehi/chart/CytometryChart.java
+ com.wehi.chart.CytometryChart
+ com.wehi.chart.CytometryChart$ColourMapper
+ com.wehi.chart.CytometryChart$ColourMapper$Triplet
 com/wehi/ManualGatingWindow.java
  com.wehi.ManualGatingWindow
  com.wehi.ManualGatingWindow$ClassificationRequest
-com/wehi/ChartVisualiseHelpers/ThresholdedScatterChartWrapper.java
- com.wehi.ChartVisualiseHelpers.ThresholdedScatterChartWrapper
-com/wehi/TableViewHelpers/TreeTableCreator.java
- com.wehi.TableViewHelpers.TreeTableCreator
-com/wehi/ChartVisualiseHelpers/BivariateKDE.java
- com.wehi.ChartVisualiseHelpers.BivariateKDE
- com.wehi.ChartVisualiseHelpers.BivariateKDE$IndependentBivariateNormalDistribution
-com/wehi/JSONTreeSaver.java
- com.wehi.JSONTreeSaver
-com/wehi/TableViewHelpers/TableCreator.java
- com.wehi.TableViewHelpers.TableCreator
-com/wehi/ChartVisualiseHelpers/CytometryChart.java
- com.wehi.ChartVisualiseHelpers.CytometryChart
- com.wehi.ChartVisualiseHelpers.CytometryChart$ColourMapper
- com.wehi.ChartVisualiseHelpers.CytometryChart$ColourMapper$Triplet
+com/wehi/table/wrapper/ChildPhenotypeTableWrapper.java
+ com.wehi.table.wrapper.ChildPhenotypeTableWrapper
+com/wehi/observer/Observer.java
+ com.wehi.observer.Observer
+com/wehi/table/wrapper/TableWrapper.java
+ com.wehi.table.wrapper.TableWrapper
+com/wehi/table/entry/PhenotypeEntry.java
+ com.wehi.table.entry.PhenotypeEntry
+com/wehi/chart/BivariateKDE.java
+ com.wehi.chart.BivariateKDE
+ com.wehi.chart.BivariateKDE$IndependentBivariateNormalDistribution
+com/wehi/table/entry/ChildPhenotypeTableEntry.java
+ com.wehi.table.entry.ChildPhenotypeTableEntry
+ com.wehi.table.entry.ChildPhenotypeTableEntry$MARKER_COMBINATION
 com/wehi/ManualGatingExtension.java
  com.wehi.ManualGatingExtension
-com/wehi/TableViewHelpers/PhenotypeEntry.java
- com.wehi.TableViewHelpers.AxisValue
- com.wehi.TableViewHelpers.PhenotypeEntry
-com/wehi/TableViewHelpers/PhenotypeCreationTableEntry.java
- com.wehi.TableViewHelpers.PhenotypeCreationTableEntry
- com.wehi.TableViewHelpers.PhenotypeCreationTableEntry$MARKER_COMBINATION
