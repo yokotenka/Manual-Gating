@@ -517,8 +517,7 @@ public class ManualGatingWindow implements Runnable, ChangeListener<ImageData<Bu
                     if (currentNode.getValue().getNegativeMarkers()==null){
                         newPositiveMarkers = null;
                     }else{
-                        //newPositiveMarkers = new ArrayList<>(currentNode.getValue().getNegativeMarkers());
-                        newPositiveMarkers = new ArrayList<>(currentNode.getValue().getPositiveMarkers());
+                        newPositiveMarkers = new ArrayList<>(currentNode.getValue().getNegativeMarkers());
                     }
                 } else {
                     filteredCells = currentNode.getValue().getCells()
@@ -579,109 +578,45 @@ public class ManualGatingWindow implements Runnable, ChangeListener<ImageData<Bu
 
     public void updateSubPhenotypes(){
         List<PathObject> filteredCells;
-
         for (PhenotypeCreationTableEntry entry : currentNode.getValue().getPhenotypeCreationTableCreator().getTable().getItems()) {
             if (entry.getIsSelected() && entry.getPhenotypeName() != null) {
                 for (TreeItem<PhenotypeEntry> subPhenotype : currentNode.getChildren()){
-                    Integer lengthPositive = subPhenotype.getValue().getPositiveMarkers().size();
-                    Integer lengthNegative = subPhenotype.getValue().getNegativeMarkers().size();
-
-
-
                     if (!entry.getMarkerOne().equals(subPhenotype.getValue().getSplitMarkerOne()) ||
                             !entry.getMarkerTwo().equals(subPhenotype.getValue().getSplitMarkerTwo())){
                         continue;
                     }
                     if (entry.getMarkerCombination() == PhenotypeCreationTableEntry.MARKER_COMBINATION.TWO_POSITIVE){
-
-                        //update PhenotypeName
-                        if(lengthPositive>1) {
-                            if (subPhenotype.getValue().getPositiveMarkers().get(lengthPositive - 2).equals(entry.getMarkerOne()) &&
-                                    subPhenotype.getValue().getPositiveMarkers().get(lengthPositive - 1).equals(entry.getMarkerTwo())) {
-
-                                filteredCells = currentNode.getValue().getCells()
-                                        .stream()
-                                        .filter(p -> p.getMeasurementList()
-                                                .getMeasurementValue(entry.getMeasurementOne()) > entry.getThresholdOne())
-                                        .filter(p -> p.getMeasurementList()
-                                                .getMeasurementValue(entry.getMeasurementTwo()) > entry.getThresholdTwo())
-                                        .collect(Collectors.toList());
-                                subPhenotype.getValue().setCells(filteredCells);
-
-                                subPhenotype.getValue().setPhenotypeName(entry.getPhenotypeName());
-                                //set CellPath class after updating tree
-                                //resetClassifications(imageData.getHierarchy(), mapPrevious.get(imageData.getHierarchy()));
-                                setCellPathClass(filteredCells, entry.getPhenotypeName());
-                                storeClassificationMap(imageData.getHierarchy());
-                            }
-                        }
-
-
-
+                        filteredCells = currentNode.getValue().getCells()
+                                .stream()
+                                .filter(p -> p.getMeasurementList()
+                                        .getMeasurementValue(entry.getMeasurementOne()) > entry.getThresholdOne())
+                                .filter(p -> p.getMeasurementList()
+                                        .getMeasurementValue(entry.getMeasurementTwo()) > entry.getThresholdTwo())
+                                .collect(Collectors.toList());
+                        subPhenotype.getValue().setCells(filteredCells);
                     } else if (entry.getMarkerCombination() == PhenotypeCreationTableEntry.MARKER_COMBINATION.TWO_NEGATIVE) {
-
-                        if(lengthNegative>1) {
-                            if (subPhenotype.getValue().getNegativeMarkers().get(lengthNegative - 2).equals(entry.getMarkerOne()) &&
-                                    subPhenotype.getValue().getNegativeMarkers().get(lengthNegative - 1).equals(entry.getMarkerTwo())) {
-
-                                filteredCells = currentNode.getValue().getCells()
-                                        .stream()
-                                        .filter(p -> p.getMeasurementList()
-                                                .getMeasurementValue(entry.getMeasurementOne()) < entry.getThresholdOne())
-                                        .filter(p -> p.getMeasurementList()
-                                                .getMeasurementValue(entry.getMeasurementTwo()) < entry.getThresholdTwo())
-                                        .collect(Collectors.toList());
-                                subPhenotype.getValue().setCells(filteredCells);
-
-                                subPhenotype.getValue().setPhenotypeName(entry.getPhenotypeName());
-                                //set CellPath class after updating tree
-                                //resetClassifications(imageData.getHierarchy(), mapPrevious.get(imageData.getHierarchy()));
-                                setCellPathClass(filteredCells, entry.getPhenotypeName());
-                                //setCellPathClass(filteredCells, subPhenotype.getValue().getPhenotypeName());
-
-                                storeClassificationMap(imageData.getHierarchy());
-                            }
-                        }
-
+                        filteredCells = currentNode.getValue().getCells()
+                                .stream()
+                                .filter(p -> p.getMeasurementList()
+                                        .getMeasurementValue(entry.getMeasurementOne()) < entry.getThresholdOne())
+                                .filter(p -> p.getMeasurementList()
+                                        .getMeasurementValue(entry.getMeasurementTwo()) < entry.getThresholdTwo())
+                                .collect(Collectors.toList());
+                        subPhenotype.getValue().setCells(filteredCells);
                     } else {
-
-                        if (subPhenotype.getValue().getNegativeMarkers().get(lengthNegative - 1).equals(entry.getMarkerTwo()) &&
-                                subPhenotype.getValue().getPositiveMarkers().get(lengthPositive - 1).equals(entry.getMarkerOne())) {
-
-
-                            filteredCells = currentNode.getValue().getCells()
-                                    .stream()
-                                    .filter(p -> p.getMeasurementList()
-                                            .getMeasurementValue(entry.getMeasurementOne()) > entry.getThresholdOne())
-                                    .filter(p -> p.getMeasurementList()
-                                            .getMeasurementValue(entry.getMeasurementTwo()) < entry.getThresholdTwo())
-                                    .collect(Collectors.toList());
-                            subPhenotype.getValue().setCells(filteredCells);
-
-                            subPhenotype.getValue().setPhenotypeName(entry.getPhenotypeName());
-
-                                //set CellPath class after updating tree
-                            //setCellPathClass(filteredCells, entry.getPhenotypeName());
-                            //Dialogs.showErrorMessage(ManualGatingWindow.TITLE, subPhenotype.getValue().getPhenotypeName() + ' ' + entry.getPhenotypeName());
-                            //resetClassifications(imageData.getHierarchy(), mapPrevious.get(imageData.getHierarchy()));
-                            //setCellPathClass(filteredCells, subPhenotype.getValue().getPhenotypeName());
-                            setCellPathClass(filteredCells, entry.getPhenotypeName());
-
-                            storeClassificationMap(imageData.getHierarchy());
-
-
-
-                        }
-
-
+                        filteredCells = currentNode.getValue().getCells()
+                                .stream()
+                                .filter(p -> p.getMeasurementList()
+                                        .getMeasurementValue(entry.getMeasurementOne()) > entry.getThresholdOne())
+                                .filter(p -> p.getMeasurementList()
+                                        .getMeasurementValue(entry.getMeasurementTwo()) < entry.getThresholdTwo())
+                                .collect(Collectors.toList());
+                        subPhenotype.getValue().setCells(filteredCells);
                     }
-
-
+                    subPhenotype.getValue().setPhenotypeName(entry.getPhenotypeName());
                     subPhenotype.getValue().getXAxisSlider().valueProperty().addListener((v, o, n) -> maybePreview(subPhenotype.getValue().getXAxis()));
                     subPhenotype.getValue().getYAxisSlider().valueProperty().addListener((v, o, n) -> maybePreview(subPhenotype.getValue().getYAxis()));
                     phenotypeHierarchy.getTreeTable().refresh();
-
-
                 }
             }
         }

@@ -140,7 +140,7 @@ public class PhenotypeEntry {
 
     /* Initialising JavaFX nodes */
     public void initialiseAxisOptionsTableCreator(){
-        axisOptionsTableCreator = new TableCreator<AxisTableEntry>();
+        axisOptionsTableCreator = new TableCreator<>();
 
         axisOptionsTableCreator.addColumn("Axis", "axisValue", 0.1);
         axisOptionsTableCreator.addColumn("Markers", "markersBox", 0.2);
@@ -157,7 +157,7 @@ public class PhenotypeEntry {
     }
 
     public void initialisePhenotypeCreationTableCreator(){
-        phenotypeCreationTableCreator = new TableCreator<PhenotypeCreationTableEntry>();
+        phenotypeCreationTableCreator = new TableCreator<>();
 
         phenotypeCreationTableCreator.addColumn("Marker Combination", "markerCombinationString", 0.3);
         phenotypeCreationTableCreator.addColumn("Phenotype Name", "phenotypeTextField", 0.5);
@@ -508,7 +508,6 @@ public class PhenotypeEntry {
     public String getPositiveMarkersString(){
         return positiveMarkers.toString().substring(1, positiveMarkers.toString().length()-1);
     }
-
 
     public String getNegativeMarkersString(){
         return negativeMarkers.toString().substring(1, negativeMarkers.toString().length()-1);
