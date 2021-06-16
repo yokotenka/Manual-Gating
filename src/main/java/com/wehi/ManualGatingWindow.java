@@ -612,7 +612,7 @@ public class ManualGatingWindow implements Runnable, ChangeListener<ImageData<Bu
 
                                 subPhenotype.getValue().setPhenotypeName(entry.getPhenotypeName());
                                 //set CellPath class after updating tree
-                                //resetClassifications(imageData.getHierarchy(), mapPrevious.get(imageData.getHierarchy()));
+                                resetClassifications(imageData.getHierarchy(), mapPrevious.get(imageData.getHierarchy()));
                                 setCellPathClass(filteredCells, entry.getPhenotypeName());
                                 storeClassificationMap(imageData.getHierarchy());
                             }
@@ -637,7 +637,7 @@ public class ManualGatingWindow implements Runnable, ChangeListener<ImageData<Bu
 
                                 subPhenotype.getValue().setPhenotypeName(entry.getPhenotypeName());
                                 //set CellPath class after updating tree
-                                //resetClassifications(imageData.getHierarchy(), mapPrevious.get(imageData.getHierarchy()));
+                                resetClassifications(imageData.getHierarchy(), mapPrevious.get(imageData.getHierarchy()));
                                 setCellPathClass(filteredCells, entry.getPhenotypeName());
                                 //setCellPathClass(filteredCells, subPhenotype.getValue().getPhenotypeName());
 
@@ -666,7 +666,7 @@ public class ManualGatingWindow implements Runnable, ChangeListener<ImageData<Bu
                             //set CellPath class after updating tree
                             //setCellPathClass(filteredCells, entry.getPhenotypeName());
                             //Dialogs.showErrorMessage(ManualGatingWindow.TITLE, subPhenotype.getValue().getPhenotypeName() + ' ' + entry.getPhenotypeName());
-                            //resetClassifications(imageData.getHierarchy(), mapPrevious.get(imageData.getHierarchy()));
+                            resetClassifications(imageData.getHierarchy(), mapPrevious.get(imageData.getHierarchy()));
                             //setCellPathClass(filteredCells, subPhenotype.getValue().getPhenotypeName());
                             setCellPathClass(filteredCells, entry.getPhenotypeName());
 
@@ -699,15 +699,26 @@ public class ManualGatingWindow implements Runnable, ChangeListener<ImageData<Bu
 
                     if (currentClass == null) {
                         pathClass = PathClassFactory.getPathClass(phenotypeName);
+                        it.setPathClass(pathClass);
                     } else {
-                        pathClass = PathClassFactory.getDerivedPathClass(
-                                currentClass,
-                                phenotypeName,
-                                null);
+                        if (!checkForSingleClassification(currentClass, phenotypeName)) {
+                            pathClass = PathClassFactory.getDerivedPathClass(
+                                    currentClass,
+                                    phenotypeName,
+                                    null);
+                            it.setPathClass(pathClass);
+                        }
                     }
-                    it.setPathClass(pathClass);
                 }
         );
+    }
+
+    private boolean checkForSingleClassification(PathClass pathClass, String classificationName) {
+        if (pathClass == null)
+            return false;
+        if (pathClass.getName().equals(classificationName))
+            return true;
+        return checkForSingleClassification(pathClass.getParentClass(), classificationName);
     }
 
     private void resetCellPathClass(){
