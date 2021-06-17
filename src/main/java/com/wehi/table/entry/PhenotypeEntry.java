@@ -225,19 +225,9 @@ public class PhenotypeEntry {
         return negativeMarkers.toString().substring(1, negativeMarkers.toString().length()-1);
     }
 
-    /**
-     * Assigns the Phenotype name to the PathClass for each of the cells. Creates a column in the cell measurement
-     * list containing boolean values for each of the markers it is positive for.
-     */
-    public void assignCellPhenotypes(){
-
-    }
-
-
     public ChildPhenotypeTableWrapper getChildPhenotypeTableWrapper() {
         return childPhenotypeTableWrapper;
     }
-
 
     public double getXAxisThreshold(){
         return axisTableWrapper.getXThreshold();
@@ -270,7 +260,6 @@ public class PhenotypeEntry {
     public void setCells(Collection<PathObject> cells){
         this.cells = cells;
     }
-
 
     public AxisTableEntry getXAxis() {
         return axisTableWrapper.getXAxis();
@@ -307,7 +296,6 @@ public class PhenotypeEntry {
     public void setPhenotypeName(String name){
         this.phenotypeName = name;
     }
-
 
     public void setYAxisMarkerName(String markerName){
         axisTableWrapper.getYAxis().setMarkerName(markerName);
