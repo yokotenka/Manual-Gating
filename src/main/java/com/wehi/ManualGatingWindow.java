@@ -1,6 +1,6 @@
 package com.wehi;
 
-import com.wehi.table.entry.AxisTableEntry;
+import com.wehi.pathclasshandler.PathClassHandler;
 import com.wehi.table.entry.ChildPhenotypeTableEntry;
 import com.wehi.table.entry.PhenotypeEntry;
 
@@ -20,30 +20,18 @@ import javafx.scene.control.Label;
 import javafx.scene.layout.HBox;
 import javafx.scene.layout.VBox;
 import javafx.stage.Stage;
-import org.apache.commons.lang.StringUtils;
 import org.json.JSONException;
-import qupath.lib.classifiers.PathClassifierTools;
-import qupath.lib.classifiers.object.ObjectClassifier;
-import qupath.lib.classifiers.object.ObjectClassifiers;
-import qupath.lib.common.ThreadTools;
 import qupath.lib.gui.QuPathGUI;
 import qupath.lib.gui.dialogs.Dialogs;
 import qupath.lib.gui.viewer.QuPathViewer;
 import qupath.lib.images.ImageData;
 import qupath.lib.images.servers.ImageServer;
 import qupath.lib.objects.PathObject;
-import qupath.lib.objects.PathObjectFilter;
-import qupath.lib.objects.PathObjects;
-import qupath.lib.objects.classes.PathClass;
-import qupath.lib.objects.classes.PathClassFactory;
-import qupath.lib.objects.hierarchy.PathObjectHierarchy;
 import qupath.lib.projects.Projects;
 import java.awt.image.BufferedImage;
 import java.io.File;
 import java.io.IOException;
 import java.util.*;
-import java.util.concurrent.ExecutorService;
-import java.util.concurrent.Executors;
 import java.util.stream.Collectors;
 
 /**
@@ -100,9 +88,6 @@ public class ManualGatingWindow implements Runnable, ChangeListener<ImageData<Bu
     // The current phenotype
     private TreeItem<PhenotypeEntry> currentNode;
 
-
-    private ExecutorService pool;
-
     /**
      * Constructor for the ManualGatingWindow
      * @param quPathGUI
@@ -114,7 +99,11 @@ public class ManualGatingWindow implements Runnable, ChangeListener<ImageData<Bu
     @Override
     public void run() {
         createDialog();
-        stage.show();
+        if(Dialogs.showYesNoDialog("Manual Gating", "Do you wish to reset existing classifications on your cells?")){
+            PathClassHandler.resetCellPathClass(cells);
+            PathClassHandler.storeClassification();
+            stage.show();
+        }
     }
 
     /**
@@ -122,7 +111,7 @@ public class ManualGatingWindow implements Runnable, ChangeListener<ImageData<Bu
      */
     public void createDialog(){
         stage = new Stage();
-        pool = Executors.newSingleThreadExecutor(ThreadTools.createThreadFactory("manual-gating", true));
+
         // Update qupath data
         updateQupath();
         // Update title
@@ -223,11 +212,6 @@ public class ManualGatingWindow implements Runnable, ChangeListener<ImageData<Bu
         stage.setWidth(850);
         stage.setHeight(500);
 
-
-        if(Dialogs.showYesNoDialog("Manual Gating", "Do you wish to reset existing classifications on your cells?")){
-            resetCellPathClass();
-            storeClassificationMap(imageData.getHierarchy());
-        }
     }
 
     /**
@@ -250,6 +234,9 @@ public class ManualGatingWindow implements Runnable, ChangeListener<ImageData<Bu
         this.imageData = this.viewer.getImageData();
         this.imageServer = this.viewer.getServer();
         this.cells = this.imageData.getHierarchy().getCellObjects();
+
+        PathClassHandler.getInstance();
+        PathClassHandler.setInstanceImageData(imageData);
     }
 
     private void updateTitle() {
@@ -273,8 +260,8 @@ public class ManualGatingWindow implements Runnable, ChangeListener<ImageData<Bu
         confirmManualGatingOptionButton.setOnAction(e -> {
             try {
                 currentNode = JSONTreeSaver.readLoadOptions(folderName, manualGatingOptionsBox.getValue(), markers, measurements, cells, stage);
-                currentNode.getValue().getXAxisSlider().valueProperty().addListener((v, o, n) -> maybePreview(currentNode.getValue().getXAxis()));
-                currentNode.getValue().getYAxisSlider().valueProperty().addListener((v, o, n) -> maybePreview(currentNode.getValue().getYAxis()));
+                currentNode.getValue().getXAxisSlider().valueProperty().addListener((v, o, n) -> PathClassHandler.previewThreshold(currentNode.getValue().getXAxis()));
+                currentNode.getValue().getYAxisSlider().valueProperty().addListener((v, o, n) -> PathClassHandler.previewThreshold(currentNode.getValue().getYAxis()));
                 phenotypeHierarchy.setRoot(currentNode);
 
 
@@ -296,7 +283,7 @@ public class ManualGatingWindow implements Runnable, ChangeListener<ImageData<Bu
                 splitPane.getItems().add(
                         optionsColumn
                 );
-                resetClassifications(imageData.getHierarchy(), mapPrevious.get(imageData.getHierarchy()));
+                PathClassHandler.restorePathClass();
                 phenotypeHierarchy.getTreeTable().refresh();
             } catch (IOException | JSONException ioException) {
                 ioException.printStackTrace();
@@ -350,7 +337,7 @@ public class ManualGatingWindow implements Runnable, ChangeListener<ImageData<Bu
                             optionsColumn
                     );
                     currentNode = row.getTreeItem();
-                    resetClassifications(imageData.getHierarchy(), mapPrevious.get(imageData.getHierarchy()));
+                    PathClassHandler.restorePathClass();
                 }
             });
             return row ;
@@ -377,11 +364,8 @@ public class ManualGatingWindow implements Runnable, ChangeListener<ImageData<Bu
                 currentPhenotypeEntry
             );
         phenotypeHierarchy.setRoot(currentNode);
-        currentPhenotypeEntry.getXAxisSlider().valueProperty().addListener((v, o, n) -> maybePreview(currentPhenotypeEntry.getXAxis()));
-        currentPhenotypeEntry.getYAxisSlider().valueProperty().addListener((v, o, n) -> maybePreview(currentPhenotypeEntry.getYAxis()));
-    }
-    private void firePaneChange(){
-
+        currentPhenotypeEntry.getXAxisSlider().valueProperty().addListener((v, o, n) -> PathClassHandler.previewThreshold(currentPhenotypeEntry.getXAxis()));
+        currentPhenotypeEntry.getYAxisSlider().valueProperty().addListener((v, o, n) -> PathClassHandler.previewThreshold(currentPhenotypeEntry.getYAxis()));
     }
 
     public static VBox createColumn(Node... nodes){
@@ -565,12 +549,12 @@ public class ManualGatingWindow implements Runnable, ChangeListener<ImageData<Bu
                         entry.getMarkerTwo(),
                         entry.getMarkerCombination()
                 );
-                newPhenotype.getXAxisSlider().valueProperty().addListener((v, o, n) -> maybePreview(newPhenotype.getXAxis()));
-                newPhenotype.getYAxisSlider().valueProperty().addListener((v, o, n) -> maybePreview(newPhenotype.getYAxis()));
+                newPhenotype.getXAxisSlider().valueProperty().addListener((v, o, n) -> PathClassHandler.previewThreshold(newPhenotype.getXAxis()));
+                newPhenotype.getYAxisSlider().valueProperty().addListener((v, o, n) -> PathClassHandler.previewThreshold(newPhenotype.getYAxis()));
                 newPhenotypes.add(new TreeItem<>(newPhenotype));
-                resetClassifications(imageData.getHierarchy(), mapPrevious.get(imageData.getHierarchy()));
-                setCellPathClass(filteredCells, entry.getPhenotypeName());
-                storeClassificationMap(imageData.getHierarchy());
+                PathClassHandler.restorePathClass();
+                PathClassHandler.setCellPathClass(filteredCells, entry.getPhenotypeName());
+                PathClassHandler.storeClassification();
             }
         }
         currentNode.getChildren().setAll(newPhenotypes);
@@ -578,14 +562,14 @@ public class ManualGatingWindow implements Runnable, ChangeListener<ImageData<Bu
 
     public void updateSubPhenotypes(){
         currentNode.getValue().setChildPhenotypeThresholds();
-        resetClassifications(imageData.getHierarchy(), mapPrevious.get(imageData.getHierarchy()));
-        ArrayList<PathObject> filteredCells = new ArrayList<>();
+        PathClassHandler.restorePathClass();
+
         for (ChildPhenotypeTableEntry entry : currentNode.getValue().getChildPhenotypeTableWrapper().getTable().getItems()) {
             if (entry.getIsSelected() && entry.getPhenotypeName() != null) {
                 for (TreeItem<PhenotypeEntry> subPhenotype : currentNode.getChildren()){
                     Integer lengthPositive = subPhenotype.getValue().getPositiveMarkers().size();
                     Integer lengthNegative = subPhenotype.getValue().getNegativeMarkers().size();
-
+                    ArrayList<PathObject> filteredCells = new ArrayList<>();
                     if (!entry.getMarkerOne().equals(subPhenotype.getValue().getSplitMarkerOne()) ||
                             !entry.getMarkerTwo().equals(subPhenotype.getValue().getSplitMarkerTwo())){
                         continue;
@@ -599,15 +583,15 @@ public class ManualGatingWindow implements Runnable, ChangeListener<ImageData<Bu
                                     if (cell.getMeasurementList().getMeasurementValue(entry.getMeasurementOne()) > entry.getThresholdOne()
                                             && cell.getMeasurementList().getMeasurementValue(entry.getMeasurementTwo()) > entry.getThresholdTwo()){
                                         filteredCells.add(cell);
-                                        replacePathClass(cell, subPhenotype.getValue().getPhenotypeName(), entry.getPhenotypeName());
+                                        PathClassHandler.replacePathClass(cell, subPhenotype.getValue().getPhenotypeName(), entry.getPhenotypeName());
                                     } else{
-                                        removeNoLongerPositive(cell, subPhenotype.getValue().getPhenotypeName());
+                                        PathClassHandler.removeNoLongerPositive(cell, subPhenotype.getValue().getPhenotypeName());
                                     }
                                 }
                                 subPhenotype.getValue().setPhenotypeName(entry.getPhenotypeName());
                                 //set CellPath class after updating tree
-                                setCellPathClass(filteredCells, entry.getPhenotypeName());
-                                storeClassificationMap(imageData.getHierarchy());
+                                PathClassHandler.setCellPathClass(filteredCells, entry.getPhenotypeName());
+                                PathClassHandler.storeClassification();
                             }
                         }
                     } else if (entry.getMarkerCombination() == ChildPhenotypeTableEntry.MARKER_COMBINATION.TWO_NEGATIVE) {
@@ -619,16 +603,16 @@ public class ManualGatingWindow implements Runnable, ChangeListener<ImageData<Bu
                                     if (cell.getMeasurementList().getMeasurementValue(entry.getMeasurementOne()) < entry.getThresholdOne()
                                             && cell.getMeasurementList().getMeasurementValue(entry.getMeasurementTwo()) < entry.getThresholdTwo()){
                                         filteredCells.add(cell);
-                                        replacePathClass(cell, subPhenotype.getValue().getPhenotypeName(), entry.getPhenotypeName());
+                                        PathClassHandler.replacePathClass(cell, subPhenotype.getValue().getPhenotypeName(), entry.getPhenotypeName());
                                     } else{
-                                        removeNoLongerPositive(cell, subPhenotype.getValue().getPhenotypeName());
+                                        PathClassHandler.removeNoLongerPositive(cell, subPhenotype.getValue().getPhenotypeName());
                                     }
                                 }
                                 subPhenotype.getValue().setCells(filteredCells);
                                 subPhenotype.getValue().setPhenotypeName(entry.getPhenotypeName());
                                 //set CellPath class after updating tree
-                                setCellPathClass(filteredCells, entry.getPhenotypeName());
-                                storeClassificationMap(imageData.getHierarchy());
+                                PathClassHandler.setCellPathClass(filteredCells, entry.getPhenotypeName());
+                                PathClassHandler.storeClassification();
                             }
                         }
                     } else {
@@ -638,203 +622,29 @@ public class ManualGatingWindow implements Runnable, ChangeListener<ImageData<Bu
                                 if (cell.getMeasurementList().getMeasurementValue(entry.getMeasurementOne()) > entry.getThresholdOne()
                                         && cell.getMeasurementList().getMeasurementValue(entry.getMeasurementTwo()) < entry.getThresholdTwo()){
                                     filteredCells.add(cell);
-                                    replacePathClass(cell, subPhenotype.getValue().getPhenotypeName(), entry.getPhenotypeName());
+                                    PathClassHandler.replacePathClass(cell, subPhenotype.getValue().getPhenotypeName(), entry.getPhenotypeName());
                                 } else{
-                                    removeNoLongerPositive(cell, subPhenotype.getValue().getPhenotypeName());
+                                    PathClassHandler.removeNoLongerPositive(cell, subPhenotype.getValue().getPhenotypeName());
                                 }
                             }
                             subPhenotype.getValue().setCells(filteredCells);
                             subPhenotype.getValue().setPhenotypeName(entry.getPhenotypeName());
 
                             //set CellPath class after updating tree
-                            setCellPathClass(filteredCells, subPhenotype.getValue().getPhenotypeName());
-                            storeClassificationMap(imageData.getHierarchy());
+                            PathClassHandler.setCellPathClass(filteredCells, subPhenotype.getValue().getPhenotypeName());
+                            PathClassHandler.storeClassification();
                         }
 
 
                     }
 
-                    subPhenotype.getValue().getXAxisSlider().valueProperty().addListener((v, o, n) -> maybePreview(subPhenotype.getValue().getXAxis()));
-                    subPhenotype.getValue().getYAxisSlider().valueProperty().addListener((v, o, n) -> maybePreview(subPhenotype.getValue().getYAxis()));
+                    subPhenotype.getValue().getXAxisSlider().valueProperty().addListener((v, o, n) -> PathClassHandler.previewThreshold(subPhenotype.getValue().getXAxis()));
+                    subPhenotype.getValue().getYAxisSlider().valueProperty().addListener((v, o, n) -> PathClassHandler.previewThreshold(subPhenotype.getValue().getYAxis()));
                     phenotypeHierarchy.getTreeTable().refresh();
                 }
             }
         }
     }
 
-    private void removeNoLongerPositive(PathObject cell, String oldPhenotypeName){
-        if (checkForSingleClassification(cell.getPathClass(), oldPhenotypeName)) {
-            ArrayList<String> name = new ArrayList<>();
-            PathClass pathClass = cell.getPathClass();
-            boolean isPassed = false;
-            while (pathClass != null) {
-                if (isPassed) {
-                    name.add(pathClass.getName());
-                }
-                if (pathClass.getName().equals(oldPhenotypeName)) {
-                    isPassed = true;
-                }
-                pathClass = pathClass.getParentClass();
-            }
-            Collections.reverse(name);
-            if (!name.isEmpty()) {
-                cell.setPathClass(PathClassFactory.getPathClass(name));
-            } else {
-                cell.setPathClass(null);
-            }
-        }
-    }
 
-
-    private void replacePathClass(PathObject cell, String oldPhenotype, String newPhenotype){
-        ArrayList<String> name = new ArrayList<>();
-        replaceSinglePathClass(cell.getPathClass(), oldPhenotype, newPhenotype, name);
-        cell.setPathClass(PathClassFactory.getPathClass(name));
-    }
-
-
-    private void replaceSinglePathClass(PathClass pathClass, String oldPhenotype, String newPhenotype, ArrayList<String> name){
-        if (pathClass == null){
-            Collections.reverse(name);
-        } else {
-            if (pathClass.getName().equals(oldPhenotype)){
-                name.add(newPhenotype);
-            } else{
-                name.add(pathClass.getName());
-            }
-            replaceSinglePathClass(pathClass.getParentClass(), oldPhenotype, newPhenotype, name);
-        }
-    }
-
-
-    // Method for setting cell path class
-    private void setCellPathClass(Collection<PathObject> positive, String phenotypeName) {
-        positive.forEach(it -> {
-                    PathClass currentClass = it.getPathClass();
-                    PathClass pathClass;
-
-                    if (currentClass == null) {
-                        pathClass = PathClassFactory.getPathClass(phenotypeName);
-                        it.setPathClass(pathClass);
-                    } else {
-                        if (!checkForSingleClassification(currentClass, phenotypeName)) {
-                            pathClass = PathClassFactory.getDerivedPathClass(
-                                    currentClass,
-                                    phenotypeName,
-                                    null);
-                            it.setPathClass(pathClass);
-                        }
-                    }
-                }
-        );
-    }
-
-    private boolean checkForSingleClassification(PathClass pathClass, String classificationName) {
-        if (pathClass == null)
-            return false;
-        if (pathClass.getName().equals(classificationName))
-            return true;
-        return checkForSingleClassification(pathClass.getParentClass(), classificationName);
-    }
-
-    private void resetCellPathClass(){
-        cells.forEach(it ->
-                    it.setPathClass(null)
-                );
-    }
-
-
-    // The current Cell Phenotypes. The hierarchy
-    private HashMap<PathObjectHierarchy, Map<PathObject, PathClass>> mapPrevious = new HashMap<>();
-
-    /**
-     * Store the classifications for the current hierarchy, so these may be reset if the user cancels.
-     */
-    public void storeClassificationMap(PathObjectHierarchy hierarchy) {
-        if (hierarchy == null)
-            return;
-        List<PathObject> pathObjects = hierarchy.getFlattenedObjectList(null);
-        mapPrevious.put(
-                hierarchy,
-                PathClassifierTools.createClassificationMap(pathObjects)
-        );
-    }
-
-    public void resetClassifications(PathObjectHierarchy hierarchy, Map<PathObject, PathClass> mapPrevious) {
-        // Restore classifications if the user cancelled
-        Collection<PathObject> changed = PathClassifierTools.restoreClassificationsFromMap(mapPrevious);
-        if (hierarchy != null && !changed.isEmpty())
-            hierarchy.fireObjectClassificationsChangedEvent(this, changed);
-    }
-
-
-
-
-    private ClassificationRequest<BufferedImage> nextRequest;
-    void maybePreview(AxisTableEntry axisTableEntry) {
-        nextRequest = getUpdatedRequest(axisTableEntry);
-        pool.execute(this::processRequest);
-    }
-
-    ClassificationRequest<BufferedImage> getUpdatedRequest(AxisTableEntry axisTableEntry) {
-        if (imageData == null) {
-            return null;
-        }
-        var classifier = updateClassifier(axisTableEntry);
-        if (classifier == null)
-            return null;
-        return new ClassificationRequest<>(imageData, classifier);
-    }
-
-    ObjectClassifier<BufferedImage> updateClassifier(AxisTableEntry axisTableEntry) {
-        PathObjectFilter filter = PathObjectFilter.CELLS;
-        String measurement = axisTableEntry.getFullMeasurementName();
-        double threshold = axisTableEntry.getThreshold();
-        var classAbove = axisTableEntry.getMarkerName();
-        var classEquals = classAbove; // We use >= and if this changes the tooltip must change too!
-
-        if (measurement == null || Double.isNaN(threshold))
-            return null;
-
-        return new ObjectClassifiers.ClassifyByMeasurementBuilder<BufferedImage>(measurement)
-                .threshold(threshold)
-                .filter(filter)
-                .above(classAbove)
-                .equalTo(classAbove)
-                .build();
-    }
-
-    synchronized void processRequest() {
-        if (nextRequest == null || nextRequest.isComplete())
-            return;
-        nextRequest.doClassification();
-    }
-
-    /**
-     * Encapsulate the requirements for a intensity classification into a single object.
-     */
-    static class ClassificationRequest<T> {
-
-        private ImageData<T> imageData;
-        private ObjectClassifier<T> classifier;
-
-        private boolean isComplete = false;
-
-        ClassificationRequest(ImageData<T> imageData, ObjectClassifier<T> classifier) {
-            this.imageData = imageData;
-            this.classifier = classifier;
-        }
-
-        public synchronized void doClassification() {
-            var pathObjects = classifier.getCompatibleObjects(imageData);
-            classifier.classifyObjects(imageData, pathObjects, true);
-            imageData.getHierarchy().fireObjectClassificationsChangedEvent(classifier, pathObjects);
-            isComplete = true;
-        }
-
-        public synchronized boolean isComplete() {
-            return isComplete;
-        }
-
-    }
 }

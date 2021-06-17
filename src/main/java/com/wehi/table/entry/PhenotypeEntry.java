@@ -19,7 +19,10 @@ import java.util.ArrayList;
 import java.util.Collection;
 
 
-
+/**
+ * Represents the entry for the phenotype hierarchy tree table. Contains all the information needed in order to
+ * perform manual gating and phenotyping of the cells.
+ */
 public class PhenotypeEntry {
 
     // Phenotype Name
@@ -39,8 +42,8 @@ public class PhenotypeEntry {
     private String splitMarkerOne = "";
     private String splitMarkerTwo = "";
 
-    private ChildPhenotypeTableWrapper childPhenotypeTableWrapper;
-    private AxisTableWrapper axisTableWrapper;
+    private final ChildPhenotypeTableWrapper childPhenotypeTableWrapper;
+    private final AxisTableWrapper axisTableWrapper;
 
     private static String title = "Manual Gating";
     /* We will have a Column for each phenotype */

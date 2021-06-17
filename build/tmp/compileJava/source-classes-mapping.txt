@@ -17,7 +17,6 @@ com/wehi/chart/CytometryChart.java
  com.wehi.chart.CytometryChart$ColourMapper$Triplet
 com/wehi/ManualGatingWindow.java
  com.wehi.ManualGatingWindow
- com.wehi.ManualGatingWindow$ClassificationRequest
 com/wehi/table/wrapper/ChildPhenotypeTableWrapper.java
  com.wehi.table.wrapper.ChildPhenotypeTableWrapper
 com/wehi/observer/Observer.java
@@ -34,3 +33,6 @@ com/wehi/table/entry/ChildPhenotypeTableEntry.java
  com.wehi.table.entry.ChildPhenotypeTableEntry$MARKER_COMBINATION
 com/wehi/ManualGatingExtension.java
  com.wehi.ManualGatingExtension
+com/wehi/pathclasshandler/PathClassHandler.java
+ com.wehi.pathclasshandler.PathClassHandler
+ com.wehi.pathclasshandler.PathClassHandler$ClassificationRequest
