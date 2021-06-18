@@ -1,7 +1,13 @@
 package com.wehi.table.entry;
 
+import com.wehi.pathclasshandler.PathClassHandler;
 import javafx.scene.control.CheckBox;
 import javafx.scene.control.TextField;
+import qupath.lib.objects.PathObject;
+
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.stream.Collectors;
 
 
 /**
@@ -93,6 +99,144 @@ public class ChildPhenotypeTableEntry {
         return op1 + markerOne + "," + op2 + markerTwo;
     }
 
+    /**
+     * Filters the cells with the threshold
+     * @param cells cells to be filtered
+     * @return filtered cells
+     */
+    public Collection<PathObject> filterCells(Collection<PathObject> cells) {
+        Collection<PathObject> filteredCells;
+        if (markerCombination == MARKER_COMBINATION.TWO_POSITIVE) {
+            filteredCells = cells.stream().filter(p -> p.getMeasurementList()
+                    .getMeasurementValue(measurementOne) > thresholdOne)
+                    .filter(p -> p.getMeasurementList().getMeasurementValue(measurementTwo) > thresholdTwo)
+                    .collect(Collectors.toList());
+        } else if (markerCombination == MARKER_COMBINATION.TWO_NEGATIVE) {
+            filteredCells = cells.stream().filter(p -> p.getMeasurementList()
+                    .getMeasurementValue(measurementOne) < thresholdOne)
+                    .filter(p -> p.getMeasurementList().getMeasurementValue(measurementTwo) < thresholdTwo)
+                    .collect(Collectors.toList());
+        } else {
+            filteredCells = cells.stream().filter(p -> p.getMeasurementList()
+                    .getMeasurementValue(measurementOne) > thresholdOne)
+                    .filter(p -> p.getMeasurementList().getMeasurementValue(measurementTwo) < thresholdTwo)
+                    .collect(Collectors.toList());
+        }
+        return filteredCells;
+    }
+
+
+    public Collection<PathObject> filterCellsAndUpdatePathClass(Collection<PathObject> cells, String oldName){
+        ArrayList<PathObject> filteredCells = new ArrayList<>();
+        if (markerCombination == MARKER_COMBINATION.TWO_POSITIVE) {
+            for (PathObject cell : cells) {
+                if (cell.getMeasurementList().getMeasurementValue(measurementOne) > thresholdOne
+                        && cell.getMeasurementList().getMeasurementValue(measurementTwo) > thresholdTwo) {
+                    filteredCells.add(cell);
+                    PathClassHandler.replacePathClass(cell, oldName, getPhenotypeName());
+                } else {
+                    PathClassHandler.removeNoLongerPositive(cell, oldName);
+                }
+            }
+        }else if (markerCombination == MARKER_COMBINATION.TWO_NEGATIVE) {
+            for (PathObject cell : cells) {
+                if (cell.getMeasurementList().getMeasurementValue(measurementOne) < thresholdOne
+                        && cell.getMeasurementList().getMeasurementValue(measurementTwo) < thresholdTwo) {
+                    filteredCells.add(cell);
+                    PathClassHandler.replacePathClass(cell, oldName, getPhenotypeName());
+                } else {
+                    PathClassHandler.removeNoLongerPositive(cell, oldName);
+                }
+            }
+        } else {
+            for (PathObject cell : cells) {
+                if (cell.getMeasurementList().getMeasurementValue(measurementOne) > thresholdOne
+                        && cell.getMeasurementList().getMeasurementValue(measurementTwo) < thresholdTwo) {
+                    filteredCells.add(cell);
+                    PathClassHandler.replacePathClass(cell, oldName, getPhenotypeName());
+                } else {
+                    PathClassHandler.removeNoLongerPositive(cell, oldName);
+                }
+            }
+        }
+        return filteredCells;
+    }
+
+
+    /**
+     * Gets the new positive marker array list
+     * @param positiveMarkers current positive marker list
+     * @return new positive marker array list
+     */
+    public ArrayList<String> getNewPositiveMarkers(ArrayList<String> positiveMarkers){
+        ArrayList<String> newPositiveMarkers;
+        if (markerCombination == MARKER_COMBINATION.TWO_POSITIVE) {
+            if (positiveMarkers != null) {
+                    newPositiveMarkers = new ArrayList<>(positiveMarkers);
+            } else {
+                    newPositiveMarkers = new ArrayList<>();
+            }
+            // Checks if markerOne is already in the positive array list
+            if (newPositiveMarkers.stream().noneMatch(p -> p.equals(markerOne))) {
+                newPositiveMarkers.add(markerOne);
+            }
+            if (newPositiveMarkers.stream().noneMatch(p -> p.equals(markerTwo))) {
+                newPositiveMarkers.add(markerTwo);
+            }
+        }else if(markerCombination == MARKER_COMBINATION.TWO_NEGATIVE){
+            if (positiveMarkers == null) {
+                newPositiveMarkers = null;
+            } else {
+                newPositiveMarkers = new ArrayList<>(positiveMarkers);
+            }
+        } else{
+            if (positiveMarkers != null) {
+                    newPositiveMarkers = new ArrayList<>(positiveMarkers);
+            } else {
+                newPositiveMarkers = new ArrayList<>();
+            }
+            // Checks if markerOne is already in the positive array list
+            if (newPositiveMarkers.stream().noneMatch(p -> p.equals(markerOne))) {
+                newPositiveMarkers.add(markerOne);
+            }
+        }
+        return newPositiveMarkers;
+    }
+
+    public ArrayList<String> getNewNegativeMarkers(ArrayList<String> negativeMarkers){
+        ArrayList<String> newNegativeMarkers;
+        if (markerCombination == MARKER_COMBINATION.TWO_NEGATIVE) {
+            if (negativeMarkers != null) {
+                newNegativeMarkers = new ArrayList<>(negativeMarkers);
+            } else {
+                newNegativeMarkers = new ArrayList<>();
+            }
+            // Checks if markerOne is already in the positive array list
+            if (newNegativeMarkers.stream().noneMatch(p -> p.equals(markerOne))) {
+                newNegativeMarkers.add(markerOne);
+            }
+            if (newNegativeMarkers.stream().noneMatch(p -> p.equals(markerTwo))) {
+                newNegativeMarkers.add(markerTwo);
+            }
+        }else if(markerCombination == MARKER_COMBINATION.TWO_POSITIVE){
+            if (negativeMarkers == null) {
+                newNegativeMarkers = null;
+            } else {
+                newNegativeMarkers = new ArrayList<>(negativeMarkers);
+            }
+        } else{
+            if (negativeMarkers != null) {
+                newNegativeMarkers = new ArrayList<>(negativeMarkers);
+            } else {
+                newNegativeMarkers = new ArrayList<>();
+            }
+            // Checks if markerOne is already in the positive array list
+            if (newNegativeMarkers.stream().noneMatch(p -> p.equals(markerTwo))) {
+                newNegativeMarkers.add(markerTwo);
+            }
+        }
+        return newNegativeMarkers;
+    }
 
     /**
      * Getter for second marker

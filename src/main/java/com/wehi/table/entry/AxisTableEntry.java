@@ -209,6 +209,9 @@ public class AxisTableEntry {
      * @return String
      */
     public String getFullMeasurementName(){
+        if (markersBox.getSelectionModel().isEmpty() || measurementsBox.getSelectionModel().isEmpty()){
+            return null;
+        }
         return getMarkerName()+ MEASUREMENT_DELIMINATOR +getMeasurementName();
     }
 

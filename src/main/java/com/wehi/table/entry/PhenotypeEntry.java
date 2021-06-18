@@ -3,13 +3,16 @@ package com.wehi.table.entry;
 import com.wehi.chart.CytometryChart;
 import com.wehi.ManualGatingWindow;
 
+import com.wehi.pathclasshandler.PathClassHandler;
 import com.wehi.table.wrapper.AxisTableWrapper;
 import com.wehi.table.wrapper.ChildPhenotypeTableWrapper;
+import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
 import javafx.geometry.Orientation;
 import javafx.scene.control.Button;
 import javafx.scene.control.Slider;
 import javafx.scene.control.SplitPane;
+import javafx.scene.control.TreeItem;
 import javafx.scene.layout.HBox;
 import javafx.stage.Stage;
 import qupath.lib.gui.dialogs.Dialogs;
@@ -17,6 +20,8 @@ import qupath.lib.objects.PathObject;
 
 import java.util.ArrayList;
 import java.util.Collection;
+import java.util.Collections;
+import java.util.stream.Collectors;
 
 
 /**
@@ -52,7 +57,10 @@ public class PhenotypeEntry {
     // ComboBox to select the number of dimensions
     private SplitPane pane;
 
+    private Stage stage;
 
+    private TreeItem<PhenotypeEntry> treeItem;
+    private ArrayList<PhenotypeEntry> childPhenotypes;
 
 
     private CytometryChart cytometryChart;
@@ -60,18 +68,23 @@ public class PhenotypeEntry {
 
     public PhenotypeEntry(Collection<PathObject> cells, String phenotypeName,
                           ArrayList<String> positiveMarkers, ArrayList<String> negativeMarkers,
-                          ObservableList<String> markers, ObservableList<String> measurements, Stage stage
+                          ObservableList<String> markers, ObservableList<String> measurements, Stage stage,
+                          boolean createTreeItem
     ){
         this.cells = cells;
         this.phenotypeName = phenotypeName;
         this.positiveMarkers = positiveMarkers;
         this.negativeMarkers = negativeMarkers;
-
+        childPhenotypes = new ArrayList<>();
         this.markers = markers;
         this.measurements = measurements;
         this.childPhenotypeTableWrapper = new ChildPhenotypeTableWrapper();
         this.axisTableWrapper = new AxisTableWrapper(markers, measurements);
-        createPane(stage);
+        this.stage = stage;
+        if (createTreeItem) {
+            this.treeItem = new TreeItem<>(this);
+        }
+        createPane();
     }
 
     public PhenotypeEntry(Collection<PathObject> cells, String phenotypeName,
@@ -79,13 +92,14 @@ public class PhenotypeEntry {
                           ObservableList<String> markers, ObservableList<String> measurements, Stage stage,
                           String splitPositive,
                           String splitNegative,
-                          ChildPhenotypeTableEntry.MARKER_COMBINATION combination
+                          ChildPhenotypeTableEntry.MARKER_COMBINATION combination,
+                          boolean createTreeItem
     ){
         this.cells = cells;
         this.phenotypeName = phenotypeName;
         this.positiveMarkers = positiveMarkers;
         this.negativeMarkers = negativeMarkers;
-
+        childPhenotypes = new ArrayList<>();
         this.markers = markers;
         this.measurements = measurements;
         this.splitMarkerOne = splitPositive;
@@ -93,7 +107,12 @@ public class PhenotypeEntry {
         this.combination = combination;
         this.childPhenotypeTableWrapper = new ChildPhenotypeTableWrapper();
         this.axisTableWrapper = new AxisTableWrapper(markers, measurements);
-        createPane(stage);
+        this.stage = stage;
+
+        if (createTreeItem) {
+            this.treeItem = new TreeItem<>(this);
+        }
+        createPane();
     }
 
 
@@ -101,7 +120,7 @@ public class PhenotypeEntry {
         return pane;
     }
 
-    public SplitPane createPane(Stage stage){
+    public SplitPane createPane(){
         pane = new SplitPane();
 
         axisTableWrapper.addObservers(childPhenotypeTableWrapper);
@@ -109,7 +128,7 @@ public class PhenotypeEntry {
 
 
         /* Graph */
-        initialiseCytometryChart(stage);
+        initialiseCytometryChart();
         SplitPane loadChart = new SplitPane(
                 ManualGatingWindow.createColumn(
                 axisTableWrapper.getTable(),
@@ -130,27 +149,7 @@ public class PhenotypeEntry {
     }
 
 
-    public void updateNames(ArrayList<PhenotypeEntry> phenotypes){
 
-        for (ChildPhenotypeTableEntry row : childPhenotypeTableWrapper.getItems()){
-            for (PhenotypeEntry phenotype : phenotypes){
-                if (row.getMarkerCombination() == phenotype.getCombination()){
-                    if (row.getMarkerCombination() == ChildPhenotypeTableEntry.MARKER_COMBINATION.TWO_NEGATIVE ||
-                    row.getMarkerCombination() == ChildPhenotypeTableEntry.MARKER_COMBINATION.TWO_POSITIVE) {
-                        row.setName(phenotype.getPhenotypeName());
-                        row.selectedAsChildCheckBox();
-                        break;
-                    } else {
-                        if (phenotype.getPositiveMarkers().contains(row.getMarkerOne())){
-                            row.setName(phenotype.getPhenotypeName());
-                            row.selectedAsChildCheckBox();
-                            break;
-                        }
-                    }
-                }
-            }
-        }
-    }
 
 
 
@@ -159,7 +158,7 @@ public class PhenotypeEntry {
 
 
     // The behaviour of the Sliders in the ChartWrapper to get the threshold values for each of the markers
-    private void initialiseCytometryChart(Stage stage){
+    private void initialiseCytometryChart(){
         cytometryChart = new CytometryChart(stage);
 
         cytometryChart.getXSlider().valueProperty().addListener(
@@ -188,21 +187,170 @@ public class PhenotypeEntry {
         Button plotGraphButton = new Button("Plot Density Chart");
         plotGraphButton.setOnAction(e -> {
             if (axisTableWrapper.getXAxisFullMeasurementName()!=null && axisTableWrapper.getYAxisFullMeasurementName()!=null) {
-                cytometryChart.updateAxisLabels(axisTableWrapper.getXAxisFullMeasurementName(), axisTableWrapper.getYAxisFullMeasurementName());
-                cytometryChart.populateScatterChartHistogram(cells, axisTableWrapper.getXAxisFullMeasurementName(), axisTableWrapper.getYAxisFullMeasurementName(), 1);
+                plotCytometryChart();
             } else{
                 Dialogs.showErrorMessage(title, "Please select the marker and the measurement to be used.");
             }
-
         });
-
         return new HBox(plotGraphButton);
+    }
+
+    private void plotCytometryChart(){
+        if (axisTableWrapper.getXAxisFullMeasurementName()!=null && axisTableWrapper.getYAxisFullMeasurementName()!=null) {
+            cytometryChart.updateAxisLabels(axisTableWrapper.getXAxisFullMeasurementName(), axisTableWrapper.getYAxisFullMeasurementName());
+            cytometryChart.populateScatterChartHistogram(cells, axisTableWrapper.getXAxisFullMeasurementName(), axisTableWrapper.getYAxisFullMeasurementName(), 1);
+        }
     }
 
     public void setChildPhenotypeThresholds(){
         childPhenotypeTableWrapper.updateXThreshold(axisTableWrapper.getXThreshold());
         childPhenotypeTableWrapper.updateYThreshold(axisTableWrapper.getYThreshold());
     }
+
+
+    /**
+     * Action taken upon pressing the button applyThreshold
+     */
+    public void createPhenotypes(){
+        // List of new phenotypes
+//        treeItem.getChildren().clear();
+        childPhenotypes = new ArrayList<>();
+        setChildPhenotypeThresholds();
+
+        for (ChildPhenotypeTableEntry entry : childPhenotypeTableWrapper.getItems()){
+            if (entry.getIsSelected() && entry.getPhenotypeName() != null) {
+                Collection<PathObject> filteredCells = entry.filterCells(cells);
+                ArrayList<String> newPositiveMarkers = entry.getNewPositiveMarkers(positiveMarkers);
+                ArrayList<String> newNegativeMarkers = entry.getNewNegativeMarkers(negativeMarkers);
+
+                PhenotypeEntry newPhenotype = new PhenotypeEntry(
+                        filteredCells,
+                        entry.getPhenotypeName(),
+                        newPositiveMarkers,
+                        newNegativeMarkers,
+                        markers,
+                        measurements,
+                        stage,
+                        entry.getMarkerOne(),
+                        entry.getMarkerTwo(),
+                        entry.getMarkerCombination(),
+                        false
+                );
+
+                newPhenotype.getXAxisSlider().valueProperty().addListener((v, o, n) -> PathClassHandler.previewThreshold(newPhenotype.getXAxis()));
+                newPhenotype.getYAxisSlider().valueProperty().addListener((v, o, n) -> PathClassHandler.previewThreshold(newPhenotype.getYAxis()));
+                childPhenotypes.add(newPhenotype);
+                PathClassHandler.restorePathClass();
+                PathClassHandler.setCellPathClass(filteredCells, entry.getPhenotypeName());
+                PathClassHandler.storeClassification();
+            }
+        }
+        setChildren(childPhenotypes);
+    }
+
+
+    // TODO: Should fix how the Child phenotype thresholds are set to observer-pattern
+    public void updateSubPhenotypes(){
+        setChildPhenotypeThresholds();
+        PathClassHandler.restorePathClass();
+
+        for (ChildPhenotypeTableEntry entry : childPhenotypeTableWrapper.getItems()) {
+            if (entry.getIsSelected() && entry.getPhenotypeName() != null) {
+                for (PhenotypeEntry childPhenotype : childPhenotypes){
+
+                    if (!entry.getMarkerOne().equals(childPhenotype.getSplitMarkerOne()) ||
+                            !entry.getMarkerTwo().equals(childPhenotype.getSplitMarkerTwo())){
+                        continue;
+                    }
+
+                    Collection<PathObject> filteredCells = entry.filterCellsAndUpdatePathClass(cells, childPhenotype.getPhenotypeName());
+                    if (entry.getMarkerCombination() == childPhenotype.getCombination()) {
+                        childPhenotype.setPhenotypeName(entry.getPhenotypeName());
+                        //set CellPath class after updating tree
+                        childPhenotype.setCells(filteredCells);
+                        PathClassHandler.setCellPathClass(filteredCells, entry.getPhenotypeName());
+                        PathClassHandler.storeClassification();
+
+                        childPhenotype.getXAxisSlider().valueProperty().addListener((v, o, n) -> PathClassHandler.previewThreshold(childPhenotype.getXAxis()));
+                        childPhenotype.getYAxisSlider().valueProperty().addListener((v, o, n) -> PathClassHandler.previewThreshold(childPhenotype.getYAxis()));
+                    }
+                }
+            }
+        }
+    }
+
+
+
+    // ************************ Getter and Setters ***************** //
+
+    public void setChildren(ArrayList<PhenotypeEntry> list){
+        this.childPhenotypes = list;
+        updateNames();
+        for (PhenotypeEntry child : list){
+            TreeItem<PhenotypeEntry> childTreeItem = new TreeItem<>(child);
+            treeItem.getChildren().add(childTreeItem);
+            child.setTreeItem(childTreeItem);
+        }
+    }
+
+    public void addChild(PhenotypeEntry child){
+        this.childPhenotypes.add(child);
+        updateNames();
+        TreeItem<PhenotypeEntry> childTreeItem = new TreeItem<>(child);
+        treeItem.getChildren().add(childTreeItem);
+        child.setTreeItem(childTreeItem);
+    }
+
+
+    private void updateNames(){
+
+        for (ChildPhenotypeTableEntry row : childPhenotypeTableWrapper.getItems()){
+            for (PhenotypeEntry phenotype : childPhenotypes){
+                if (row.getMarkerCombination() == phenotype.getCombination()){
+                    if (row.getMarkerCombination() == ChildPhenotypeTableEntry.MARKER_COMBINATION.TWO_NEGATIVE ||
+                            row.getMarkerCombination() == ChildPhenotypeTableEntry.MARKER_COMBINATION.TWO_POSITIVE) {
+                        row.setName(phenotype.getPhenotypeName());
+                        row.selectedAsChildCheckBox();
+                        break;
+                    } else {
+                        if (phenotype.getPositiveMarkers().contains(row.getMarkerOne())){
+                            row.setName(phenotype.getPhenotypeName());
+                            row.selectedAsChildCheckBox();
+                            break;
+                        }
+                    }
+                }
+            }
+        }
+    }
+
+
+    public static void updatePhenotypeTree(PhenotypeEntry phenotype){
+        phenotype.updateSubPhenotypes();
+        for (PhenotypeEntry subPhenotype : phenotype.getChildren()){
+            updatePhenotypeTree(subPhenotype);
+        }
+    }
+
+    public static void plotAllChartPhenotypeTree(PhenotypeEntry phenotype){
+        phenotype.plotCytometryChart();
+        for (PhenotypeEntry subPhenotype : phenotype.getChildren()){
+            plotAllChartPhenotypeTree(subPhenotype);
+        }
+    }
+
+    public ArrayList<PhenotypeEntry> getChildren(){
+        return childPhenotypes;
+    }
+
+    public void setTreeItem(TreeItem<PhenotypeEntry> treeItem){
+        this.treeItem = treeItem;
+    }
+
+    public TreeItem<PhenotypeEntry> getTreeItem(){
+        return treeItem;
+    }
+
 
     public SplitPane getPane() {
         return pane;

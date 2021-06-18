@@ -102,7 +102,7 @@ public class JSONTreeSaver {
         }
     }
 
-    public static TreeItem<PhenotypeEntry> readLoadOptions(File baseDirectory,
+    public static PhenotypeEntry readLoadOptions(File baseDirectory,
                                                            String fileName,
                                                            ObservableList<String> markers,
                                                            ObservableList<String> measurements,
@@ -111,37 +111,60 @@ public class JSONTreeSaver {
         File fullFileName = new File(baseDirectory, fileName);
         String content = Files.readString(Path.of(fullFileName.getPath()));
         JSONObject jsonObject = new JSONObject(content);
-        return createTree(jsonObject, markers, measurements, cells, stage);
 
+
+
+
+        PhenotypeEntry root = createRoot(jsonObject, markers, measurements, cells, stage);
+
+        PhenotypeEntry.updatePhenotypeTree(root);
+        PhenotypeEntry.plotAllChartPhenotypeTree(root);
+        return root;
     }
 
-    private static TreeItem<PhenotypeEntry> createTree(JSONObject jsonObject,
+    private static PhenotypeEntry createRoot(JSONObject jsonObject,
                                                        ObservableList<String> markers,
                                                        ObservableList<String> measurements,
                                                        Collection<PathObject> cells,
                                                        Stage stage) throws JSONException {
-        TreeItem<PhenotypeEntry> node = createNewItem(jsonObject, markers, measurements, cells, stage);
 
-        if (node == null){
+        // Create the root phenotype
+        PhenotypeEntry root = createNewItem(jsonObject, markers, measurements, cells, stage, true);
+
+        if (root == null){
             return null;
         }
-        ObservableList<TreeItem<PhenotypeEntry>> subPhenotypesList = FXCollections.observableArrayList();
-
-        JSONArray subPhenotypes = (JSONArray) jsonObject.get("subPhenotypes");
-        for (int i = 0; i < subPhenotypes.length(); i++) {
-
-            TreeItem<PhenotypeEntry> child = createTree((JSONObject) subPhenotypes.get(i), markers, measurements, cells, stage);
-            if (child != null) {
-                subPhenotypesList.add(child);
-            }
-        }
-        node.getChildren().setAll(subPhenotypesList);
-        node.getValue().updateNames(subPhenotypesList.stream().map(TreeItem::getValue).collect(Collectors.toCollection(ArrayList::new)));
-        return node;
+        constructTree(jsonObject, root, markers, measurements, cells, stage);
+//        PhenotypeEntry.updatePhenotypeTree(root);
+//        PhenotypeEntry.plotAllChartPhenotypeTree(root);
+        return root;
     }
 
-    private static TreeItem<PhenotypeEntry> createNewItem(JSONObject jsonObject,
-                                                          ObservableList<String> markers, ObservableList<String> measurements, Collection<PathObject> cells, Stage stage) throws JSONException {
+    private static void constructTree(JSONObject jsonObject, PhenotypeEntry parentNode, ObservableList<String> markers,
+                                      ObservableList<String> measurements,
+                                      Collection<PathObject> cells,
+                                      Stage stage) throws JSONException {
+
+        JSONArray subPhenotypes = (JSONArray) jsonObject.get("subPhenotypes");
+
+        for (int i = 0; i < subPhenotypes.length(); i++) {
+            PhenotypeEntry child = createNewItem((JSONObject) subPhenotypes.get(i), markers, measurements, cells, stage, false);
+            if (child != null) {
+                parentNode.addChild(child);
+                constructTree((JSONObject) subPhenotypes.get(i), child, markers, measurements, cells, stage);
+            }
+        }
+    }
+
+    private static PhenotypeEntry createNewItem(
+                                                JSONObject jsonObject,
+                                                ObservableList<String> markers,
+                                                ObservableList<String> measurements,
+                                                Collection<PathObject> cells,
+                                                Stage stage,
+                                                boolean createTreeItem
+                                            ) throws JSONException {
+
         String phenotypeName = (String) jsonObject.get("phenotypeName");
 
         String markerOne = getEqualMarker(markers, (String) jsonObject.get("splitMarkerOne"));
@@ -182,23 +205,21 @@ public class JSONTreeSaver {
                 stage,
                 markerOne,
                 markerTwo,
-                actual
+                actual,
+                createTreeItem
         );
 //
         phenotypeEntry.setXAxisMarkerName(xAxisMarkerName);
         phenotypeEntry.setXAxisMeasurementName(xAxisMeasurementName);
 
-
         phenotypeEntry.setYAxisMarkerName(yAxisMarkerName);
         phenotypeEntry.setYAxisMeasurementName(yAxisMeasurementName);
 
-//        phenotypeEntry.updatePhenotypeCreationCreator();
         phenotypeEntry.refreshChildPhenotypeTable();
         phenotypeEntry.setYAxisThreshold(unLoggedYThreshold);
         phenotypeEntry.setXAxisThreshold(unLoggedXThreshold);
-//        phenotypeEntry.setFullMeasurementName();
 
-        return new TreeItem<>(phenotypeEntry);
+        return phenotypeEntry;
     }
 
     private static ArrayList<String> convertJSONArrayToArrayList(JSONArray jArray, ObservableList<String> markers) throws JSONException {

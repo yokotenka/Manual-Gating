@@ -50,4 +50,6 @@ public class ChildPhenotypeTableWrapper extends TableWrapper<ChildPhenotypeTable
             getTable().getItems().get(3).setThresholdTwo(threshold);
         }
     }
+
+
 }
