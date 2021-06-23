@@ -74,6 +74,7 @@ public class ManualGatingWindow implements Runnable, ChangeListener<ImageData<Bu
     // apply threshold
     private Button createSubPhenotypeButton;
     private Button updateSubPhenotypeButton;
+    private Button highlight;
     private HBox createSubPhenotypeBox;
     private HBox updateSubPhenotypeBox;
 
@@ -86,6 +87,8 @@ public class ManualGatingWindow implements Runnable, ChangeListener<ImageData<Bu
     private ObservableList<String> measurements;
 
     private PhenotypeEntry currentPhenotype;
+
+    private HBox highlightCellBox;
     // The current phenotype
 //    private TreeItem<PhenotypeEntry> currentNode;
 
@@ -143,14 +146,15 @@ public class ManualGatingWindow implements Runnable, ChangeListener<ImageData<Bu
 
         createCreateSubPhenotypeBox();
         createUpdateSubPhenotypeBox();
-
+        createHighlightCellBox();
 
 
 
         optionsColumn = createColumn(
                 phenotypeHierarchy.getRoot().getValue().getSplitPane(),
                 createSubPhenotypeBox,
-                updateSubPhenotypeBox
+                updateSubPhenotypeBox,
+                highlightCellBox
         );
 
         splitPane.getItems().add(
@@ -194,6 +198,21 @@ public class ManualGatingWindow implements Runnable, ChangeListener<ImageData<Bu
         stage.setWidth(850);
         stage.setHeight(500);
 
+    }
+
+    public void createHighlightCellBox(){
+        highlight = new Button("Highlight");
+        highlight.setOnAction(e -> {
+            imageData.getHierarchy().getSelectionModel().selectObjects(currentPhenotype.getCells());
+        });
+
+        Button unHighlight = new Button("Un-Highlight");
+        unHighlight.setOnAction(e -> {
+           imageData.getHierarchy().getSelectionModel().deselectObjects(cells);
+        });
+
+        highlightCellBox = createHBox();
+        highlightCellBox.getChildren().addAll(highlight, unHighlight);
     }
 
     public void createCreateSubPhenotypeBox(){
@@ -291,13 +310,15 @@ public class ManualGatingWindow implements Runnable, ChangeListener<ImageData<Bu
                     optionsColumn = createColumn(
                             currentPhenotype.createPane(),
                             createSubPhenotypeBox,
-                            updateSubPhenotypeBox
+                            updateSubPhenotypeBox,
+                            highlightCellBox
                     );
                 } else{
                     optionsColumn = createColumn(
                             currentPhenotype.getPane(),
                             createSubPhenotypeBox,
-                            updateSubPhenotypeBox
+                            updateSubPhenotypeBox,
+                            highlightCellBox
                     );
                 }
                 splitPane.getItems().add(
@@ -336,6 +357,7 @@ public class ManualGatingWindow implements Runnable, ChangeListener<ImageData<Bu
             TreeTableRow<PhenotypeEntry> row = new TreeTableRow<>();
             row.setOnMouseClicked(event -> {
                 if (event.getClickCount() == 1 && (! row.isEmpty()) ) {
+
                     currentPhenotype = row.getItem();
                     splitPane.getItems().remove(optionsColumn);
                     createCreateSubPhenotypeBox();
@@ -344,13 +366,15 @@ public class ManualGatingWindow implements Runnable, ChangeListener<ImageData<Bu
                         optionsColumn = createColumn(
                                 currentPhenotype.createPane(),
                                 createSubPhenotypeBox,
-                                updateSubPhenotypeBox
+                                updateSubPhenotypeBox,
+                                highlightCellBox
                         );
                     } else{
                         optionsColumn = createColumn(
                                 currentPhenotype.getPane(),
                                 createSubPhenotypeBox,
-                                updateSubPhenotypeBox
+                                updateSubPhenotypeBox,
+                                highlightCellBox
                         );
                     }
 

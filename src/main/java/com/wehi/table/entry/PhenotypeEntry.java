@@ -9,10 +9,7 @@ import com.wehi.table.wrapper.ChildPhenotypeTableWrapper;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
 import javafx.geometry.Orientation;
-import javafx.scene.control.Button;
-import javafx.scene.control.Slider;
-import javafx.scene.control.SplitPane;
-import javafx.scene.control.TreeItem;
+import javafx.scene.control.*;
 import javafx.scene.layout.HBox;
 import javafx.stage.Stage;
 import qupath.lib.gui.dialogs.Dialogs;
@@ -64,6 +61,8 @@ public class PhenotypeEntry {
 
 
     private CytometryChart cytometryChart;
+
+    private Label count;
 
 
     public PhenotypeEntry(Collection<PathObject> cells, String phenotypeName,
@@ -126,6 +125,7 @@ public class PhenotypeEntry {
         axisTableWrapper.addObservers(childPhenotypeTableWrapper);
         axisTableWrapper.createSetOnAction();
 
+        count = new Label(phenotypeName + " count: " + cells.size());
 
         /* Graph */
         initialiseCytometryChart();
@@ -133,9 +133,11 @@ public class PhenotypeEntry {
                 ManualGatingWindow.createColumn(
                 axisTableWrapper.getTable(),
                 initialisePlotButton()),
-                childPhenotypeTableWrapper.getTable()
+                childPhenotypeTableWrapper.getTable(),
+                count
         );
         loadChart.setOrientation(Orientation.VERTICAL);
+
 
 
         /* Create column on the right */
@@ -263,8 +265,9 @@ public class PhenotypeEntry {
                         continue;
                     }
 
-                    Collection<PathObject> filteredCells = entry.filterCellsAndUpdatePathClass(cells, childPhenotype.getPhenotypeName());
+
                     if (entry.getMarkerCombination() == childPhenotype.getCombination()) {
+                        Collection<PathObject> filteredCells = entry.filterCellsAndUpdatePathClass(cells, childPhenotype.getPhenotypeName());
                         childPhenotype.setPhenotypeName(entry.getPhenotypeName());
                         //set CellPath class after updating tree
                         childPhenotype.setCells(filteredCells);
@@ -410,6 +413,7 @@ public class PhenotypeEntry {
 
     public void setCells(Collection<PathObject> cells){
         this.cells = cells;
+        count.setText(phenotypeName + " count: " + cells.size());
     }
 
     public AxisTableEntry getXAxis() {

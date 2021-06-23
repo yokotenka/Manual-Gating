@@ -98,9 +98,11 @@ public class PathClassHandler {
      * @param newPhenotype New phenotype name
      */
     public static void replacePathClass(PathObject cell, String oldPhenotype, String newPhenotype){
-        ArrayList<String> name = new ArrayList<>();
-        replaceSinglePathClass(cell.getPathClass(), oldPhenotype, newPhenotype, name);
-        cell.setPathClass(PathClassFactory.getPathClass(name));
+        if (checkForSingleClassification(cell.getPathClass(), oldPhenotype)) {
+            ArrayList<String> name = new ArrayList<>();
+            replaceSinglePathClass(cell.getPathClass(), oldPhenotype, newPhenotype, name);
+            cell.setPathClass(PathClassFactory.getPathClass(name));
+        }
     }
 
 

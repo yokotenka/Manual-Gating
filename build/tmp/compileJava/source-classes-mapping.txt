@@ -7,32 +7,34 @@ com/wehi/table/wrapper/AxisTableWrapper.java
  com.wehi.table.wrapper.AxisTableWrapper
 com/wehi/chart/ThresholdedScatterChartWrapper.java
  com.wehi.chart.ThresholdedScatterChartWrapper
-com/wehi/table/entry/ChildPhenotypeTableEntry.java
- com.wehi.table.entry.ChildPhenotypeTableEntry
- com.wehi.table.entry.ChildPhenotypeTableEntry$MARKER_COMBINATION
+com/wehi/FunctionalMarkerThresholdWindow.java
+ com.wehi.FunctionalMarkerThresholdWindow
+com/wehi/JSONTreeSaver.java
+ com.wehi.JSONTreeSaver
 com/wehi/observer/Subject.java
  com.wehi.observer.Subject
 com/wehi/chart/CytometryChart.java
  com.wehi.chart.CytometryChart
  com.wehi.chart.CytometryChart$ColourMapper
  com.wehi.chart.CytometryChart$ColourMapper$Triplet
-com/wehi/pathclasshandler/PathClassHandler.java
- com.wehi.pathclasshandler.PathClassHandler
- com.wehi.pathclasshandler.PathClassHandler$ClassificationRequest
+com/wehi/ManualGatingWindow.java
+ com.wehi.ManualGatingWindow
 com/wehi/table/wrapper/ChildPhenotypeTableWrapper.java
  com.wehi.table.wrapper.ChildPhenotypeTableWrapper
 com/wehi/observer/Observer.java
  com.wehi.observer.Observer
 com/wehi/table/wrapper/TableWrapper.java
  com.wehi.table.wrapper.TableWrapper
-com/wehi/ManualGatingExtension.java
- com.wehi.ManualGatingExtension
+com/wehi/table/entry/PhenotypeEntry.java
+ com.wehi.table.entry.PhenotypeEntry
 com/wehi/chart/BivariateKDE.java
  com.wehi.chart.BivariateKDE
  com.wehi.chart.BivariateKDE$IndependentBivariateNormalDistribution
-com/wehi/ManualGatingWindow.java
- com.wehi.ManualGatingWindow
-com/wehi/table/entry/PhenotypeEntry.java
- com.wehi.table.entry.PhenotypeEntry
-com/wehi/JSONTreeSaver.java
- com.wehi.JSONTreeSaver
+com/wehi/table/entry/ChildPhenotypeTableEntry.java
+ com.wehi.table.entry.ChildPhenotypeTableEntry
+ com.wehi.table.entry.ChildPhenotypeTableEntry$MARKER_COMBINATION
+com/wehi/ManualGatingExtension.java
+ com.wehi.ManualGatingExtension
+com/wehi/pathclasshandler/PathClassHandler.java
+ com.wehi.pathclasshandler.PathClassHandler
+ com.wehi.pathclasshandler.PathClassHandler$ClassificationRequest
