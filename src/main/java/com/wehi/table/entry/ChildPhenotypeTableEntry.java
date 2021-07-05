@@ -41,6 +41,21 @@ public class ChildPhenotypeTableEntry {
     // Select to create child
     private CheckBox selectedAsChildCheckBox = new CheckBox();
 
+
+
+    public ChildPhenotypeTableEntry(String markerOne, String measurementOne, MARKER_COMBINATION markerCombination){
+        this.markerOne = markerOne;
+        this.measurementOne = measurementOne;
+        if (markerCombination == MARKER_COMBINATION.ONE_OF_EACH) {
+            this.markerCombination = MARKER_COMBINATION.TWO_POSITIVE;
+        } else {
+            this.markerCombination = markerCombination;
+        }
+        this.markerTwo = "";
+        this.measurementTwo = "";
+    }
+
+
     /**
      * Constructor
      * @param markerOne name of first marker
@@ -106,60 +121,97 @@ public class ChildPhenotypeTableEntry {
      */
     public Collection<PathObject> filterCells(Collection<PathObject> cells) {
         Collection<PathObject> filteredCells;
-        if (markerCombination == MARKER_COMBINATION.TWO_POSITIVE) {
-            filteredCells = cells.stream().filter(p -> p.getMeasurementList()
-                    .getMeasurementValue(measurementOne) > thresholdOne)
-                    .filter(p -> p.getMeasurementList().getMeasurementValue(measurementTwo) > thresholdTwo)
-                    .collect(Collectors.toList());
-        } else if (markerCombination == MARKER_COMBINATION.TWO_NEGATIVE) {
-            filteredCells = cells.stream().filter(p -> p.getMeasurementList()
-                    .getMeasurementValue(measurementOne) < thresholdOne)
-                    .filter(p -> p.getMeasurementList().getMeasurementValue(measurementTwo) < thresholdTwo)
-                    .collect(Collectors.toList());
+        if (!markerTwo.equals("")) {
+            if (markerCombination == MARKER_COMBINATION.TWO_POSITIVE) {
+                filteredCells = cells.stream().filter(p -> p.getMeasurementList()
+                        .getMeasurementValue(measurementOne) > thresholdOne)
+                        .filter(p -> p.getMeasurementList().getMeasurementValue(measurementTwo) > thresholdTwo)
+                        .collect(Collectors.toList());
+            } else if (markerCombination == MARKER_COMBINATION.TWO_NEGATIVE) {
+                filteredCells = cells.stream().filter(p -> p.getMeasurementList()
+                        .getMeasurementValue(measurementOne) < thresholdOne)
+                        .filter(p -> p.getMeasurementList().getMeasurementValue(measurementTwo) < thresholdTwo)
+                        .collect(Collectors.toList());
+            } else {
+                filteredCells = cells.stream().filter(p -> p.getMeasurementList()
+                        .getMeasurementValue(measurementOne) > thresholdOne)
+                        .filter(p -> p.getMeasurementList().getMeasurementValue(measurementTwo) < thresholdTwo)
+                        .collect(Collectors.toList());
+            }
+            return filteredCells;
         } else {
-            filteredCells = cells.stream().filter(p -> p.getMeasurementList()
-                    .getMeasurementValue(measurementOne) > thresholdOne)
-                    .filter(p -> p.getMeasurementList().getMeasurementValue(measurementTwo) < thresholdTwo)
-                    .collect(Collectors.toList());
+            if (markerCombination == MARKER_COMBINATION.TWO_POSITIVE) {
+                filteredCells = cells.stream().filter(p -> p.getMeasurementList()
+                        .getMeasurementValue(measurementOne) > thresholdOne)
+                        .collect(Collectors.toList());
+            } else {
+                filteredCells = cells.stream().filter(p -> p.getMeasurementList()
+                        .getMeasurementValue(measurementOne) < thresholdOne)
+                        .collect(Collectors.toList());
+            }
+            return filteredCells;
         }
-        return filteredCells;
+
     }
 
 
     public Collection<PathObject> filterCellsAndUpdatePathClass(Collection<PathObject> cells, String oldName){
         ArrayList<PathObject> filteredCells = new ArrayList<>();
-        if (markerCombination == MARKER_COMBINATION.TWO_POSITIVE) {
-            for (PathObject cell : cells) {
-                if (cell.getMeasurementList().getMeasurementValue(measurementOne) > thresholdOne
-                        && cell.getMeasurementList().getMeasurementValue(measurementTwo) > thresholdTwo) {
-                    filteredCells.add(cell);
-                    PathClassHandler.replacePathClass(cell, oldName, getPhenotypeName());
-                } else {
-                    PathClassHandler.removeNoLongerPositive(cell, oldName);
+        if (!markerTwo.equals("")) {
+            if (markerCombination == MARKER_COMBINATION.TWO_POSITIVE) {
+                for (PathObject cell : cells) {
+                    if (cell.getMeasurementList().getMeasurementValue(measurementOne) > thresholdOne
+                            && cell.getMeasurementList().getMeasurementValue(measurementTwo) > thresholdTwo) {
+                        filteredCells.add(cell);
+                        PathClassHandler.replacePathClass(cell, oldName, getPhenotypeName());
+                    } else {
+                        PathClassHandler.removeNoLongerPositive(cell, oldName);
+                    }
+                }
+            } else if (markerCombination == MARKER_COMBINATION.TWO_NEGATIVE) {
+                for (PathObject cell : cells) {
+                    if (cell.getMeasurementList().getMeasurementValue(measurementOne) < thresholdOne
+                            && cell.getMeasurementList().getMeasurementValue(measurementTwo) < thresholdTwo) {
+                        filteredCells.add(cell);
+                        PathClassHandler.replacePathClass(cell, oldName, getPhenotypeName());
+                    } else {
+                        PathClassHandler.removeNoLongerPositive(cell, oldName);
+                    }
+                }
+            } else {
+                for (PathObject cell : cells) {
+                    if (cell.getMeasurementList().getMeasurementValue(measurementOne) > thresholdOne
+                            && cell.getMeasurementList().getMeasurementValue(measurementTwo) < thresholdTwo) {
+                        filteredCells.add(cell);
+                        PathClassHandler.replacePathClass(cell, oldName, getPhenotypeName());
+                    } else {
+                        PathClassHandler.removeNoLongerPositive(cell, oldName);
+                    }
                 }
             }
-        }else if (markerCombination == MARKER_COMBINATION.TWO_NEGATIVE) {
-            for (PathObject cell : cells) {
-                if (cell.getMeasurementList().getMeasurementValue(measurementOne) < thresholdOne
-                        && cell.getMeasurementList().getMeasurementValue(measurementTwo) < thresholdTwo) {
-                    filteredCells.add(cell);
-                    PathClassHandler.replacePathClass(cell, oldName, getPhenotypeName());
-                } else {
-                    PathClassHandler.removeNoLongerPositive(cell, oldName);
-                }
-            }
+            return filteredCells;
         } else {
-            for (PathObject cell : cells) {
-                if (cell.getMeasurementList().getMeasurementValue(measurementOne) > thresholdOne
-                        && cell.getMeasurementList().getMeasurementValue(measurementTwo) < thresholdTwo) {
-                    filteredCells.add(cell);
-                    PathClassHandler.replacePathClass(cell, oldName, getPhenotypeName());
-                } else {
-                    PathClassHandler.removeNoLongerPositive(cell, oldName);
+            if (markerCombination == MARKER_COMBINATION.TWO_POSITIVE){
+                for (PathObject cell : cells){
+                    if (cell.getMeasurementList().getMeasurementValue(measurementOne) > thresholdOne) {
+                        filteredCells.add(cell);
+                        PathClassHandler.replacePathClass(cell, oldName, getPhenotypeName());
+                    } else {
+                        PathClassHandler.removeNoLongerPositive(cell, oldName);
+                    }
+                }
+            } else {
+                for (PathObject cell : cells){
+                    if (cell.getMeasurementList().getMeasurementValue(measurementOne) < thresholdOne) {
+                        filteredCells.add(cell);
+                        PathClassHandler.replacePathClass(cell, oldName, getPhenotypeName());
+                    } else {
+                        PathClassHandler.removeNoLongerPositive(cell, oldName);
+                    }
                 }
             }
+            return filteredCells;
         }
-        return filteredCells;
     }
 
 

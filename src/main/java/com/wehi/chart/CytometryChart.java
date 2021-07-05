@@ -23,7 +23,7 @@ import java.util.*;
  * Class which is responsible for creating the ThresholdedScatterChartWrapper and returning the grid pane containing
  * it.
  */
-public class CytometryChart {
+public class CytometryChart extends CustomChart{
 
     // The scatterChart to be wrapped
     private ScatterChart<Number, Number> scatterChart;

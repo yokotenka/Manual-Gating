@@ -32,6 +32,11 @@ public class ChildPhenotypeTableWrapper extends TableWrapper<ChildPhenotypeTable
     }
 
     @Override
+    public void update(String str1, String str2) {
+        return;
+    }
+
+    @Override
     public void updateXThreshold(double threshold){
         if (getTable() != null) {
             getTable().getItems().get(0).setThresholdTwo(threshold);
