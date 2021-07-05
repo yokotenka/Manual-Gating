@@ -36,6 +36,7 @@ public class PathClassHandler {
     public static PathClassHandler getInstance(){
         if (pathClassHandler == null){
             pathClassHandler = new PathClassHandler();
+//            storeClassification();
         }
         return pathClassHandler;
     }

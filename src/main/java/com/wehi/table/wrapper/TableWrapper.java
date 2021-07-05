@@ -74,6 +74,7 @@ public class TableWrapper<T> {
      */
     public void addRow(T row){
         table.getItems().add(row);
+        table.refresh();
     }
 
     /**

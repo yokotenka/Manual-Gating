@@ -3,6 +3,7 @@ package com.wehi.chart;
 import javafx.scene.control.Slider;
 import javafx.scene.layout.GridPane;
 import javafx.scene.layout.Pane;
+import javafx.scene.layout.VBox;
 import org.apache.commons.math3.stat.descriptive.DescriptiveStatistics;
 import qupath.lib.analysis.stats.Histogram;
 import qupath.lib.common.ColorTools;
@@ -11,13 +12,17 @@ import qupath.lib.objects.PathObject;
 
 import java.util.Collection;
 
+import static com.wehi.JavaFXHelpers.createVBox;
+
 public class HistogramWrapper extends CustomChart{
 
     private HistogramPanelFX histogramPane;
     private HistogramPanelFX.ThresholdedChartWrapper chartWrapper;
 
     private String measurement;
-    private Slider sliderThreshold = new Slider();
+    private final Slider sliderThreshold = new Slider();
+
+    private VBox mainBox;
 
     public HistogramWrapper(){
 
@@ -33,7 +38,7 @@ public class HistogramWrapper extends CustomChart{
         this.measurement = measurement;
     }
 
-    void populateChart(Collection<PathObject> cells) {
+    public void populateChart(Collection<PathObject> cells) {
         if (measurement == null || cells.isEmpty()) {
             sliderThreshold.setMin(0);
             sliderThreshold.setMax(1);
@@ -43,6 +48,7 @@ public class HistogramWrapper extends CustomChart{
         double[] allValues = cells.stream().mapToDouble(p -> p.getMeasurementList().getMeasurementValue(measurement))
                 .filter(Double::isFinite)
                 .map(Math::log)
+                .filter(Double::isFinite)
                 .toArray();
         var stats = new DescriptiveStatistics(allValues);
         var histogram = new Histogram(allValues, 100, stats.getMin(), stats.getMax());
@@ -54,9 +60,17 @@ public class HistogramWrapper extends CustomChart{
         sliderThreshold.setValue(stats.getMin());
     }
 
-    public Pane getPane(){
-        return chartWrapper.getPane();
+    public VBox getPane(){
+        mainBox = createVBox();
+        mainBox.getChildren().addAll(
+            chartWrapper.getPane(),
+            sliderThreshold
+        );
+        return  mainBox;
     }
 
+    public Slider getSliderThreshold(){
+        return sliderThreshold;
+    }
 
 }

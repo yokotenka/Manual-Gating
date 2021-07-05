@@ -16,6 +16,10 @@ public class ManualGatingExtension implements QuPathExtension {
                 manualGatingWindow);
 
         Action functionalMarkerThresholdWindow = ActionTools.createAction(new FunctionalMarkerThresholdWindow(quPathGUI), "Functional Marker Threshold");
+
+        MenuTools.addMenuItems(
+                quPathGUI.getMenu("Extensions>Manual Gating", true),
+                functionalMarkerThresholdWindow);
     }
 
     @Override

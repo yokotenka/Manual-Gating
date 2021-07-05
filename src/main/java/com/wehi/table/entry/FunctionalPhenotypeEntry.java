@@ -2,17 +2,15 @@ package com.wehi.table.entry;
 
 import com.wehi.ManualGatingWindow;
 import com.wehi.chart.HistogramWrapper;
-import com.wehi.table.wrapper.FunctionalPhenotypeTableWrapper;
+import com.wehi.table.wrapper.FunctionalPhenotypeOptionTableWrapper;
 import com.wehi.table.wrapper.SingleAxisTableWrapper;
 import javafx.collections.ObservableList;
 import javafx.geometry.Orientation;
-import javafx.scene.chart.Chart;
+import javafx.scene.control.Button;
 import javafx.scene.control.Label;
 import javafx.scene.control.SplitPane;
-import qupath.lib.gui.charts.HistogramPanelFX;
 import qupath.lib.objects.PathObject;
 
-import java.util.ArrayList;
 import java.util.Collection;
 
 public class FunctionalPhenotypeEntry {
@@ -20,7 +18,7 @@ public class FunctionalPhenotypeEntry {
     private Collection<PathObject> cells;
     private String marker;
     private String phenotypeName;
-    private FunctionalPhenotypeTableWrapper functionalPhenotypeTableWrapper;
+    private FunctionalPhenotypeOptionTableWrapper functionalPhenotypeTableWrapper;
     private SingleAxisTableWrapper singleAxisTableWrapper;
 
     private HistogramWrapper histogramWrapper;
@@ -29,7 +27,20 @@ public class FunctionalPhenotypeEntry {
     private SplitPane splitPane;
 
     private Label count;
+    private Button plotChartButton;
 
+    public FunctionalPhenotypeEntry(
+            Collection<PathObject> cells,
+                                    ObservableList<String> markers,
+                                    ObservableList<String> measurements){
+
+        this.cells = cells;
+        this.phenotypeName = "";
+        this.marker = "";
+
+        this.functionalPhenotypeTableWrapper = new FunctionalPhenotypeOptionTableWrapper();
+        this.singleAxisTableWrapper = new SingleAxisTableWrapper(markers, measurements);
+    }
     public FunctionalPhenotypeEntry(
             Collection<PathObject> cells,
             String marker,
@@ -41,7 +52,7 @@ public class FunctionalPhenotypeEntry {
         this.phenotypeName = phenotypeName;
         this.marker = marker;
 
-        this.functionalPhenotypeTableWrapper = new FunctionalPhenotypeTableWrapper();
+        this.functionalPhenotypeTableWrapper = new FunctionalPhenotypeOptionTableWrapper();
         this.singleAxisTableWrapper = new SingleAxisTableWrapper(markers, measurements);
 
 
@@ -52,17 +63,18 @@ public class FunctionalPhenotypeEntry {
 
         singleAxisTableWrapper.addObservers(functionalPhenotypeTableWrapper);
         singleAxisTableWrapper.createSetOnAction();
-
-        count = new Label(phenotypeName + " count: " + cells.size());
+        plotChartButton();
+//        count = new Label(phenotypeName + " count: " + cells.size());
 
         /* Graph */
         initialiseChart();
         SplitPane loadChart = new SplitPane(
                 ManualGatingWindow.createColumn(
                         singleAxisTableWrapper.getTable(),
-//                        initialisePlotButton()),
+
                         functionalPhenotypeTableWrapper.getTable(),
-                        count
+                        plotChartButton
+//                        count
                 )
             );
         loadChart.setOrientation(Orientation.VERTICAL);
@@ -83,6 +95,16 @@ public class FunctionalPhenotypeEntry {
     public void initialiseChart(){
         histogramWrapper = new HistogramWrapper();
 
+    }
+
+    public void plotChartButton(){
+        plotChartButton = new Button("Plot");
+
+        // plot the chart when button is pressed.
+        plotChartButton.setOnAction(e -> {
+            histogramWrapper.updateAxisLabel(singleAxisTableWrapper.getXAxisFullMeasurementName());
+            histogramWrapper.populateChart(cells);
+        });
     }
 
 }
