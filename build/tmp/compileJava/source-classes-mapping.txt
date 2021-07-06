@@ -1,5 +1,6 @@
-com/wehi/table/wrapper/FunctionalPhenotypeListTableWrapper.java
- com.wehi.table.wrapper.FunctionalPhenotypeListTableWrapper
+com/wehi/pathclasshandler/PathClassHandler.java
+ com.wehi.pathclasshandler.PathClassHandler
+ com.wehi.pathclasshandler.PathClassHandler$ClassificationRequest
 com/wehi/JavaFXHelpers.java
  com.wehi.JavaFXHelpers
 com/wehi/table/entry/AxisTableEntry.java
@@ -11,16 +12,16 @@ com/wehi/table/wrapper/AxisTableWrapper.java
  com.wehi.table.wrapper.AxisTableWrapper
 com/wehi/chart/ThresholdedScatterChartWrapper.java
  com.wehi.chart.ThresholdedScatterChartWrapper
-com/wehi/pathclasshandler/PathClassHandler.java
- com.wehi.pathclasshandler.PathClassHandler
- com.wehi.pathclasshandler.PathClassHandler$ClassificationRequest
+com/wehi/ManualGatingExtension.java
+ com.wehi.ManualGatingExtension
 com/wehi/JSONTreeSaver.java
  com.wehi.JSONTreeSaver
 com/wehi/observer/Subject.java
  com.wehi.observer.Subject
-com/wehi/table/entry/ChildPhenotypeTableEntry.java
- com.wehi.table.entry.ChildPhenotypeTableEntry
- com.wehi.table.entry.ChildPhenotypeTableEntry$MARKER_COMBINATION
+com/wehi/table/wrapper/FunctionalPhenotypeOptionTableWrapper.java
+ com.wehi.table.wrapper.FunctionalPhenotypeOptionTableWrapper
+com/wehi/chart/HistogramChart.java
+ com.wehi.chart.HistogramChart
 com/wehi/chart/CytometryChart.java
  com.wehi.chart.CytometryChart
  com.wehi.chart.CytometryChart$ColourMapper
@@ -29,6 +30,8 @@ com/wehi/ManualGatingWindow.java
  com.wehi.ManualGatingWindow
 com/wehi/table/wrapper/ChildPhenotypeTableWrapper.java
  com.wehi.table.wrapper.ChildPhenotypeTableWrapper
+com/wehi/table/entry/FunctionalMarkerEntry.java
+ com.wehi.table.entry.FunctionalMarkerEntry
 com/wehi/observer/Observer.java
  com.wehi.observer.Observer
 com/wehi/table/wrapper/TableWrapper.java
@@ -39,16 +42,13 @@ com/wehi/table/entry/PhenotypeEntry.java
  com.wehi.table.entry.PhenotypeEntry
 com/wehi/table/wrapper/SingleAxisTableWrapper.java
  com.wehi.table.wrapper.SingleAxisTableWrapper
-com/wehi/ManualGatingExtension.java
- com.wehi.ManualGatingExtension
 com/wehi/chart/BivariateKDE.java
  com.wehi.chart.BivariateKDE
  com.wehi.chart.BivariateKDE$IndependentBivariateNormalDistribution
-com/wehi/table/wrapper/FunctionalPhenotypeOptionTableWrapper.java
- com.wehi.table.wrapper.FunctionalPhenotypeOptionTableWrapper
+com/wehi/table/entry/ChildPhenotypeTableEntry.java
+ com.wehi.table.entry.ChildPhenotypeTableEntry
+ com.wehi.table.entry.ChildPhenotypeTableEntry$MARKER_COMBINATION
+com/wehi/table/wrapper/FunctionalPhenotypeListTableWrapper.java
+ com.wehi.table.wrapper.FunctionalPhenotypeListTableWrapper
 com/wehi/FunctionalMarkerThresholdWindow.java
  com.wehi.FunctionalMarkerThresholdWindow
-com/wehi/chart/HistogramWrapper.java
- com.wehi.chart.HistogramWrapper
-com/wehi/table/entry/FunctionalPhenotypeEntry.java
- com.wehi.table.entry.FunctionalPhenotypeEntry

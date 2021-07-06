@@ -1,16 +1,28 @@
 package com.wehi.table.wrapper;
 
-import com.wehi.table.entry.FunctionalPhenotypeEntry;
+import com.wehi.table.entry.FunctionalMarkerEntry;
+import javafx.scene.control.TreeItem;
 
-public class FunctionalPhenotypeListTableWrapper extends TableWrapper<FunctionalPhenotypeEntry>{
+public class FunctionalPhenotypeListTableWrapper extends TreeTableCreator<FunctionalMarkerEntry>{
 
+    private TreeItem<FunctionalMarkerEntry> root;
 
     public FunctionalPhenotypeListTableWrapper(){
         super();
-        this.addColumn("Phenotype", "phenotypeName", 0.5);
-        this.addColumn("Marker", "marker", 0.5);
+        FunctionalMarkerEntry rootEntry = new FunctionalMarkerEntry(null, null, "Markers",null,null, null);
+        root = new TreeItem<>(rootEntry);
+        setRoot(root);
+        this.addColumn("Name", "name", 1);
+//        this.addColumn("Marker", "marker", 0.5);
     }
 
+    public void add(FunctionalMarkerEntry entry){
+        root.getChildren().add(entry.getTreeItem());
+    }
+
+    public void remove(FunctionalMarkerEntry entry){
+        root.getChildren().remove(entry.getTreeItem());
+    }
 
 
 }

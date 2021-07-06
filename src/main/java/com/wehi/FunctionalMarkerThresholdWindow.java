@@ -1,10 +1,9 @@
 package com.wehi;
 
 import com.wehi.pathclasshandler.PathClassHandler;
-import com.wehi.table.entry.FunctionalPhenotypeEntry;
+import com.wehi.table.entry.FunctionalMarkerEntry;
 import com.wehi.table.entry.PhenotypeEntry;
 import com.wehi.table.wrapper.FunctionalPhenotypeListTableWrapper;
-import com.wehi.table.wrapper.FunctionalPhenotypeOptionTableWrapper;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
 import javafx.geometry.HPos;
@@ -63,7 +62,7 @@ public class FunctionalMarkerThresholdWindow implements Runnable{
 
     private HBox loadBox;
 
-    private FunctionalPhenotypeEntry currentFPhenotype;
+    private FunctionalMarkerEntry currentFunctionalMarkerEntry;
 
     private ObservableList<String> markers;
     private ObservableList<String> measurements;
@@ -93,18 +92,15 @@ public class FunctionalMarkerThresholdWindow implements Runnable{
         sep1.setHalignment(HPos.CENTER);
 
         initialiseFunctionalPhenotypeTable();
-        currentFPhenotype = new FunctionalPhenotypeEntry(
-                cells,
-                markers,
-                measurements
-        );
-        functionalPhenotypeListTableWrapper.addRow(currentFPhenotype);
+
 
 
         SplitPane splitPane = new SplitPane();
         splitPane.setOrientation(Orientation.HORIZONTAL);
 
-        splitPane.getItems().addAll(functionalPhenotypeListTableWrapper.getTable(), currentFPhenotype.createPane());
+        VBox rightHandSide = createVBox();
+        rightHandSide.getChildren().addAll(currentFunctionalMarkerEntry.createPane(), createSubPhenotypeBox());
+        splitPane.getItems().addAll(functionalPhenotypeListTableWrapper.getTreeTable(), rightHandSide);
 
         mainBox.getChildren().addAll(loadBox, sep1, splitPane);
 
@@ -139,7 +135,15 @@ public class FunctionalMarkerThresholdWindow implements Runnable{
 
     public void initialiseFunctionalPhenotypeTable(){
         functionalPhenotypeListTableWrapper = new FunctionalPhenotypeListTableWrapper();
-        functionalPhenotypeListTableWrapper.getTable().prefHeightProperty().bind(stage.heightProperty());
+        functionalPhenotypeListTableWrapper.getTreeTable().prefHeightProperty().bind(stage.heightProperty());
+        currentFunctionalMarkerEntry = new FunctionalMarkerEntry(
+                cells,
+                markers,
+                measurements,
+                stage
+        );
+        functionalPhenotypeListTableWrapper.add(currentFunctionalMarkerEntry);
+        functionalPhenotypeListTableWrapper.getTreeTable().refresh();
     }
 
     public void initialiseLoadBox(){
@@ -173,6 +177,24 @@ public class FunctionalMarkerThresholdWindow implements Runnable{
         loadBox.getChildren().addAll(loadLabel, phenotypeOptions, loadButton);
     }
 
+    public HBox createSubPhenotypeBox(){
+        HBox subPhenotypeBox = createHBox();
+
+        Button applyThreshold = new Button("Apply Threshold");
+        applyThreshold.setOnAction(e ->{
+            currentFunctionalMarkerEntry.createPhenotypes();
+            currentFunctionalMarkerEntry.setName(currentFunctionalMarkerEntry.getMarker());
+            functionalPhenotypeListTableWrapper.getTreeTable().refresh();
+        });
+
+
+        subPhenotypeBox.getChildren().addAll(
+                createLabel("Apply threshold to cells"),
+                applyThreshold
+        );
+        return subPhenotypeBox;
+    }
+
 
     /**
      * Method to extract the markers
@@ -204,4 +226,10 @@ public class FunctionalMarkerThresholdWindow implements Runnable{
                 .map(it -> it.substring(markerName.length() + 2))
                 .collect(Collectors.toList()));
     }
+    
+    public void addRowsBox(){
+
+    }
+
+
 }

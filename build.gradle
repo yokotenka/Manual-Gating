@@ -12,8 +12,8 @@ repositories {
 dependencies {
     testImplementation 'org.junit.jupiter:junit-jupiter-api:5.6.0'
     testRuntimeOnly 'org.junit.jupiter:junit-jupiter-engine'
-    compile fileTree(dir: '/Volumes/T7/Applications/QuPath-0.2.3.app/Contents/app/', include: '*.jar')
-//    compile fileTree(dir: '/Users/yokote.k/Desktop/QuPath-0.2.3.app/Contents/app/', include: '*.jar')
+//    compile fileTree(dir: '/Volumes/T7/Applications/QuPath-0.2.3.app/Contents/app/', include: '*.jar')
+    compile fileTree(dir: '/Users/yokote.k/Desktop/QuPath-0.2.3.app/Contents/app/', include: '*.jar')
 }
 
 test {

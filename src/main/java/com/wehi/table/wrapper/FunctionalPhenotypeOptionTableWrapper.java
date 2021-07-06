@@ -35,8 +35,8 @@ public class FunctionalPhenotypeOptionTableWrapper extends TableWrapper<ChildPhe
     @Override
     public void updateXThreshold(double threshold) {
         if (getTable() != null) {
-            getTable().getItems().get(0).setThresholdTwo(threshold);
-            getTable().getItems().get(1).setThresholdOne(threshold);
+            positive.setThresholdOne(threshold);
+            negative.setThresholdOne(threshold);
         }
     }
 

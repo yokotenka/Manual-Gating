@@ -71,6 +71,9 @@ public class SingleAxisTableWrapper extends TableWrapper<AxisTableEntry> impleme
         return xAxis.getFullMeasurementName();
     }
 
+    public String getMarker(){
+        return xAxis.getMarkerName();
+    }
 
     public void setXSliderListener(Slider slider){
         xAxis.addSliderListener(slider);

@@ -204,6 +204,7 @@ public class PhenotypeEntry {
         }
     }
 
+    //TODO: Must change this to observer
     public void setChildPhenotypeThresholds(){
         childPhenotypeTableWrapper.updateXThreshold(axisTableWrapper.getXThreshold());
         childPhenotypeTableWrapper.updateYThreshold(axisTableWrapper.getYThreshold());
@@ -216,6 +217,7 @@ public class PhenotypeEntry {
     public void createPhenotypes(){
         // List of new phenotypes
 //        treeItem.getChildren().clear();
+        treeItem.getChildren().clear();
         childPhenotypes = new ArrayList<>();
         setChildPhenotypeThresholds();
 

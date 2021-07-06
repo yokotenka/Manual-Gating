@@ -3,6 +3,7 @@ package com.wehi.table.entry;
 import com.wehi.pathclasshandler.PathClassHandler;
 import javafx.scene.control.CheckBox;
 import javafx.scene.control.TextField;
+import qupath.lib.gui.dialogs.Dialogs;
 import qupath.lib.objects.PathObject;
 
 import java.util.ArrayList;
@@ -120,38 +121,8 @@ public class ChildPhenotypeTableEntry {
      * @return filtered cells
      */
     public Collection<PathObject> filterCells(Collection<PathObject> cells) {
-        Collection<PathObject> filteredCells;
-        if (!markerTwo.equals("")) {
-            if (markerCombination == MARKER_COMBINATION.TWO_POSITIVE) {
-                filteredCells = cells.stream().filter(p -> p.getMeasurementList()
-                        .getMeasurementValue(measurementOne) > thresholdOne)
-                        .filter(p -> p.getMeasurementList().getMeasurementValue(measurementTwo) > thresholdTwo)
-                        .collect(Collectors.toList());
-            } else if (markerCombination == MARKER_COMBINATION.TWO_NEGATIVE) {
-                filteredCells = cells.stream().filter(p -> p.getMeasurementList()
-                        .getMeasurementValue(measurementOne) < thresholdOne)
-                        .filter(p -> p.getMeasurementList().getMeasurementValue(measurementTwo) < thresholdTwo)
-                        .collect(Collectors.toList());
-            } else {
-                filteredCells = cells.stream().filter(p -> p.getMeasurementList()
-                        .getMeasurementValue(measurementOne) > thresholdOne)
-                        .filter(p -> p.getMeasurementList().getMeasurementValue(measurementTwo) < thresholdTwo)
-                        .collect(Collectors.toList());
-            }
-            return filteredCells;
-        } else {
-            if (markerCombination == MARKER_COMBINATION.TWO_POSITIVE) {
-                filteredCells = cells.stream().filter(p -> p.getMeasurementList()
-                        .getMeasurementValue(measurementOne) > thresholdOne)
-                        .collect(Collectors.toList());
-            } else {
-                filteredCells = cells.stream().filter(p -> p.getMeasurementList()
-                        .getMeasurementValue(measurementOne) < thresholdOne)
-                        .collect(Collectors.toList());
-            }
-            return filteredCells;
-        }
-
+//        PathClassHandler.restorePathClass();
+        return filterCellsAndUpdatePathClass(cells, getPhenotypeName());
     }
 
 
@@ -189,9 +160,10 @@ public class ChildPhenotypeTableEntry {
                     }
                 }
             }
-            return filteredCells;
         } else {
             if (markerCombination == MARKER_COMBINATION.TWO_POSITIVE){
+                Dialogs.showInfoNotification("pos" , String.valueOf(thresholdOne));
+                Dialogs.showInfoNotification("pos" , oldName);
                 for (PathObject cell : cells){
                     if (cell.getMeasurementList().getMeasurementValue(measurementOne) > thresholdOne) {
                         filteredCells.add(cell);
@@ -201,6 +173,7 @@ public class ChildPhenotypeTableEntry {
                     }
                 }
             } else {
+                Dialogs.showInfoNotification("neg" , String.valueOf(thresholdOne));
                 for (PathObject cell : cells){
                     if (cell.getMeasurementList().getMeasurementValue(measurementOne) < thresholdOne) {
                         filteredCells.add(cell);
@@ -210,8 +183,8 @@ public class ChildPhenotypeTableEntry {
                     }
                 }
             }
-            return filteredCells;
         }
+        return filteredCells;
     }
 
 
