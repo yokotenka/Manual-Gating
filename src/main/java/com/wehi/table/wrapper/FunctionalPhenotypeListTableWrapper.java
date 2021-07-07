@@ -9,7 +9,7 @@ public class FunctionalPhenotypeListTableWrapper extends TreeTableCreator<Functi
 
     public FunctionalPhenotypeListTableWrapper(){
         super();
-        FunctionalMarkerEntry rootEntry = new FunctionalMarkerEntry(null, null, "Markers",null,null, null);
+        FunctionalMarkerEntry rootEntry = new FunctionalMarkerEntry(null, null, "Markers",null,null, false, null);
         root = new TreeItem<>(rootEntry);
         setRoot(root);
         this.addColumn("Name", "name", 1);

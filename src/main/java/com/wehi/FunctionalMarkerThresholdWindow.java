@@ -67,6 +67,9 @@ public class FunctionalMarkerThresholdWindow implements Runnable{
     private ObservableList<String> markers;
     private ObservableList<String> measurements;
 
+    private VBox leftHandSide;
+    private VBox rightHandSide;
+
     private FunctionalPhenotypeListTableWrapper functionalPhenotypeListTableWrapper;
 
     public FunctionalMarkerThresholdWindow(QuPathGUI qupath){
@@ -85,7 +88,7 @@ public class FunctionalMarkerThresholdWindow implements Runnable{
     public void createDialog(){
         stage = new Stage();
         initialiseMainBox();
-        updateQupath();
+        updateQuPath();
         initialiseLoadBox();
 
         Separator sep1 = new Separator();
@@ -95,12 +98,15 @@ public class FunctionalMarkerThresholdWindow implements Runnable{
 
 
 
-        SplitPane splitPane = new SplitPane();
+        splitPane = new SplitPane();
         splitPane.setOrientation(Orientation.HORIZONTAL);
 
-        VBox rightHandSide = createVBox();
+        rightHandSide = createVBox();
         rightHandSide.getChildren().addAll(currentFunctionalMarkerEntry.createPane(), createSubPhenotypeBox());
-        splitPane.getItems().addAll(functionalPhenotypeListTableWrapper.getTreeTable(), rightHandSide);
+
+        leftHandSide = createVBox();
+        leftHandSide.getChildren().addAll(functionalPhenotypeListTableWrapper.getTreeTable(), addRowsBox());
+        splitPane.getItems().addAll(leftHandSide, rightHandSide);
 
         mainBox.getChildren().addAll(loadBox, sep1, splitPane);
 
@@ -114,6 +120,7 @@ public class FunctionalMarkerThresholdWindow implements Runnable{
 
     }
 
+
     //********* JavaFX Helper functions *************//
     private void initialiseMainBox(){
         mainBox = new VBox();
@@ -123,7 +130,7 @@ public class FunctionalMarkerThresholdWindow implements Runnable{
     }
 
     //********* Update Methods *************//
-    private void updateQupath(){
+    private void updateQuPath(){
         this.viewer = qupath.getViewer();
         this.imageData = this.viewer.getImageData();
         this.imageServer = this.viewer.getServer();
@@ -143,6 +150,25 @@ public class FunctionalMarkerThresholdWindow implements Runnable{
                 stage
         );
         functionalPhenotypeListTableWrapper.add(currentFunctionalMarkerEntry);
+        functionalPhenotypeListTableWrapper.getTreeTable().setRowFactory(tv -> {
+            TreeTableRow<FunctionalMarkerEntry> row = new TreeTableRow<>();
+            row.setOnMouseClicked(event -> {
+                if (event.getClickCount() == 1 && (! row.isEmpty()) ) {
+                    if (!row.getItem().isDisplayable()){
+                        return;
+                    }
+                    currentFunctionalMarkerEntry = row.getItem();
+                    splitPane.getItems().remove(rightHandSide);
+                    rightHandSide = createVBox();
+                    rightHandSide.getChildren().addAll(currentFunctionalMarkerEntry.getSplitPane(), createSubPhenotypeBox());
+                    splitPane.getItems().add(
+                            rightHandSide
+                    );
+                    PathClassHandler.restorePathClass();
+                }
+            });
+            return row ;
+        });
         functionalPhenotypeListTableWrapper.getTreeTable().refresh();
     }
 
@@ -227,8 +253,25 @@ public class FunctionalMarkerThresholdWindow implements Runnable{
                 .collect(Collectors.toList()));
     }
     
-    public void addRowsBox(){
+    public HBox addRowsBox(){
+        HBox addRemoveRows = createHBox();
 
+        Button addRowsButton = new Button("Add Functional Marker");
+        addRowsButton.setOnAction(e -> {
+            FunctionalMarkerEntry newMarkerEntry = new FunctionalMarkerEntry(
+                    cells,
+                    markers,
+                    measurements,
+                    stage
+            );
+            functionalPhenotypeListTableWrapper.add(newMarkerEntry);
+            functionalPhenotypeListTableWrapper.getTreeTable().refresh();
+        });
+
+        Button removeSelectedRow = new Button("Remove Selected row");
+
+        addRemoveRows.getChildren().addAll(addRowsButton, removeSelectedRow);
+        return addRemoveRows;
     }
 
 

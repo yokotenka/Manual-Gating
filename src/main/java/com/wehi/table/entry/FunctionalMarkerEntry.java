@@ -42,11 +42,14 @@ public class FunctionalMarkerEntry {
     private ObservableList<String> markers;
     private ObservableList<String> measurements;
 
+    private boolean isDisplayable = true;
+
     public FunctionalMarkerEntry(
             Collection<PathObject> cells,
             ObservableList<String> markers,
             ObservableList<String> measurements,
-            Stage stage){
+            Stage stage
+            ){
         this.treeItem = new TreeItem<>(this);
         this.cells = cells;
         this.name = "";
@@ -54,7 +57,6 @@ public class FunctionalMarkerEntry {
 
         this.functionalPhenotypeTableWrapper = new FunctionalPhenotypeOptionTableWrapper();
         this.singleAxisTableWrapper = new SingleAxisTableWrapper(markers, measurements);
-
         this.stage = stage;
     }
     public FunctionalMarkerEntry(
@@ -63,6 +65,7 @@ public class FunctionalMarkerEntry {
             String phenotypeName,
             ObservableList<String> markers,
             ObservableList<String> measurements,
+            boolean isDisplayable,
             Stage stage
     ){
         this.treeItem = new TreeItem<>(this);
@@ -75,7 +78,7 @@ public class FunctionalMarkerEntry {
 
         this.functionalPhenotypeTableWrapper = new FunctionalPhenotypeOptionTableWrapper();
         this.singleAxisTableWrapper = new SingleAxisTableWrapper(markers, measurements);
-
+        this.isDisplayable = isDisplayable;
         this.stage = stage;
     }
 
@@ -110,6 +113,13 @@ public class FunctionalMarkerEntry {
                 histogramWrapper.getGroup()
         );
 
+        return splitPane;
+    }
+
+    public SplitPane getSplitPane(){
+        if(splitPane == null){
+            createPane();
+        }
         return splitPane;
     }
 
@@ -161,7 +171,10 @@ public class FunctionalMarkerEntry {
                 FunctionalMarkerEntry kid = new FunctionalMarkerEntry(cells,
                         entry.getMarkerOne(),
                         entry.getPhenotypeName(),
-                        markers, measurements, stage);
+                        markers,
+                        measurements,
+                        false,
+                        stage);
 
                 treeItem.getChildren().add(new TreeItem<>(kid));
 
@@ -183,5 +196,9 @@ public class FunctionalMarkerEntry {
 
     public TreeItem<FunctionalMarkerEntry> getTreeItem(){
         return treeItem;
+    }
+
+    public boolean isDisplayable(){
+        return isDisplayable;
     }
 }
