@@ -3,7 +3,6 @@ package com.wehi.table.entry;
 import com.wehi.pathclasshandler.PathClassHandler;
 import javafx.scene.control.CheckBox;
 import javafx.scene.control.TextField;
-import qupath.lib.gui.dialogs.Dialogs;
 import qupath.lib.objects.PathObject;
 
 import java.util.ArrayList;
@@ -125,6 +124,10 @@ public class ChildPhenotypeTableEntry {
         return filterCellsAndUpdatePathClass(cells, getPhenotypeName());
     }
 
+    public Collection<PathObject> filterCells(Collection<PathObject> cells, String oldName){
+        return filterCellsAndUpdatePathClass(cells, oldName);
+    }
+
 
     public Collection<PathObject> filterCellsAndUpdatePathClass(Collection<PathObject> cells, String oldName){
         ArrayList<PathObject> filteredCells = new ArrayList<>();
@@ -162,8 +165,6 @@ public class ChildPhenotypeTableEntry {
             }
         } else {
             if (markerCombination == MARKER_COMBINATION.TWO_POSITIVE){
-                Dialogs.showInfoNotification("pos" , String.valueOf(thresholdOne));
-                Dialogs.showInfoNotification("pos" , oldName);
                 for (PathObject cell : cells){
                     if (cell.getMeasurementList().getMeasurementValue(measurementOne) > thresholdOne) {
                         filteredCells.add(cell);
@@ -173,7 +174,6 @@ public class ChildPhenotypeTableEntry {
                     }
                 }
             } else {
-                Dialogs.showInfoNotification("neg" , String.valueOf(thresholdOne));
                 for (PathObject cell : cells){
                     if (cell.getMeasurementList().getMeasurementValue(measurementOne) < thresholdOne) {
                         filteredCells.add(cell);

@@ -7,12 +7,8 @@ import com.wehi.table.wrapper.FunctionalPhenotypeOptionTableWrapper;
 import com.wehi.table.wrapper.SingleAxisTableWrapper;
 import javafx.collections.ObservableList;
 import javafx.geometry.Orientation;
-import javafx.scene.control.Button;
-import javafx.scene.control.Label;
-import javafx.scene.control.SplitPane;
-import javafx.scene.control.TreeItem;
+import javafx.scene.control.*;
 import javafx.stage.Stage;
-import qupath.lib.gui.dialogs.Dialogs;
 import qupath.lib.objects.PathObject;
 
 import java.util.ArrayList;
@@ -44,6 +40,10 @@ public class FunctionalMarkerEntry {
 
     private boolean isDisplayable = true;
 
+    private ArrayList<FunctionalMarkerEntry> kids = new ArrayList<>();
+
+    private ChildPhenotypeTableEntry.MARKER_COMBINATION combination;
+
     public FunctionalMarkerEntry(
             Collection<PathObject> cells,
             ObservableList<String> markers,
@@ -58,6 +58,9 @@ public class FunctionalMarkerEntry {
         this.functionalPhenotypeTableWrapper = new FunctionalPhenotypeOptionTableWrapper();
         this.singleAxisTableWrapper = new SingleAxisTableWrapper(markers, measurements);
         this.stage = stage;
+        if (isDisplayable) {
+            createPane();
+        }
     }
     public FunctionalMarkerEntry(
             Collection<PathObject> cells,
@@ -66,12 +69,38 @@ public class FunctionalMarkerEntry {
             ObservableList<String> markers,
             ObservableList<String> measurements,
             boolean isDisplayable,
+            ChildPhenotypeTableEntry.MARKER_COMBINATION combo,
             Stage stage
     ){
         this.treeItem = new TreeItem<>(this);
         this.cells = cells;
         this.name = phenotypeName;
         this.marker = marker;
+        this.combination = combo;
+        this.markers = markers;
+        this.measurements = measurements;
+
+        this.functionalPhenotypeTableWrapper = new FunctionalPhenotypeOptionTableWrapper();
+        this.singleAxisTableWrapper = new SingleAxisTableWrapper(markers, measurements);
+        this.isDisplayable = isDisplayable;
+        this.stage = stage;
+
+        if (isDisplayable) {
+            createPane();
+        }
+    }
+
+    public FunctionalMarkerEntry(
+            Collection<PathObject> cells,
+            String phenotypeName,
+            ObservableList<String> markers,
+            ObservableList<String> measurements,
+            Stage stage
+    ){
+        this.treeItem = new TreeItem<>(this);
+        this.cells = cells;
+        this.name = phenotypeName;
+//        this.marker = marker;
 
         this.markers = markers;
         this.measurements = measurements;
@@ -80,9 +109,12 @@ public class FunctionalMarkerEntry {
         this.singleAxisTableWrapper = new SingleAxisTableWrapper(markers, measurements);
         this.isDisplayable = isDisplayable;
         this.stage = stage;
+        if (isDisplayable) {
+            createPane();
+        }
     }
 
-    public SplitPane createPane(){
+    private SplitPane createPane(){
         splitPane = new SplitPane();
 
         singleAxisTableWrapper.addObservers(functionalPhenotypeTableWrapper);
@@ -93,6 +125,7 @@ public class FunctionalMarkerEntry {
 
         /* Graph */
         initialiseChart();
+        singleAxisTableWrapper.addSlider(histogramWrapper.getSliderThreshold());
         SplitPane loadChart = new SplitPane(
                 ManualGatingWindow.createColumn(
                         singleAxisTableWrapper.getTable(),
@@ -142,42 +175,82 @@ public class FunctionalMarkerEntry {
 
         // plot the chart when button is pressed.
         plotChartButton.setOnAction(e -> {
-            histogramWrapper.updateAxisLabel(singleAxisTableWrapper.getXAxisFullMeasurementName());
-            histogramWrapper.populateChart(cells);
+            plotChart();
         });
+    }
+
+    public void plotChart(){
+        histogramWrapper.updateAxisLabel(singleAxisTableWrapper.getXAxisFullMeasurementName());
+        histogramWrapper.populateChart(cells);
     }
 
     public void setChildPhenotypeThresholds() {
         functionalPhenotypeTableWrapper.updateXThreshold(singleAxisTableWrapper.getXThreshold());
-        Dialogs.showInfoNotification("", String.valueOf(singleAxisTableWrapper.getXThreshold()));
     }
 
     public void createPhenotypes(){
         // List of new phenotypes
 //        treeItem.getChildren().clear();
+
+        setName(this.getMarker());
         treeItem.getChildren().clear();
         childPhenotypes = new ArrayList<>();
         setChildPhenotypeThresholds();
 
-        for (ChildPhenotypeTableEntry entry : functionalPhenotypeTableWrapper.getItems()){
-            if (entry.getIsSelected() && entry.getPhenotypeName() != null) {
-                PathClassHandler.restorePathClass();
-                Collection<PathObject> filteredCells = entry.filterCells(cells);
+        if (kids.isEmpty()) {
+            for (ChildPhenotypeTableEntry entry : functionalPhenotypeTableWrapper.getItems()) {
+                if (entry.getIsSelected() && entry.getPhenotypeName() != null) {
+                    PathClassHandler.restorePathClass();
+                    Collection<PathObject> filteredCells = entry.filterCells(cells);
 //
 
-                PathClassHandler.setCellPathClass(filteredCells, entry.getPhenotypeName());
-                PathClassHandler.storeClassification();
+                    PathClassHandler.setCellPathClass(filteredCells, entry.getPhenotypeName());
+                    PathClassHandler.storeClassification();
 
-                FunctionalMarkerEntry kid = new FunctionalMarkerEntry(cells,
-                        entry.getMarkerOne(),
-                        entry.getPhenotypeName(),
-                        markers,
-                        measurements,
-                        false,
-                        stage);
+                    FunctionalMarkerEntry kid = new FunctionalMarkerEntry(cells,
+                            entry.getMarkerOne(),
+                            entry.getPhenotypeName(),
+                            markers,
+                            measurements,
+                            false,
+                            entry.getMarkerCombination(),
+                            stage);
 
-                treeItem.getChildren().add(new TreeItem<>(kid));
+                    treeItem.getChildren().add(new TreeItem<>(kid));
+                    kids.add(kid);
+                }
+            }
+        } else {
+            for (ChildPhenotypeTableEntry entry : functionalPhenotypeTableWrapper.getItems()) {
+                for (FunctionalMarkerEntry kid : kids)
+                    if (entry.getIsSelected() && entry.getPhenotypeName() != null && kid.combination == entry.getMarkerCombination()) {
+                        PathClassHandler.restorePathClass();
+                        Collection<PathObject> filteredCells = entry.filterCells(cells, kid.getName());
 
+                        PathClassHandler.setCellPathClass(filteredCells, entry.getPhenotypeName());
+                        PathClassHandler.storeClassification();
+
+                        FunctionalMarkerEntry newKid = new FunctionalMarkerEntry(cells,
+                                entry.getMarkerOne(),
+                                entry.getPhenotypeName(),
+                                markers,
+                                measurements,
+                                false,
+                                entry.getMarkerCombination(),
+                                stage);
+
+                        treeItem.getChildren().add(new TreeItem<>(newKid));
+                        kids.remove(kid);
+                        kids.add(newKid);
+                    }
+            }
+        }
+    }
+
+    public void removeAllKids(){
+        for (FunctionalMarkerEntry kid : kids){
+            for (PathObject cell : cells) {
+                PathClassHandler.removeNoLongerPositive(cell, kid.getName());
             }
         }
     }
@@ -200,5 +273,61 @@ public class FunctionalMarkerEntry {
 
     public boolean isDisplayable(){
         return isDisplayable;
+    }
+
+    public Slider getXAxisSlider(){
+        return histogramWrapper.getSliderThreshold();
+    }
+
+    public AxisTableEntry getXAxis(){
+        return singleAxisTableWrapper.getXAxis();
+    }
+
+    public String getFullMeasurementName(){
+        return getXAxis().getFullMeasurementName();
+    }
+
+    public double getThreshold(){
+        return getXAxis().getThreshold();
+    }
+
+    public String getAboveThreshold(){
+        return functionalPhenotypeTableWrapper.getPositiveName();
+    }
+
+    public String getBelowThreshold(){
+        return functionalPhenotypeTableWrapper.getNegativeName();
+    }
+
+    public void setAboveThreshold(String above){
+        functionalPhenotypeTableWrapper.setPositiveName(above);
+    }
+
+    public void setBelowThreshold(String below){
+        functionalPhenotypeTableWrapper.setNegativeName(below);
+    }
+
+    public void setThreshold(double threshold){
+        singleAxisTableWrapper.setThreshold(threshold);
+    }
+
+    public void setMarker(String marker){
+        singleAxisTableWrapper.setMarkerName(marker);
+    }
+
+    public void setMeasurement(String measurement){
+        singleAxisTableWrapper.setMeasurementName(measurement);
+    }
+
+    public void selectAbove(){
+        functionalPhenotypeTableWrapper.selectPositive();
+    }
+
+    public void selectBelow(){
+        functionalPhenotypeTableWrapper.selectNegative();
+    }
+
+    public void updateFunctionalChildTable(){
+        singleAxisTableWrapper.notifyObservers();
     }
 }

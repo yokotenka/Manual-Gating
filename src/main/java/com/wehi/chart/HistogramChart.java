@@ -109,7 +109,7 @@ public class HistogramChart extends CustomChart{
 //        double value = previousThresholds.getOrDefault(measurement, stats.getMean());
         sliderThreshold.setMin(Math.floor(stats.getMin()));
         sliderThreshold.setMax(Math.ceil(stats.getMax()));
-        sliderThreshold.setValue(stats.getMin());
+//        sliderThreshold.setValue(stats.getMin());
 
         NumberAxis xAxis = (NumberAxis) histogramPane.getChart().getXAxis();
         xAxis.setAutoRanging(false);

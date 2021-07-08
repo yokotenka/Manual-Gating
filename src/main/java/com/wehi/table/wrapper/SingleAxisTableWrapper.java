@@ -83,4 +83,20 @@ public class SingleAxisTableWrapper extends TableWrapper<AxisTableEntry> impleme
     public AxisTableEntry getXAxis() {
         return xAxis;
     }
+
+    public void setMarkerName(String marker){
+        xAxis.setMarkerName(marker);
+    }
+
+    public void setMeasurementName(String measurement){
+        xAxis.setMeasurementName(measurement);
+    }
+
+    public void addSlider(Slider slider){
+        xAxis.addSliderListener(slider);
+    }
+
+    public void setThreshold(double threshold){
+        xAxis.setUnLoggedThreshold(String.valueOf(threshold), -6);
+    }
 }

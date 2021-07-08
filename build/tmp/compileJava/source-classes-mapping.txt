@@ -1,20 +1,9 @@
 com/wehi/table/wrapper/FunctionalPhenotypeListTableWrapper.java
  com.wehi.table.wrapper.FunctionalPhenotypeListTableWrapper
+com/wehi/save/ProjectClassifierWrapper.java
+ com.wehi.save.ProjectClassifierWrapper
 com/wehi/JavaFXHelpers.java
  com.wehi.JavaFXHelpers
-com/wehi/table/entry/AxisTableEntry.java
- com.wehi.table.entry.AxisTableEntry
- com.wehi.table.entry.AxisTableEntry$AxisValue
-com/wehi/table/wrapper/TreeTableCreator.java
- com.wehi.table.wrapper.TreeTableCreator
-com/wehi/table/wrapper/AxisTableWrapper.java
- com.wehi.table.wrapper.AxisTableWrapper
-com/wehi/chart/ThresholdedScatterChartWrapper.java
- com.wehi.chart.ThresholdedScatterChartWrapper
-com/wehi/FunctionalMarkerThresholdWindow.java
- com.wehi.FunctionalMarkerThresholdWindow
-com/wehi/JSONTreeSaver.java
- com.wehi.JSONTreeSaver
 com/wehi/observer/Subject.java
  com.wehi.observer.Subject
 com/wehi/table/wrapper/FunctionalPhenotypeOptionTableWrapper.java
@@ -35,20 +24,37 @@ com/wehi/observer/Observer.java
  com.wehi.observer.Observer
 com/wehi/table/wrapper/TableWrapper.java
  com.wehi.table.wrapper.TableWrapper
-com/wehi/chart/CustomChart.java
- com.wehi.chart.CustomChart
 com/wehi/table/entry/PhenotypeEntry.java
  com.wehi.table.entry.PhenotypeEntry
-com/wehi/table/wrapper/SingleAxisTableWrapper.java
- com.wehi.table.wrapper.SingleAxisTableWrapper
 com/wehi/chart/BivariateKDE.java
  com.wehi.chart.BivariateKDE
  com.wehi.chart.BivariateKDE$IndependentBivariateNormalDistribution
 com/wehi/table/entry/ChildPhenotypeTableEntry.java
  com.wehi.table.entry.ChildPhenotypeTableEntry
  com.wehi.table.entry.ChildPhenotypeTableEntry$MARKER_COMBINATION
-com/wehi/ManualGatingExtension.java
- com.wehi.ManualGatingExtension
+com/wehi/save/ClassifierWrapper.java
+ com.wehi.save.ClassifierWrapper
 com/wehi/pathclasshandler/PathClassHandler.java
  com.wehi.pathclasshandler.PathClassHandler
  com.wehi.pathclasshandler.PathClassHandler$ClassificationRequest
+com/wehi/table/entry/AxisTableEntry.java
+ com.wehi.table.entry.AxisTableEntry
+ com.wehi.table.entry.AxisTableEntry$AxisValue
+com/wehi/table/wrapper/TreeTableCreator.java
+ com.wehi.table.wrapper.TreeTableCreator
+com/wehi/table/wrapper/AxisTableWrapper.java
+ com.wehi.table.wrapper.AxisTableWrapper
+com/wehi/chart/ThresholdedScatterChartWrapper.java
+ com.wehi.chart.ThresholdedScatterChartWrapper
+com/wehi/FunctionalMarkerThresholdWindow.java
+ com.wehi.FunctionalMarkerThresholdWindow
+com/wehi/JSONTreeSaver.java
+ com.wehi.JSONTreeSaver
+com/wehi/chart/CustomChart.java
+ com.wehi.chart.CustomChart
+com/wehi/ClassifierSaver.java
+ com.wehi.ClassifierSaver
+com/wehi/table/wrapper/SingleAxisTableWrapper.java
+ com.wehi.table.wrapper.SingleAxisTableWrapper
+com/wehi/ManualGatingExtension.java
+ com.wehi.ManualGatingExtension

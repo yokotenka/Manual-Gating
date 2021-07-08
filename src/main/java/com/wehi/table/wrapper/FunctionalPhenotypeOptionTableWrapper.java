@@ -43,4 +43,28 @@ public class FunctionalPhenotypeOptionTableWrapper extends TableWrapper<ChildPhe
     @Override
     public void updateYThreshold(double threshold) {
     }
+
+    public String getPositiveName(){
+        return positive.getPhenotypeName();
+    }
+
+    public String getNegativeName(){
+        return negative.getPhenotypeName();
+    }
+
+    public void setPositiveName(String newName){
+        positive.setName(newName);
+    }
+
+    public void selectPositive(){
+        positive.selectedAsChildCheckBox();
+    }
+
+    public void setNegativeName(String newName){
+        negative.setName(newName);
+    }
+
+    public void selectNegative(){
+        negative.selectedAsChildCheckBox();
+    }
 }
