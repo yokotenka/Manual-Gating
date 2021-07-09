@@ -6,12 +6,12 @@ import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
 import javafx.scene.control.TableView;
 
-public class FunctionalPhenotypeOptionTableWrapper extends TableWrapper<ChildPhenotypeTableEntry> implements Observer {
+public class FunctionalSubPhenotypeTableWrapper extends TableWrapper<ChildPhenotypeTableEntry> implements Observer {
 
     private ChildPhenotypeTableEntry positive;
     private ChildPhenotypeTableEntry negative;
 
-    public FunctionalPhenotypeOptionTableWrapper(){
+    public FunctionalSubPhenotypeTableWrapper(){
         super(new TableView<>());
 
         this.addColumn("Marker Combination", "markerCombinationString", 0.3);

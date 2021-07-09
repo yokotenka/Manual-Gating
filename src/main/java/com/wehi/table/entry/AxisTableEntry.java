@@ -139,6 +139,9 @@ public class AxisTableEntry {
     public void setUnLoggedThreshold(String threshold, double lowerBound){
         threshold = convertToValidNumber(threshold);
         setThresholdTextFields(Math.log(Double.parseDouble(threshold)), lowerBound);
+        if (listener!=null){
+            listener.setValue(Double.parseDouble(logThresholdTextField.getText()));
+        }
     }
 
     public void setLoggedThreshold(String threshold, double lowerBound){

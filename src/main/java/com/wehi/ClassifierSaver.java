@@ -3,8 +3,7 @@ package com.wehi;
 import com.wehi.save.ClassifierWrapper;
 import com.wehi.save.ProjectClassifierWrapper;
 import com.wehi.table.entry.FunctionalMarkerEntry;
-import com.wehi.table.wrapper.FunctionalPhenotypeListTableWrapper;
-import com.wehi.table.wrapper.FunctionalPhenotypeOptionTableWrapper;
+import com.wehi.table.wrapper.FunctionalMarkerTreeTableWrapper;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
 import javafx.scene.control.TreeItem;
@@ -29,13 +28,24 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.Collection;
 import java.util.LinkedHashSet;
-import java.util.function.Function;
 
+
+/**
+ * Class for saving the functional marker classifiers
+ */
 public class ClassifierSaver {
-
+    // Title for this class
     private static final String title = "Classifier Saver";
 
-    // Save the classifiers
+    // Signature for classifiers which were created in this interface
+    public static final String SIGNATURE = "*";
+
+    /**
+     * Save the classifier configured in the user interface
+     * @param qupath The instance of qupath
+     * @param classifierName The name of the classifier
+     * @param list The list of the information for each functional marker and threshold
+     */
     public static void saveClassifiers(QuPathGUI qupath, String classifierName, ObservableList<TreeItem<FunctionalMarkerEntry>> list) {
         // Get project
         var project = qupath.getProject();
@@ -63,12 +73,9 @@ public class ClassifierSaver {
                     array.add(wrap);
                 }
             }
-            if (list.size() > 1) {
-                tryToSave(project, array, name);
-            }
+            tryToSave(project, array, name);
         } catch (Exception e) {
             Dialogs.showErrorNotification(title, e);
-            return;
         }
     }
 
@@ -104,37 +111,35 @@ public class ClassifierSaver {
     /*
      ******************** Code taken from Pete Bankhead's "CreateCompositeClassifier.java" *****************************
      * */
+
+    // Builds the composite classifier
     private static ObjectClassifier<BufferedImage> tryToBuild(Collection<ClassifierWrapper<BufferedImage>> wrappers) throws
             IOException {
         var classifiers = new LinkedHashSet<ObjectClassifier<BufferedImage>>();
         for (var wrapper : wrappers) {
             classifiers.add(wrapper.getClassifier());
         }
-        if (classifiers.size() < 2) {
-            Dialogs.showErrorMessage(title,
-                    "At least two different classifiers must be selected to create a composite!");
-            return null;
-        }
         return ObjectClassifiers.createCompositeClassifier(classifiers);
     }
 
+    // Prompts the user to save
     private static void tryToSave(Project<BufferedImage> project,
                                   Collection<ClassifierWrapper<BufferedImage>> wrappers,
                                   String name) {
         try {
             var composite = tryToBuild(wrappers);
-            if (composite == null)
-                return;
 
             name = name == null ? null : GeneralTools.stripInvalidFilenameChars(name);
-            name = name + "*";
-            if (project != null && name != null && !name.isBlank()) {
+            name = name + ClassifierSaver.SIGNATURE;
+            if (project != null && !name.isBlank()) {
                 if (project.getObjectClassifiers().contains(name)) {
-                    if (!Dialogs.showConfirmDialog(title, "Overwrite existing classifier called '" + name + "'?"))
+                    if (!Dialogs.showConfirmDialog(title, "Overwrite existing classifier called '" + name.substring(0, name.length()-1)))
+                    {
                         return;
+                    }
                 }
                 project.getObjectClassifiers().put(name, composite);
-                Dialogs.showInfoNotification(title, "Classifier written to project as " + name);
+                Dialogs.showInfoNotification(title, "Classifier written to project as " + name.substring(0, name.length()-1));
             } else {
                 var file = Dialogs.promptToSaveFile(title, null, name, "JSON", ".json");
                 if (file != null) {
@@ -149,27 +154,40 @@ public class ClassifierSaver {
     }
 
 
-    public static FunctionalPhenotypeListTableWrapper loadOptions(File baseDirectory,
-                                                                  String fileName,
-                                                                  ObservableList<String> markers,
-                                                                  ObservableList<String> measurements,
-                                                                  Collection<PathObject> cells, Stage stage,
-                                                                  FunctionalPhenotypeListTableWrapper table
-                                                                  ) throws IOException, JSONException {
+    /**
+     * For loading the saved classifiers
+     * @param baseDirectory
+     * @param fileName
+     * @param markers List of markers
+     * @param measurements List of measurements
+     * @param cells cells in the image
+     * @param stage the main stage
+     * @param table the table with the list
+     * @return
+     * @throws IOException
+     * @throws JSONException
+     */
+    public static FunctionalMarkerTreeTableWrapper loadOptions(
+            File baseDirectory,
+            String fileName,
+            ObservableList<String> markers,
+            ObservableList<String> measurements,
+            Collection<PathObject> cells, Stage stage,
+            FunctionalMarkerTreeTableWrapper table
+        ) throws IOException, JSONException {
 
+        fileName = fileName + SIGNATURE + ".json";
+        // location of the file
         File fullFileName = new File(baseDirectory, fileName);
 
-
-
+        // Read the content of the file
         String content = Files.readString(Path.of(fullFileName.getPath()));
         JSONObject jsonObject = new JSONObject(content);
 
-//        Dialogs.showInfoNotification(title, content);
-
-
-
+        // Get the classifiers
         JSONArray subPhenotypes = (JSONArray) jsonObject.get("classifiers");
 
+        // Iterate through the child phenotypes
         for (int i=0; i < subPhenotypes.length(); i++){
             JSONObject o = (JSONObject) subPhenotypes.get(i);
 
@@ -178,13 +196,14 @@ public class ClassifierSaver {
         return table;
     }
 
-    public static FunctionalMarkerEntry loadFunctionalMarker(JSONObject jsonObject,
-                                                      ObservableList<String> markers,
-                                                      ObservableList<String> measurements,
-                                                      Collection<PathObject> cells,
-                                                      Stage stage) throws JSONException {
-
-
+    // Load individual classifiers
+    private static FunctionalMarkerEntry loadFunctionalMarker(
+            JSONObject jsonObject,
+            ObservableList<String> markers,
+            ObservableList<String> measurements,
+            Collection<PathObject> cells,
+            Stage stage
+        ) throws JSONException {
 
         String fullMeasurementName = (String) jsonObject.get("measurement");
         double threshold = (Double) jsonObject.get("threshold");
@@ -198,8 +217,7 @@ public class ClassifierSaver {
         JSONObject belowJson = (JSONObject) jsonObject.get("pathClassBelow");
         String below = (String) belowJson.get("name");
 
-
-
+        // Create a new table entry
         FunctionalMarkerEntry newEntry = new FunctionalMarkerEntry(
                 cells,
                 marker,
@@ -222,6 +240,7 @@ public class ClassifierSaver {
         }
         newEntry.createPhenotypes();
         newEntry.plotChart();
+
         return newEntry;
     }
 }

@@ -12,7 +12,9 @@ import javafx.scene.control.TableView;
 
 import java.util.ArrayList;
 
-
+/**
+ * Class for selecting marker and measurement which will be gated on.
+ */
 public class AxisTableWrapper extends TableWrapper<AxisTableEntry> implements Subject {
     private AxisTableEntry xAxis;
     private AxisTableEntry yAxis;

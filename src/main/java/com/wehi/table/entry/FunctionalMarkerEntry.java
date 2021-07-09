@@ -3,7 +3,7 @@ package com.wehi.table.entry;
 import com.wehi.ManualGatingWindow;
 import com.wehi.chart.HistogramChart;
 import com.wehi.pathclasshandler.PathClassHandler;
-import com.wehi.table.wrapper.FunctionalPhenotypeOptionTableWrapper;
+import com.wehi.table.wrapper.FunctionalSubPhenotypeTableWrapper;
 import com.wehi.table.wrapper.SingleAxisTableWrapper;
 import javafx.collections.ObservableList;
 import javafx.geometry.Orientation;
@@ -19,7 +19,7 @@ public class FunctionalMarkerEntry {
     private Collection<PathObject> cells;
     private String marker;
     private String name;
-    private FunctionalPhenotypeOptionTableWrapper functionalPhenotypeTableWrapper;
+    private FunctionalSubPhenotypeTableWrapper functionalPhenotypeTableWrapper;
     private SingleAxisTableWrapper singleAxisTableWrapper;
 
     private HistogramChart histogramWrapper;
@@ -55,7 +55,7 @@ public class FunctionalMarkerEntry {
         this.name = "";
         this.marker = "";
 
-        this.functionalPhenotypeTableWrapper = new FunctionalPhenotypeOptionTableWrapper();
+        this.functionalPhenotypeTableWrapper = new FunctionalSubPhenotypeTableWrapper();
         this.singleAxisTableWrapper = new SingleAxisTableWrapper(markers, measurements);
         this.stage = stage;
         if (isDisplayable) {
@@ -80,7 +80,7 @@ public class FunctionalMarkerEntry {
         this.markers = markers;
         this.measurements = measurements;
 
-        this.functionalPhenotypeTableWrapper = new FunctionalPhenotypeOptionTableWrapper();
+        this.functionalPhenotypeTableWrapper = new FunctionalSubPhenotypeTableWrapper();
         this.singleAxisTableWrapper = new SingleAxisTableWrapper(markers, measurements);
         this.isDisplayable = isDisplayable;
         this.stage = stage;
@@ -105,7 +105,7 @@ public class FunctionalMarkerEntry {
         this.markers = markers;
         this.measurements = measurements;
 
-        this.functionalPhenotypeTableWrapper = new FunctionalPhenotypeOptionTableWrapper();
+        this.functionalPhenotypeTableWrapper = new FunctionalSubPhenotypeTableWrapper();
         this.singleAxisTableWrapper = new SingleAxisTableWrapper(markers, measurements);
         this.isDisplayable = isDisplayable;
         this.stage = stage;
@@ -145,7 +145,7 @@ public class FunctionalMarkerEntry {
                 loadChart,
                 histogramWrapper.getGroup()
         );
-
+        getXAxisSlider().valueProperty().addListener((v,o,n) -> PathClassHandler.previewThreshold(getXAxis()));
         return splitPane;
     }
 
@@ -164,7 +164,7 @@ public class FunctionalMarkerEntry {
                 (arg0, oldValue, newValue) -> {
                     singleAxisTableWrapper.setXThreshold(newValue.doubleValue(), histogramWrapper.getSliderThreshold().getMin());
                     if (!functionalPhenotypeTableWrapper.isEmpty()) {
-                        functionalPhenotypeTableWrapper.updateXThreshold(singleAxisTableWrapper.getXThreshold());
+                        functionalPhenotypeTableWrapper.updateXThreshold(singleAxisTableWrapper.getThreshold());
                     }
                 }
         );
@@ -180,12 +180,12 @@ public class FunctionalMarkerEntry {
     }
 
     public void plotChart(){
-        histogramWrapper.updateAxisLabel(singleAxisTableWrapper.getXAxisFullMeasurementName());
+        histogramWrapper.updateAxisLabel(singleAxisTableWrapper.getFullMeasurementName());
         histogramWrapper.populateChart(cells);
     }
 
     public void setChildPhenotypeThresholds() {
-        functionalPhenotypeTableWrapper.updateXThreshold(singleAxisTableWrapper.getXThreshold());
+        functionalPhenotypeTableWrapper.updateXThreshold(singleAxisTableWrapper.getThreshold());
     }
 
     public void createPhenotypes(){
@@ -280,7 +280,7 @@ public class FunctionalMarkerEntry {
     }
 
     public AxisTableEntry getXAxis(){
-        return singleAxisTableWrapper.getXAxis();
+        return singleAxisTableWrapper.getAxis();
     }
 
     public String getFullMeasurementName(){
@@ -309,6 +309,7 @@ public class FunctionalMarkerEntry {
 
     public void setThreshold(double threshold){
         singleAxisTableWrapper.setThreshold(threshold);
+
     }
 
     public void setMarker(String marker){

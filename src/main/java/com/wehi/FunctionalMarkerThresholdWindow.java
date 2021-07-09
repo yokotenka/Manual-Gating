@@ -2,8 +2,7 @@ package com.wehi;
 
 import com.wehi.pathclasshandler.PathClassHandler;
 import com.wehi.table.entry.FunctionalMarkerEntry;
-import com.wehi.table.entry.PhenotypeEntry;
-import com.wehi.table.wrapper.FunctionalPhenotypeListTableWrapper;
+import com.wehi.table.wrapper.FunctionalMarkerTreeTableWrapper;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
 import javafx.geometry.HPos;
@@ -29,15 +28,15 @@ import java.io.File;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Collection;
-import java.util.Collections;
 import java.util.List;
 import java.util.stream.Collectors;
 
 import static com.wehi.JavaFXHelpers.*;
 
+/**
+ * Runnable class for initialising the stage for the plugin
+ */
 public class FunctionalMarkerThresholdWindow implements Runnable{
-
-
     // The instance of qupath
     private QuPathGUI qupath;
     // The instance of the qupath viewer
@@ -48,11 +47,8 @@ public class FunctionalMarkerThresholdWindow implements Runnable{
     private ImageServer<BufferedImage> imageServer;
     // The cells in the image
     private Collection<PathObject> cells;
-
-    private final String title = "Functional Marker Threshold";
-
     // Title
-    public static final String TITLE = "Manual Gating";
+    private final String TITLE = "Functional Marker Threshold";
 
     // The main scene to be displayed in the stage
     private VBox mainBox;
@@ -60,28 +56,36 @@ public class FunctionalMarkerThresholdWindow implements Runnable{
     private SplitPane splitPane;
     // The stage
     private Stage stage;
-
+    // The scene
     private Scene scene;
-
-    private PhenotypeEntry phenotypeEntry;
-
+    // The hBox for loading the options
     private HBox loadBox;
-
+    // The left side of the splitPane
+    private VBox leftHandSide;
+    // The right side of the splitPane
+    private VBox rightHandSide;
+    // The current functional marker entry
     private FunctionalMarkerEntry currentFunctionalMarkerEntry;
 
+    // Available markers
     private ObservableList<String> markers;
+    // Available measurements
     private ObservableList<String> measurements;
 
-    private VBox leftHandSide;
-    private VBox rightHandSide;
+    // List of all functional markers
+    private FunctionalMarkerTreeTableWrapper functionalPhenotypeListTableWrapper;
 
-    private FunctionalPhenotypeListTableWrapper functionalPhenotypeListTableWrapper;
-
+    /**
+     * Constructor
+     * @param qupath the instance of qupath
+     */
     public FunctionalMarkerThresholdWindow(QuPathGUI qupath){
         this.qupath = qupath;
     }
 
-
+    /**
+     * Runnable
+     */
     @Override
     public void run() {
         try {
@@ -93,6 +97,10 @@ public class FunctionalMarkerThresholdWindow implements Runnable{
         stage.show();
     }
 
+    /**
+     * Creates the stage which will be displayed
+     * @throws IOException May be thrown when the load box tries to load
+     */
     public void createDialog() throws IOException {
         stage = new Stage();
         initialiseMainBox();
@@ -104,20 +112,17 @@ public class FunctionalMarkerThresholdWindow implements Runnable{
 
         initialiseFunctionalPhenotypeTable();
 
-
-
         splitPane = new SplitPane();
         splitPane.setOrientation(Orientation.HORIZONTAL);
 
         rightHandSide = createVBox();
-        rightHandSide.getChildren().addAll(currentFunctionalMarkerEntry.getSplitPane(), createSubPhenotypeBox());
+        rightHandSide.getChildren().addAll(currentFunctionalMarkerEntry.getSplitPane(), thresholdBox());
 
         leftHandSide = createVBox();
         leftHandSide.getChildren().addAll(functionalPhenotypeListTableWrapper.getTreeTable(), addRowsBox());
         splitPane.getItems().addAll(leftHandSide, rightHandSide);
 
         mainBox.getChildren().addAll(loadBox, sep1, splitPane, saveRow());
-
 
         stage.initOwner(QuPathGUI.getInstance().getStage());
 
@@ -149,7 +154,7 @@ public class FunctionalMarkerThresholdWindow implements Runnable{
     }
 
     public void initialiseFunctionalPhenotypeTable(){
-        functionalPhenotypeListTableWrapper = new FunctionalPhenotypeListTableWrapper();
+        functionalPhenotypeListTableWrapper = new FunctionalMarkerTreeTableWrapper();
         functionalPhenotypeListTableWrapper.getTreeTable().prefHeightProperty().bind(stage.heightProperty());
         currentFunctionalMarkerEntry = new FunctionalMarkerEntry(
                 cells,
@@ -169,7 +174,7 @@ public class FunctionalMarkerThresholdWindow implements Runnable{
                     currentFunctionalMarkerEntry = row.getItem();
                     splitPane.getItems().remove(rightHandSide);
                     rightHandSide = createVBox();
-                    rightHandSide.getChildren().addAll(currentFunctionalMarkerEntry.getSplitPane(), createSubPhenotypeBox());
+                    rightHandSide.getChildren().addAll(currentFunctionalMarkerEntry.getSplitPane(), thresholdBox());
                     splitPane.getItems().add(
                             rightHandSide
                     );
@@ -178,10 +183,13 @@ public class FunctionalMarkerThresholdWindow implements Runnable{
             });
             return row ;
         });
-        currentFunctionalMarkerEntry.getXAxisSlider().valueProperty().addListener((v,o,n) -> PathClassHandler.previewThreshold(currentFunctionalMarkerEntry.getXAxis()));
         functionalPhenotypeListTableWrapper.getTreeTable().refresh();
     }
 
+    /**
+     * Initialises the load box
+     * @throws IOException Thrown when trying to load in the classifiers
+     */
     public void initialiseLoadBox() throws IOException {
         Label loadLabel = createLabel("Load saved options");
         Button loadButton = new Button("Load Options");
@@ -190,13 +198,8 @@ public class FunctionalMarkerThresholdWindow implements Runnable{
         extractMarkerMeasurements();
         extractMarkers();
 
-//        File folderName = new File(Projects.getBaseDirectory(qupath.getProject()), JSONTreeSaver.FOLDER);
-//        if (!folderName.exists()){
-//            folderName.mkdirs();
-//        }
-//
         Collection<String> options = qupath.getProject().getObjectClassifiers().getNames();
-        ArrayList<String> arr = options.stream().filter(e -> e.endsWith("*")).map(e -> e.substring(0, e.length()-1)).collect(Collectors
+        ArrayList<String> arr = options.stream().filter(e -> e.endsWith(ClassifierSaver.SIGNATURE)).map(e -> e.substring(0, e.length()-1)).collect(Collectors
                 .toCollection(ArrayList::new));
 
         phenotypeOptions.setItems(FXCollections.observableArrayList(arr));
@@ -212,12 +215,19 @@ public class FunctionalMarkerThresholdWindow implements Runnable{
 
                     try {
                         functionalPhenotypeListTableWrapper.clearChildren();
-                        ClassifierSaver.loadOptions(folder2, phenotypeOptions.getValue()+"*.json", markers, measurements, cells, stage, functionalPhenotypeListTableWrapper);
+                        ClassifierSaver.loadOptions(
+                                folder2,
+                                phenotypeOptions.getValue(),
+                                markers,
+                                measurements,
+                                cells,
+                                stage,
+                                functionalPhenotypeListTableWrapper
+                        );
                         functionalPhenotypeListTableWrapper.getTreeTable().refresh();
                     } catch (IOException | JSONException ioException) {
                         ioException.printStackTrace();
                     }
-//                        phenotypeEntry = JSONTreeSaver.readLoadOptions(folderName, phenotypeOptions.getValue(), markers, measurements, cells, stage);
                 }
             );
 
@@ -225,13 +235,20 @@ public class FunctionalMarkerThresholdWindow implements Runnable{
         loadBox.getChildren().addAll(loadLabel, phenotypeOptions, loadButton);
     }
 
-    public HBox createSubPhenotypeBox(){
+    /**
+     * Initialises the apply threshold button
+     * @return
+     */
+    public HBox thresholdBox(){
         HBox subPhenotypeBox = createHBox();
 
         Button applyThreshold = new Button("Apply Threshold");
         applyThreshold.setOnAction(e ->{
             if (functionalPhenotypeListTableWrapper.contains(currentFunctionalMarkerEntry.getMarker(), currentFunctionalMarkerEntry)){
-                Dialogs.showErrorMessage("Functional Marker", "Threshold for " + currentFunctionalMarkerEntry.getMarker() + " already exists");
+                Dialogs.showErrorMessage(
+                        "Functional Marker",
+                        "Threshold for " + currentFunctionalMarkerEntry.getMarker() + " already exists"
+                );
                 return;
             }
             currentFunctionalMarkerEntry.createPhenotypes();
@@ -277,7 +294,11 @@ public class FunctionalMarkerThresholdWindow implements Runnable{
                 .map(it -> it.substring(markerName.length() + 2))
                 .collect(Collectors.toList()));
     }
-    
+
+    /**
+     * Method for creating the button for adding and removing rows
+     * @return
+     */
     public HBox addRowsBox(){
         HBox addRemoveRows = createHBox();
 
@@ -291,11 +312,6 @@ public class FunctionalMarkerThresholdWindow implements Runnable{
                     stage
             );
             functionalPhenotypeListTableWrapper.add(newMarkerEntry);
-
-            newMarkerEntry.getXAxisSlider().valueProperty().addListener((v,o,n) -> PathClassHandler.previewThreshold(newMarkerEntry.getXAxis()));
-
-
-
             functionalPhenotypeListTableWrapper.getTreeTable().refresh();
         });
 
@@ -309,12 +325,14 @@ public class FunctionalMarkerThresholdWindow implements Runnable{
             }
             functionalPhenotypeListTableWrapper.removeSelected();
         });
-
         addRemoveRows.getChildren().addAll(addRowsButton, removeSelectedRow);
         return addRemoveRows;
     }
 
-
+    /**
+     * Method for creating the button for saving the classifier
+     * @return
+     */
     public HBox saveRow(){
         HBox saveRowBox = createHBox();
         Label saveRowLabel = createLabel("Classifier Name");
@@ -325,13 +343,13 @@ public class FunctionalMarkerThresholdWindow implements Runnable{
             var project = qupath.getProject();
             // Check if project is null
             if (project == null) {
-                Dialogs.showErrorMessage(title, "You need a project to save this classifier!");
+                Dialogs.showErrorMessage(TITLE, "You need a project to save this classifier!");
                 return;
             }
             // Get the classifier name
             String name = GeneralTools.stripInvalidFilenameChars(enterFileName.getText());
             if (name.isBlank()) {
-                Dialogs.showErrorMessage(title, "Please enter a name for the classifier!");
+                Dialogs.showErrorMessage(TITLE, "Please enter a name for the classifier!");
                 return;
             }
 
