@@ -199,7 +199,7 @@ public class FunctionalMarkerThresholdWindow implements Runnable{
         extractMarkers();
 
         Collection<String> options = qupath.getProject().getObjectClassifiers().getNames();
-        ArrayList<String> arr = options.stream().filter(e -> e.endsWith(ClassifierSaver.SIGNATURE)).map(e -> e.substring(0, e.length()-1)).collect(Collectors
+        ArrayList<String> arr = options.stream().filter(e -> e.endsWith(ClassifierSaver.SIGNATURE)).map(e -> e.replace(ClassifierSaver.SIGNATURE, "")).collect(Collectors
                 .toCollection(ArrayList::new));
 
         phenotypeOptions.setItems(FXCollections.observableArrayList(arr));

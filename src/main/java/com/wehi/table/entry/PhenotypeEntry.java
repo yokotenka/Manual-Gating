@@ -25,7 +25,7 @@ import java.util.stream.Collectors;
  * Represents the entry for the phenotype hierarchy tree table. Contains all the information needed in order to
  * perform manual gating and phenotyping of the cells.
  */
-public class PhenotypeEntry {
+public class PhenotypeEntry extends CellTypeEntry{
 
     // Phenotype Name
     private String phenotypeName;

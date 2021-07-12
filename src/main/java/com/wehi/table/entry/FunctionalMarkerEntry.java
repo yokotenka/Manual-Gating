@@ -14,7 +14,7 @@ import qupath.lib.objects.PathObject;
 import java.util.ArrayList;
 import java.util.Collection;
 
-public class FunctionalMarkerEntry {
+public class FunctionalMarkerEntry extends CellTypeEntry {
 
     private Collection<PathObject> cells;
     private String marker;
@@ -43,6 +43,8 @@ public class FunctionalMarkerEntry {
     private ArrayList<FunctionalMarkerEntry> kids = new ArrayList<>();
 
     private ChildPhenotypeTableEntry.MARKER_COMBINATION combination;
+
+
 
     public FunctionalMarkerEntry(
             Collection<PathObject> cells,

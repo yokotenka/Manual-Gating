@@ -38,7 +38,7 @@ public class ClassifierSaver {
     private static final String title = "Classifier Saver";
 
     // Signature for classifiers which were created in this interface
-    public static final String SIGNATURE = "*";
+    public static final String SIGNATURE = "hn7y2lF77x";
 
     /**
      * Save the classifier configured in the user interface

@@ -1,13 +1,9 @@
-com/wehi/table/wrapper/FunctionalPhenotypeListTableWrapper.java
- com.wehi.table.wrapper.FunctionalPhenotypeListTableWrapper
 com/wehi/save/ProjectClassifierWrapper.java
  com.wehi.save.ProjectClassifierWrapper
 com/wehi/JavaFXHelpers.java
  com.wehi.JavaFXHelpers
 com/wehi/observer/Subject.java
  com.wehi.observer.Subject
-com/wehi/table/wrapper/FunctionalPhenotypeOptionTableWrapper.java
- com.wehi.table.wrapper.FunctionalPhenotypeOptionTableWrapper
 com/wehi/chart/HistogramChart.java
  com.wehi.chart.HistogramChart
 com/wehi/chart/CytometryChart.java
@@ -50,11 +46,15 @@ com/wehi/FunctionalMarkerThresholdWindow.java
  com.wehi.FunctionalMarkerThresholdWindow
 com/wehi/JSONTreeSaver.java
  com.wehi.JSONTreeSaver
+com/wehi/table/wrapper/FunctionalSubPhenotypeTableWrapper.java
+ com.wehi.table.wrapper.FunctionalSubPhenotypeTableWrapper
 com/wehi/chart/CustomChart.java
  com.wehi.chart.CustomChart
 com/wehi/ClassifierSaver.java
  com.wehi.ClassifierSaver
 com/wehi/table/wrapper/SingleAxisTableWrapper.java
  com.wehi.table.wrapper.SingleAxisTableWrapper
+com/wehi/table/wrapper/FunctionalMarkerTreeTableWrapper.java
+ com.wehi.table.wrapper.FunctionalMarkerTreeTableWrapper
 com/wehi/ManualGatingExtension.java
  com.wehi.ManualGatingExtension
