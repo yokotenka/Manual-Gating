@@ -2,16 +2,18 @@ com/wehi/save/ProjectClassifierWrapper.java
  com.wehi.save.ProjectClassifierWrapper
 com/wehi/JavaFXHelpers.java
  com.wehi.JavaFXHelpers
+com/wehi/table/entry/CellTypeEntry.java
+ com.wehi.table.entry.CellTypeEntry
 com/wehi/observer/Subject.java
  com.wehi.observer.Subject
 com/wehi/chart/HistogramChart.java
  com.wehi.chart.HistogramChart
+com/wehi/ManualGatingWindow.java
+ com.wehi.ManualGatingWindow
 com/wehi/chart/CytometryChart.java
  com.wehi.chart.CytometryChart
  com.wehi.chart.CytometryChart$ColourMapper
  com.wehi.chart.CytometryChart$ColourMapper$Triplet
-com/wehi/ManualGatingWindow.java
- com.wehi.ManualGatingWindow
 com/wehi/table/wrapper/ChildPhenotypeTableWrapper.java
  com.wehi.table.wrapper.ChildPhenotypeTableWrapper
 com/wehi/table/entry/FunctionalMarkerEntry.java
@@ -38,23 +40,25 @@ com/wehi/table/entry/AxisTableEntry.java
  com.wehi.table.entry.AxisTableEntry$AxisValue
 com/wehi/table/wrapper/TreeTableCreator.java
  com.wehi.table.wrapper.TreeTableCreator
+com/wehi/save/FunctionalIO.java
+ com.wehi.save.FunctionalIO
 com/wehi/table/wrapper/AxisTableWrapper.java
  com.wehi.table.wrapper.AxisTableWrapper
 com/wehi/chart/ThresholdedScatterChartWrapper.java
  com.wehi.chart.ThresholdedScatterChartWrapper
 com/wehi/FunctionalMarkerThresholdWindow.java
  com.wehi.FunctionalMarkerThresholdWindow
-com/wehi/JSONTreeSaver.java
- com.wehi.JSONTreeSaver
+com/wehi/save/GatingIO.java
+ com.wehi.save.GatingIO
 com/wehi/table/wrapper/FunctionalSubPhenotypeTableWrapper.java
  com.wehi.table.wrapper.FunctionalSubPhenotypeTableWrapper
 com/wehi/chart/CustomChart.java
  com.wehi.chart.CustomChart
-com/wehi/ClassifierSaver.java
- com.wehi.ClassifierSaver
 com/wehi/table/wrapper/SingleAxisTableWrapper.java
  com.wehi.table.wrapper.SingleAxisTableWrapper
 com/wehi/table/wrapper/FunctionalMarkerTreeTableWrapper.java
  com.wehi.table.wrapper.FunctionalMarkerTreeTableWrapper
 com/wehi/ManualGatingExtension.java
  com.wehi.ManualGatingExtension
+com/wehi/save/AbstractIO.java
+ com.wehi.save.AbstractIO

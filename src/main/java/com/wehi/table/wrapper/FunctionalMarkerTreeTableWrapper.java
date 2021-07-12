@@ -1,9 +1,13 @@
 package com.wehi.table.wrapper;
 
-import com.wehi.ClassifierSaver;
+import com.wehi.io.FunctionalIO;
 import com.wehi.table.entry.FunctionalMarkerEntry;
 import javafx.scene.control.TreeItem;
-import qupath.lib.gui.QuPathGUI;
+import org.json.JSONException;
+
+import java.io.File;
+import java.io.IOException;
+import java.util.List;
 
 /**
  * This class is the table which appears on the left of the functional marker plugin. It will list all
@@ -31,6 +35,13 @@ public class FunctionalMarkerTreeTableWrapper extends TreeTableCreator<Functiona
     public void add(FunctionalMarkerEntry entry){
         root.getChildren().add(entry.getTreeItem());
     }
+
+    public void addAll(List<FunctionalMarkerEntry> entries){
+        for (FunctionalMarkerEntry entry : entries ){
+            root.getChildren().add(entry.getTreeItem());
+        }
+    }
+
 
     /**
      * A method to check whether the selected and the current entry is equal
@@ -77,13 +88,14 @@ public class FunctionalMarkerTreeTableWrapper extends TreeTableCreator<Functiona
     }
 
     /**
-     * Save the tree
-     * @param qupath
-     * @param classifierName
+     * Save
+     * @param folder
+     * @param file
+     * @throws IOException
+     * @throws JSONException
      */
-    public void saveTree(QuPathGUI qupath, String classifierName){
-        var children = root.getChildren();
-        ClassifierSaver.saveClassifiers(qupath, classifierName, children);
+    public void save(File folder, String file) throws IOException, JSONException {
+        FunctionalIO.saveToExistingPhenotypeFile(folder, file, root.getChildren());
     }
 
     /**

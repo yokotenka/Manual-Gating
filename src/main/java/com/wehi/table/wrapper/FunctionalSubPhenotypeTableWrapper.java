@@ -1,6 +1,6 @@
 package com.wehi.table.wrapper;
 
-import com.wehi.observer.Observer;
+import com.wehi.table.observer.Observer;
 import com.wehi.table.entry.ChildPhenotypeTableEntry;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;

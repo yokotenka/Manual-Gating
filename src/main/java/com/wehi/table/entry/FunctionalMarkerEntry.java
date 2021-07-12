@@ -14,7 +14,7 @@ import qupath.lib.objects.PathObject;
 import java.util.ArrayList;
 import java.util.Collection;
 
-public class FunctionalMarkerEntry extends CellTypeEntry {
+public class FunctionalMarkerEntry {
 
     private Collection<PathObject> cells;
     private String marker;
@@ -267,6 +267,10 @@ public class FunctionalMarkerEntry extends CellTypeEntry {
 
     public String getMarker(){
         return singleAxisTableWrapper.getMarker();
+    }
+
+    public String getMeasurement(){
+        return singleAxisTableWrapper.getPartialMeasurementName();
     }
 
     public TreeItem<FunctionalMarkerEntry> getTreeItem(){

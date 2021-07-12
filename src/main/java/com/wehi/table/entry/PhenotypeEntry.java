@@ -6,26 +6,24 @@ import com.wehi.ManualGatingWindow;
 import com.wehi.pathclasshandler.PathClassHandler;
 import com.wehi.table.wrapper.AxisTableWrapper;
 import com.wehi.table.wrapper.ChildPhenotypeTableWrapper;
-import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
 import javafx.geometry.Orientation;
 import javafx.scene.control.*;
 import javafx.scene.layout.HBox;
+import javafx.scene.paint.Color;
 import javafx.stage.Stage;
 import qupath.lib.gui.dialogs.Dialogs;
 import qupath.lib.objects.PathObject;
 
 import java.util.ArrayList;
 import java.util.Collection;
-import java.util.Collections;
-import java.util.stream.Collectors;
 
 
 /**
  * Represents the entry for the phenotype hierarchy tree table. Contains all the information needed in order to
  * perform manual gating and phenotyping of the cells.
  */
-public class PhenotypeEntry extends CellTypeEntry{
+public class PhenotypeEntry implements Colorable {
 
     // Phenotype Name
     private String phenotypeName;
@@ -64,6 +62,8 @@ public class PhenotypeEntry extends CellTypeEntry{
 
     private Label count;
 
+    private Color color;
+    private boolean isHidden;
 
     public PhenotypeEntry(Collection<PathObject> cells, String phenotypeName,
                           ArrayList<String> positiveMarkers, ArrayList<String> negativeMarkers,
@@ -269,7 +269,7 @@ public class PhenotypeEntry extends CellTypeEntry{
 
 
                     if (entry.getMarkerCombination() == childPhenotype.getCombination()) {
-                        Collection<PathObject> filteredCells = entry.filterCellsAndUpdatePathClass(cells, childPhenotype.getPhenotypeName());
+                        Collection<PathObject> filteredCells = entry.filterCellsAndUpdatePathClass(cells, childPhenotype.getName());
                         childPhenotype.setPhenotypeName(entry.getPhenotypeName());
                         //set CellPath class after updating tree
                         childPhenotype.setCells(filteredCells);
@@ -314,12 +314,12 @@ public class PhenotypeEntry extends CellTypeEntry{
                 if (row.getMarkerCombination() == phenotype.getCombination()){
                     if (row.getMarkerCombination() == ChildPhenotypeTableEntry.MARKER_COMBINATION.TWO_NEGATIVE ||
                             row.getMarkerCombination() == ChildPhenotypeTableEntry.MARKER_COMBINATION.TWO_POSITIVE) {
-                        row.setName(phenotype.getPhenotypeName());
+                        row.setName(phenotype.getName());
                         row.selectedAsChildCheckBox();
                         break;
                     } else {
                         if (phenotype.getPositiveMarkers().contains(row.getMarkerOne())){
-                            row.setName(phenotype.getPhenotypeName());
+                            row.setName(phenotype.getName());
                             row.selectedAsChildCheckBox();
                             break;
                         }
@@ -361,8 +361,26 @@ public class PhenotypeEntry extends CellTypeEntry{
         return pane;
     }
 
-    public String getPhenotypeName() {
+    @Override
+    public String getName() {
         return phenotypeName;
+    }
+
+    @Override
+    public boolean isHidden(){
+        return isHidden;
+    }
+
+    @Override
+    public Color getColor(){
+        return color;
+    }
+
+    @Override
+    public void setColor(Color color){
+        this.color = color;
+
+        
     }
 
     public ArrayList<String> getPositiveMarkers() {

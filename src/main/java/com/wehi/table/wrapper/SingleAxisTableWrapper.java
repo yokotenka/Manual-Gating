@@ -1,7 +1,7 @@
 package com.wehi.table.wrapper;
 
-import com.wehi.observer.Observer;
-import com.wehi.observer.Subject;
+import com.wehi.table.observer.Observer;
+import com.wehi.table.observer.Subject;
 import com.wehi.table.entry.AxisTableEntry;
 import javafx.collections.ObservableList;
 import javafx.scene.control.ComboBox;
@@ -97,6 +97,13 @@ public class SingleAxisTableWrapper extends TableWrapper<AxisTableEntry> impleme
      */
     public String getFullMeasurementName(){
         return xAxis.getFullMeasurementName();
+    }
+
+    /**
+     * Getter for partial measurement name
+     */
+    public String getPartialMeasurementName(){
+        return xAxis.getMeasurementName();
     }
 
     /**

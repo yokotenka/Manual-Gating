@@ -1,7 +1,7 @@
 package com.wehi;
 
 import com.wehi.pathclasshandler.PathClassHandler;
-import com.wehi.table.entry.ChildPhenotypeTableEntry;
+import com.wehi.io.GatingIO;
 import com.wehi.table.entry.PhenotypeEntry;
 
 import com.wehi.table.wrapper.TreeTableCreator;
@@ -11,7 +11,6 @@ import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
 import javafx.geometry.HPos;
 import javafx.geometry.Insets;
-import javafx.geometry.Pos;
 import javafx.scene.Node;
 import javafx.scene.Scene;
 import javafx.scene.control.*;
@@ -185,7 +184,7 @@ public class ManualGatingWindow implements Runnable, ChangeListener<ImageData<Bu
             }
             File baseDir = Projects.getBaseDirectory(qupath.getProject());
             try {
-                JSONTreeSaver.writeTreeToJSON(phenotypeHierarchy.getTreeTable(), baseDir, fileName);
+                GatingIO.writeTreeToJSON(phenotypeHierarchy.getTreeTable(), baseDir, fileName);
             } catch (JSONException jsonException) {
                 jsonException.printStackTrace();
             }
@@ -287,7 +286,7 @@ public class ManualGatingWindow implements Runnable, ChangeListener<ImageData<Bu
     private HBox updateManualGatingOptionsBox(){
 
         HBox loadOptionsBox = createHBox();
-        File folderName = new File(Projects.getBaseDirectory(qupath.getProject()), JSONTreeSaver.FOLDER);
+        File folderName = new File(Projects.getBaseDirectory(qupath.getProject()), GatingIO.FOLDER);
         manualGatingOptionsBox = new ComboBox<>();
         if (!folderName.exists()){
             folderName.mkdirs();
@@ -300,7 +299,7 @@ public class ManualGatingWindow implements Runnable, ChangeListener<ImageData<Bu
                 return;
             }
             try {
-                currentPhenotype = JSONTreeSaver.readLoadOptions(folderName, manualGatingOptionsBox.getValue(), markers, measurements, cells, stage);
+                currentPhenotype = GatingIO.readLoadOptions(folderName, manualGatingOptionsBox.getValue(), markers, measurements, cells, stage);
                 currentPhenotype.getXAxisSlider().valueProperty().addListener((v, o, n) -> PathClassHandler.previewThreshold(currentPhenotype.getXAxis()));
                 currentPhenotype.getYAxisSlider().valueProperty().addListener((v, o, n) -> PathClassHandler.previewThreshold(currentPhenotype.getYAxis()));
                 phenotypeHierarchy.setRoot(currentPhenotype.getTreeItem());
@@ -390,7 +389,7 @@ public class ManualGatingWindow implements Runnable, ChangeListener<ImageData<Bu
         });
 
         phenotypeHierarchy.getTreeTable().prefHeightProperty().bind(stage.heightProperty());
-        phenotypeHierarchy.addColumn("Phenotype", "phenotypeName", 0.2);
+        phenotypeHierarchy.addColumn("Phenotype", "name", 0.2);
         phenotypeHierarchy.addColumn("Positive Markers", "positiveMarkers", 0.4);
         phenotypeHierarchy.addColumn("Negative Markers", "negativeMarkers", 0.4);
 
