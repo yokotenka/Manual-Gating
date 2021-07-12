@@ -380,7 +380,7 @@ public class PhenotypeEntry implements Colorable {
     public void setColor(Color color){
         this.color = color;
 
-        
+
     }
 
     public ArrayList<String> getPositiveMarkers() {
