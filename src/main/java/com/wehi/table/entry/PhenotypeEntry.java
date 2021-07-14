@@ -4,10 +4,13 @@ import com.wehi.chart.CytometryChart;
 import com.wehi.ManualGatingWindow;
 
 import com.wehi.pathclasshandler.PathClassHandler;
+import com.wehi.table.wrapper.ActivityCellTypeTableWrapper;
 import com.wehi.table.wrapper.AxisTableWrapper;
 import com.wehi.table.wrapper.ChildPhenotypeTableWrapper;
+import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
 import javafx.geometry.Orientation;
+import javafx.geometry.Pos;
 import javafx.scene.control.*;
 import javafx.scene.layout.HBox;
 import javafx.scene.paint.Color;
@@ -23,7 +26,7 @@ import java.util.Collection;
  * Represents the entry for the phenotype hierarchy tree table. Contains all the information needed in order to
  * perform manual gating and phenotyping of the cells.
  */
-public class PhenotypeEntry implements Colorable {
+public class PhenotypeEntry implements IVisualisable {
 
     // Phenotype Name
     private String phenotypeName;
@@ -62,8 +65,16 @@ public class PhenotypeEntry implements Colorable {
 
     private Label count;
 
-    private Color color;
-    private boolean isHidden;
+    private ColorPicker colorPicker;
+    private Button showButton;
+    private Button hideButton;
+
+    private ObservableList<ActivityCellTypeEntry> functionalEntries;
+
+    private ActivityCellTypeTableWrapper activityCellTypeTableWrapper;
+
+
+
 
     public PhenotypeEntry(Collection<PathObject> cells, String phenotypeName,
                           ArrayList<String> positiveMarkers, ArrayList<String> negativeMarkers,
@@ -111,7 +122,15 @@ public class PhenotypeEntry implements Colorable {
         if (createTreeItem) {
             this.treeItem = new TreeItem<>(this);
         }
+        this.functionalEntries = FXCollections.observableArrayList();
+        this.showButton = new Button(">");
+        showButton.setAlignment(Pos.CENTER);
+        this.hideButton = new Button("<");
+        hideButton.setAlignment(Pos.CENTER);
+        this.colorPicker = new ColorPicker();
+        this.activityCellTypeTableWrapper = new ActivityCellTypeTableWrapper();
         createPane();
+
     }
 
 
@@ -149,6 +168,7 @@ public class PhenotypeEntry implements Colorable {
 
         return pane;
     }
+
 
 
 
@@ -284,6 +304,10 @@ public class PhenotypeEntry implements Colorable {
         }
     }
 
+//    public void addActivities(ActivityCellTypeEntry activity){
+//        this.activityCellTypeTableWrapper.addRow(activity);
+//    }
+
 
 
     // ************************ Getter and Setters ***************** //
@@ -367,20 +391,30 @@ public class PhenotypeEntry implements Colorable {
     }
 
     @Override
-    public boolean isHidden(){
-        return isHidden;
-    }
-
-    @Override
     public Color getColor(){
-        return color;
+        return colorPicker.getValue();
     }
 
     @Override
     public void setColor(Color color){
-        this.color = color;
+        colorPicker.setValue(color);
 
 
+    }
+
+    @Override
+    public Button getShowButton() {
+        return showButton;
+    }
+
+    @Override
+    public Button getHideButton(){
+        return hideButton;
+    }
+
+    @Override
+    public ColorPicker getColorPicker() {
+        return colorPicker;
     }
 
     public ArrayList<String> getPositiveMarkers() {
@@ -504,4 +538,12 @@ public class PhenotypeEntry implements Colorable {
         return combination;
     }
 
+    public void addActivity(ActivityCellTypeEntry activityCellTypeEntry){
+        activityCellTypeTableWrapper.addRow(activityCellTypeEntry);
+        activityCellTypeTableWrapper.getTable().refresh();
+    }
+
+    public ActivityCellTypeTableWrapper getActivityCellTypeTableWrapper(){
+        return activityCellTypeTableWrapper;
+    }
 }

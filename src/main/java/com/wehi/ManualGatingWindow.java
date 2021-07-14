@@ -4,7 +4,7 @@ import com.wehi.pathclasshandler.PathClassHandler;
 import com.wehi.io.GatingIO;
 import com.wehi.table.entry.PhenotypeEntry;
 
-import com.wehi.table.wrapper.TreeTableCreator;
+import com.wehi.table.wrapper.TreeTableWrapper;
 import javafx.beans.value.ChangeListener;
 import javafx.beans.value.ObservableValue;
 import javafx.collections.FXCollections;
@@ -31,7 +31,6 @@ import java.awt.image.BufferedImage;
 import java.io.File;
 import java.io.IOException;
 import java.util.*;
-import java.util.stream.Collectors;
 
 import static com.wehi.JavaFXHelpers.*;
 
@@ -65,7 +64,7 @@ public class ManualGatingWindow implements Runnable, ChangeListener<ImageData<Bu
     private Scene scene;
 
     // The phenotype hierarchy
-    private TreeTableCreator<PhenotypeEntry> phenotypeHierarchy;
+    private TreeTableWrapper<PhenotypeEntry> phenotypeHierarchy;
 
     // for selecting previously saved options
     private ComboBox<String> manualGatingOptionsBox;
@@ -103,10 +102,9 @@ public class ManualGatingWindow implements Runnable, ChangeListener<ImageData<Bu
 
     @Override
     public void run() {
-        createDialog();
         if(Dialogs.showYesNoDialog("Manual Gating", "Do you wish to reset existing classifications on your cells?")){
-            PathClassHandler.resetCellPathClass(cells);
-            PathClassHandler.storeClassification();
+            createDialog();
+            initialisePathClassHandler();
             stage.show();
         }
     }
@@ -271,8 +269,7 @@ public class ManualGatingWindow implements Runnable, ChangeListener<ImageData<Bu
         this.imageServer = this.viewer.getServer();
         this.cells = this.imageData.getHierarchy().getCellObjects();
 
-        PathClassHandler.getInstance();
-        PathClassHandler.setInstanceImageData(imageData);
+
     }
 
     private void updateTitle() {
@@ -299,7 +296,7 @@ public class ManualGatingWindow implements Runnable, ChangeListener<ImageData<Bu
                 return;
             }
             try {
-                currentPhenotype = GatingIO.readLoadOptions(folderName, manualGatingOptionsBox.getValue(), markers, measurements, cells, stage);
+                currentPhenotype = GatingIO.readLoadOptions(folderName, manualGatingOptionsBox.getValue(), markers, measurements, cells, stage, true);
                 currentPhenotype.getXAxisSlider().valueProperty().addListener((v, o, n) -> PathClassHandler.previewThreshold(currentPhenotype.getXAxis()));
                 currentPhenotype.getYAxisSlider().valueProperty().addListener((v, o, n) -> PathClassHandler.previewThreshold(currentPhenotype.getYAxis()));
                 phenotypeHierarchy.setRoot(currentPhenotype.getTreeItem());
@@ -353,7 +350,7 @@ public class ManualGatingWindow implements Runnable, ChangeListener<ImageData<Bu
     }
 
     private void initialiseTreeTableView(){
-        phenotypeHierarchy = new TreeTableCreator<>();
+        phenotypeHierarchy = new TreeTableWrapper<>();
         phenotypeHierarchy.getTreeTable().setRowFactory(tv -> {
             TreeTableRow<PhenotypeEntry> row = new TreeTableRow<>();
             row.setOnMouseClicked(event -> {
@@ -393,8 +390,8 @@ public class ManualGatingWindow implements Runnable, ChangeListener<ImageData<Bu
         phenotypeHierarchy.addColumn("Positive Markers", "positiveMarkers", 0.4);
         phenotypeHierarchy.addColumn("Negative Markers", "negativeMarkers", 0.4);
 
-        extractMarkers();
-        extractMarkerMeasurements();
+        markers = ChannelInformationExtraction.extractMarkers(imageServer);
+        measurements = ChannelInformationExtraction.extractMarkerMeasurements(cells, imageServer);
 
         currentPhenotype = new PhenotypeEntry(
                 cells,
@@ -419,35 +416,12 @@ public class ManualGatingWindow implements Runnable, ChangeListener<ImageData<Bu
         return column;
     }
 
-    /**
-     * Method to extract the markers
-     */
-    public void extractMarkers(){
-        markers = FXCollections.observableArrayList();
-        for (int i=0; i < imageServer.nChannels(); i++){
-            markers.add(imageServer.getChannel(i).getName());
-        }
+    public void initialisePathClassHandler(){
+        PathClassHandler.resetCellPathClass(cells);
+        PathClassHandler.getInstance();
+        PathClassHandler.setInstanceImageData(imageData);
+        PathClassHandler.storeClassification();
     }
 
-    /**
-     * Method to extract the measurement names
-     */
-    public void extractMarkerMeasurements() {
 
-        // Do something for when no cell detected
-        if (cells == null) {
-            return;
-        }
-        // Gets a cell
-        PathObject cell = (PathObject) cells.toArray()[0];
-        String markerName = imageServer.getChannel(0).getName();
-        List<String> measurementList = cell.getMeasurementList().getMeasurementNames();
-
-        // Potentially could be a source of error #################################################
-        measurements = FXCollections.observableList(measurementList.stream()
-                .parallel()
-                .filter(it -> it.contains(markerName + ":"))
-                .map(it -> it.substring(markerName.length() + 2))
-                .collect(Collectors.toList()));
-    }
 }

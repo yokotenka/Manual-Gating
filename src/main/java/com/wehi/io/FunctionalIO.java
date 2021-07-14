@@ -1,7 +1,9 @@
 package com.wehi.io;
 
 import com.wehi.ManualGatingWindow;
+import com.wehi.table.entry.ActivityCellTypeEntry;
 import com.wehi.table.entry.FunctionalMarkerEntry;
+import com.wehi.table.entry.StringSelectEntry;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
 import javafx.scene.control.TreeItem;
@@ -174,6 +176,39 @@ public class FunctionalIO extends AbstractIO{
         } catch (IOException e) {
             e.printStackTrace();
         }
+    }
+
+    /**
+     * Get the list of all of the possible activities
+     */
+    public static ObservableList<StringSelectEntry> getPossibleActivities(File baseDirectory,
+                                                                          String fileName) throws IOException, JSONException {
+
+        ObservableList<StringSelectEntry> children = FXCollections.observableArrayList();
+        File fullFileName = new File(baseDirectory, fileName);
+
+        // Read the content of the file
+        String content = Files.readString(Path.of(fullFileName.getPath()));
+        JSONObject jsonObject = new JSONObject(content);
+
+        // Get the classifiers
+        JSONArray subPhenotypes = (JSONArray) jsonObject.get(FUNCTIONAL_MARKERS);
+
+        for (int i=0; i < subPhenotypes.length(); i++) {
+            JSONObject o = (JSONObject) subPhenotypes.get(i);
+
+            String above = (String) o.get(ABOVE);
+            if (!above.equals("")){
+                children.add(new StringSelectEntry(above, false));
+            }
+
+            String below = (String) o.get(BELOW);
+            if (!below.equals("")){
+                children.add(new StringSelectEntry(below, false));
+            }
+        }
+        return children;
+
     }
 
 }

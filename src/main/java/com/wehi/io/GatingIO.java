@@ -141,7 +141,7 @@ public class GatingIO extends AbstractIO{
                                                            String fileName,
                                                            ObservableList<String> markers,
                                                            ObservableList<String> measurements,
-                                                           Collection<PathObject> cells, Stage stage) throws IOException, JSONException {
+                                                           Collection<PathObject> cells, Stage stage, boolean plotCharts) throws IOException, JSONException {
 
         File fullFileName = new File(baseDirectory, fileName);
         String content = Files.readString(Path.of(fullFileName.getPath()));
@@ -153,7 +153,9 @@ public class GatingIO extends AbstractIO{
         PhenotypeEntry root = createRoot(jsonObject, markers, measurements, cells, stage);
 
         PhenotypeEntry.updatePhenotypeTree(root);
-        PhenotypeEntry.plotAllChartPhenotypeTree(root);
+        if (plotCharts) {
+            PhenotypeEntry.plotAllChartPhenotypeTree(root);
+        }
         return root;
     }
 
@@ -324,6 +326,10 @@ public class GatingIO extends AbstractIO{
         String temp2 = marker2.replaceAll("[-+^]*", "").toLowerCase();
         return temp1.equals(temp2);
     }
+
+
+
+
 
 
 

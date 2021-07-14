@@ -91,6 +91,10 @@ public class TableWrapper<T> {
         return null;
     }
 
+    public void removeRow(T entry){
+        table.getItems().remove(entry);
+    }
+
     /**
      * Gets the item
      * @return items

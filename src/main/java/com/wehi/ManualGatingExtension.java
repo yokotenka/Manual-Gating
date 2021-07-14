@@ -9,17 +9,24 @@ import qupath.lib.gui.tools.MenuTools;
 public class ManualGatingExtension implements QuPathExtension {
     @Override
     public void installExtension(QuPathGUI quPathGUI) {
-        Action manualGatingWindow = ActionTools.createAction(new ManualGatingWindow(quPathGUI), "Manual Gating");
 
+        // For manual gating
+        Action manualGatingWindow = ActionTools.createAction(new ManualGatingWindow(quPathGUI), "Manual Gating");
         MenuTools.addMenuItems(
                 quPathGUI.getMenu("Extensions>Manual Gating", true),
                 manualGatingWindow);
 
+        // For functional markers
         Action functionalMarkerThresholdWindow = ActionTools.createAction(new FunctionalMarkerThresholdWindow(quPathGUI), "Functional Marker Threshold");
-
         MenuTools.addMenuItems(
                 quPathGUI.getMenu("Extensions>Manual Gating", true),
                 functionalMarkerThresholdWindow);
+
+        // For visualisation
+        Action visualisationWindow = ActionTools.createAction(new VisualisationWindow(quPathGUI), "Visualisation");
+        MenuTools.addMenuItems(
+                quPathGUI.getMenu("Extensions>Manual Gating", true),
+                visualisationWindow);
     }
 
     @Override

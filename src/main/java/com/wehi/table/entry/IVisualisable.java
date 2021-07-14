@@ -1,0 +1,22 @@
+package com.wehi.table.entry;
+
+import javafx.scene.control.Button;
+import javafx.scene.control.ColorPicker;
+import javafx.scene.paint.Color;
+
+public interface IVisualisable {
+
+    String getName();
+
+//    boolean isShown();
+
+    Color getColor();
+
+    void setColor(Color color);
+
+    Button getShowButton();
+
+    Button getHideButton();
+
+    ColorPicker getColorPicker();
+}

@@ -13,7 +13,7 @@ import java.util.List;
  * This class is the table which appears on the left of the functional marker plugin. It will list all
  * available functional marker entries.
  */
-public class FunctionalMarkerTreeTableWrapper extends TreeTableCreator<FunctionalMarkerEntry>{
+public class FunctionalMarkerTreeTableWrapper extends TreeTableWrapper<FunctionalMarkerEntry> {
     // The dummy root of the tree table view
     private TreeItem<FunctionalMarkerEntry> root;
 
@@ -25,6 +25,7 @@ public class FunctionalMarkerTreeTableWrapper extends TreeTableCreator<Functiona
         FunctionalMarkerEntry rootEntry = new FunctionalMarkerEntry(null, null, "Functional Markers",null,null, false, null,null);
         root = new TreeItem<>(rootEntry);
         setRoot(root);
+        getTreeTable().setShowRoot(false);
         this.addColumn("Name", "name", 1);
     }
 
