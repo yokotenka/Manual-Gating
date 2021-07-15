@@ -1,9 +1,10 @@
 package com.wehi.table.wrapper;
 
-import javafx.scene.control.TreeItem;
-import javafx.scene.control.TreeTableColumn;
-import javafx.scene.control.TreeTableView;
+import javafx.geometry.Pos;
+import javafx.scene.control.*;
 import javafx.scene.control.cell.TreeItemPropertyValueFactory;
+import javafx.util.Callback;
+
 
 /**
  * Wrapper class for the TreeTableView
@@ -55,6 +56,7 @@ public class TreeTableWrapper<T> {
         col.prefWidthProperty().bind(treeTable.widthProperty().multiply(proportion));
         treeTable.getColumns().add(col);
     }
+
 
     // Helper method to create the column
     private TreeTableColumn<T, Object> createColumn(String title, String variableName){

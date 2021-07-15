@@ -1,5 +1,6 @@
 package com.wehi.table.entry;
 
+import com.wehi.pathclasshandler.PathClassHandler;
 import javafx.geometry.Pos;
 import javafx.scene.control.Button;
 import javafx.scene.control.CheckBox;
@@ -14,8 +15,11 @@ import java.util.Collection;
 public class ActivityCellTypeEntry implements IVisualisable {
     private String name;
 
-    private Button showButton;
-    private Button hideButton;
+    private PhenotypeEntry parent;
+
+    private CheckBox showBox;
+//    private Button showButton;
+//    private Button hideButton;
     private ColorPicker colorPicker;
 
     private TreeItem<ActivityCellTypeEntry> treeItem;
@@ -24,16 +28,19 @@ public class ActivityCellTypeEntry implements IVisualisable {
 
     private ArrayList<String> activities;
 
-    public ActivityCellTypeEntry(Collection<PathObject> cells, String parentName, ArrayList<String> activities){
-        this.name = parentName + ": " + activities.toString();
-        this.cells = cells;
+    private ArrayList<String> labels;
+
+    public ActivityCellTypeEntry(PhenotypeEntry parent, ArrayList<String> activities){
+        this.parent = parent;
+        this.name = parent.getName() + " (" + activities.toString().substring(1,activities.toString().length()-1 )+")";
+        this.cells = parent.getCells();
         this.activities = activities;
 
         colorPicker = new ColorPicker();
-        showButton = new Button(">");
-        hideButton = new Button("<");
-        showButton.setAlignment(Pos.CENTER);
-        hideButton.setAlignment(Pos.CENTER);
+        labels = new ArrayList<String> ();
+        labels.addAll(activities);
+        labels.add(parent.getName());
+        showBox = new CheckBox();
 
     }
 
@@ -48,8 +55,8 @@ public class ActivityCellTypeEntry implements IVisualisable {
 //    }
 
     @Override
-    public Button getShowButton(){
-        return showButton;
+    public CheckBox getShow(){
+        return showBox;
     }
 
     @Override
@@ -67,8 +74,35 @@ public class ActivityCellTypeEntry implements IVisualisable {
         colorPicker.setValue(color);
     }
 
+
     @Override
-    public Button getHideButton(){
-        return hideButton;
+    public void applyColor() {
+
+    }
+
+    public void show(){
+        PathClassHandler.setPathClassVisibility(cells, true, labels);
+    }
+
+    public void hideButShowUpTree(){
+        PathClassHandler.setPathClassVisibility(cells, false, labels);
+        parent.getTreeItem().getParent().getValue().hideButShowUpTree();
+    }
+
+    public void setColorDownTree(Color color){
+        if (!showBox.isSelected()) {
+            PathClassHandler.setColor(cells, color, labels);
+        } else{
+            PathClassHandler.setColor(cells, colorPicker.getValue(), labels);
+        }
+    }
+    //
+//    @Override
+//    public Button getHideButton(){
+//        return hideButton;
+//    }
+
+    public ArrayList<String> getActivities(){
+        return activities;
     }
 }

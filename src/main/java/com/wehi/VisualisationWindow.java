@@ -98,8 +98,8 @@ public class VisualisationWindow implements Runnable{
 
         Scene scene = new Scene(mainBox);
         stage.setScene(scene);
-        stage.setWidth(850);
-        stage.setHeight(500);
+        stage.setWidth(700);
+        stage.setHeight(850);
 
 
     }
@@ -137,13 +137,22 @@ public class VisualisationWindow implements Runnable{
                 return;
             }
             try {
+                PathClassHandler.resetCellPathClass(cells);
+                PathClassHandler.storeClassification();
                 currentPhenotype = GatingIO.readLoadOptions(
                         folderName,
                         manualGatingOptionsBox.getValue(),
                         markers,
                         measurements, cells, stage, false);
                 visualisationThreeTables.setRoot(currentPhenotype);
-
+                FunctionalIO.loadOptions(
+                        folderName,
+                        manualGatingOptionsBox.getValue(),
+                        markers,
+                        measurements,
+                        cells,
+                        stage
+                );
                 visualisationThreeTables.setAvailableActivities(FunctionalIO.getPossibleActivities(folderName,
                         manualGatingOptionsBox.getValue()));
 

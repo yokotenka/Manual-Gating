@@ -1,6 +1,7 @@
 package com.wehi.table.entry;
 
 import javafx.scene.control.Button;
+import javafx.scene.control.CheckBox;
 import javafx.scene.control.ColorPicker;
 import javafx.scene.paint.Color;
 
@@ -14,9 +15,19 @@ public interface IVisualisable {
 
     void setColor(Color color);
 
-    Button getShowButton();
+    void applyColor();
+//
+//    Button getShowButton();
+//
+//    Button getHideButton();
 
-    Button getHideButton();
+    CheckBox getShow();
 
     ColorPicker getColorPicker();
+
+    void hideButShowUpTree();
+
+    void show();
+
+    void setColorDownTree(Color color);
 }

@@ -43,6 +43,7 @@ public class TableWrapper<T> {
     public void addColumn(String title, String variableName, double proportion){
         TableColumn<T, Object> col = createColumn(title, variableName);
         col.prefWidthProperty().bind(table.widthProperty().multiply(proportion));
+
         table.getColumns().add(col);
     }
 

@@ -1,10 +1,15 @@
 package com.wehi.pathclasshandler;
 
 import com.wehi.table.entry.AxisTableEntry;
+import javafx.scene.paint.Color;
 import qupath.lib.classifiers.PathClassifierTools;
 import qupath.lib.classifiers.object.ObjectClassifier;
 import qupath.lib.classifiers.object.ObjectClassifiers;
 import qupath.lib.common.ThreadTools;
+import qupath.lib.gui.QuPathGUI;
+import qupath.lib.gui.prefs.PathPrefs;
+import qupath.lib.gui.tools.ColorToolsFX;
+import qupath.lib.gui.viewer.OverlayOptions;
 import qupath.lib.images.ImageData;
 import qupath.lib.objects.PathObject;
 import qupath.lib.objects.PathObjectFilter;
@@ -282,5 +287,89 @@ public class PathClassHandler {
 
     }
 
+    public static void setColor(Collection<PathObject> cells, Color color, ArrayList<String> labels){
+        int colorValue = color.isOpaque() ? ColorToolsFX.getRGB(color) : ColorToolsFX.getARGB(color);
+        // For the default case
+
+
+        // for every other case
+        cells.forEach(it -> {
+                    PathClass currentClass = it.getPathClass();
+                    for (String label : labels){
+                        if (!checkForSingleClassification(currentClass, label)) {
+                            return;
+                        }
+                    }
+                    currentClass.setColor(colorValue);
+                }
+        );
+    }
+
+    public static void setColor(Collection<PathObject> cells, Color color, String label){
+        int colorValue = color.isOpaque() ? ColorToolsFX.getRGB(color) : ColorToolsFX.getARGB(color);
+        // For the default case
+        if (label.equals("Cell")){
+            PathPrefs.colorDefaultObjectsProperty().set(colorValue);
+            cells.forEach(it -> {
+                        PathClass currentClass = it.getPathClass();
+                        if (currentClass != null)
+                            currentClass.setColor(colorValue);
+                    }
+                        );
+            return;
+        }
+
+        // for every other case
+        cells.forEach(it -> {
+                    PathClass currentClass = it.getPathClass();
+
+                    if (!checkForSingleClassification(currentClass, label)) {
+                        return;
+                    }
+
+                    currentClass.setColor(colorValue);
+                }
+        );
+    }
+
+    public static void setPathClassVisibility(Collection<PathObject> cells, boolean isVisible, String label){
+        OverlayOptions overlayOptions = QuPathGUI.getInstance().getOverlayOptions();
+
+        if (label.equals("Cell")){
+            cells.forEach(it -> {
+                        PathClass currentClass = it.getPathClass();
+                        overlayOptions.setPathClassHidden(currentClass, !isVisible);
+                    }
+            );
+            return;
+        }
+
+        cells.forEach(it -> {
+                    PathClass currentClass = it.getPathClass();
+
+                    if (!checkForSingleClassification(currentClass, label)) {
+                        return;
+                    }
+
+                    overlayOptions.setPathClassHidden(currentClass, !isVisible);
+                }
+        );
+    }
+
+    public static void setPathClassVisibility(Collection<PathObject> cells, boolean isVisible, ArrayList<String> labels){
+        OverlayOptions overlayOptions = QuPathGUI.getInstance().getOverlayOptions();
+
+
+        cells.forEach(it -> {
+                    PathClass currentClass = it.getPathClass();
+                    for (String label : labels){
+                        if (!checkForSingleClassification(currentClass, label)) {
+                            return;
+                        }
+                    }
+                    overlayOptions.setPathClassHidden(currentClass, !isVisible);
+                }
+        );
+    }
 
 }

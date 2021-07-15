@@ -2,6 +2,7 @@ package com.wehi;
 
 import com.wehi.pathclasshandler.PathClassHandler;
 import com.wehi.table.entry.ActivityCellTypeEntry;
+import com.wehi.table.entry.IVisualisable;
 import com.wehi.table.entry.PhenotypeEntry;
 import com.wehi.table.entry.StringSelectEntry;
 import com.wehi.table.wrapper.ActivityCellTypeTableWrapper;
@@ -19,7 +20,9 @@ import javafx.scene.control.TreeTableRow;
 import javafx.scene.layout.HBox;
 import javafx.scene.layout.VBox;
 import javafx.stage.Stage;
+import qupath.lib.gui.dialogs.Dialogs;
 
+import java.lang.reflect.Array;
 import java.util.ArrayList;
 
 import static com.wehi.JavaFXHelpers.*;
@@ -27,6 +30,7 @@ import static java.lang.Double.MAX_VALUE;
 
 public class VisualisationThreeTablesSplitPaneWrapper {
 
+    private static final String TITLE = "Activity combination";
     private VBox functionalBox;
     private SplitPane leftHandSide;
     private SplitPane splitPane;
@@ -101,7 +105,7 @@ public class VisualisationThreeTablesSplitPaneWrapper {
         visualisationTreeTableWrapper.setRoot(root);
         currentPhenotype = root;
 
-        functionalBox.getChildren().remove(activityCellTypeTableWrapper.getTable());
+        functionalBox.getChildren().remove(0);
         functionalBox.getChildren().add(0, root.getActivityCellTypeTableWrapper().getTable());
 
         listSelectedPhenotype();
@@ -122,12 +126,17 @@ public class VisualisationThreeTablesSplitPaneWrapper {
     public HBox createAddActivityCombinationBox(){
         HBox addActivityBox = createHBox();
         Button add = new Button("Add");
-
         add.setOnAction(e -> addFunctionalCombinationPopup());
 
         Button remove = new Button("Remove");
+        remove.setOnAction(e -> currentPhenotype.removeActivity());
 
-        addActivityBox.getChildren().addAll(add, remove);
+        Button removeFromAll = new Button("Remove from all phenotypes");
+        removeFromAll.setOnAction(e -> {
+            removeActivityFromAllPhenotypes();
+        });
+
+        addActivityBox.getChildren().addAll(add, remove, removeFromAll);
         return addActivityBox;
     }
 
@@ -136,30 +145,41 @@ public class VisualisationThreeTablesSplitPaneWrapper {
      */
     public void listSelectedPhenotype(){
         PhenotypeEntry root = visualisationTreeTableWrapper.getRoot().getValue();
-        createMoveToList(root);
+        createMoveToListForChildren(root);
     }
 
     /**
      * Creates the action which moves the phenotype to the list
      * @param entry
      */
-    private void createMoveToList(PhenotypeEntry entry){
-        for (PhenotypeEntry child : entry.getChildren()){
-            child.getShowButton().setOnAction(e ->
-            {
-                listActivityTableWrapper.addRow(child);
-                listActivityTableWrapper.getTable().refresh();
-                visualisationTreeTableWrapper.getTreeTable().refresh();
-            });
+    private void createMoveToListForChildren(PhenotypeEntry entry){
 
-            child.getHideButton().setOnAction(e ->
-            {
-                listActivityTableWrapper.removeRow(child);
-                listActivityTableWrapper.getTable().refresh();
-                visualisationTreeTableWrapper.getTreeTable().refresh();
-            });
-            createMoveToList(child);
+        createMoveToList(entry);
+
+        for (PhenotypeEntry child : entry.getChildren()){
+
+            createMoveToListForChildren(child);
         }
+    }
+
+    public void createMoveToList(IVisualisable entry){
+        entry.getShow().setOnAction(e -> {
+            if (entry.getShow().isSelected()) {
+                listActivityTableWrapper.addRow(entry);
+                entry.show();
+                entry.setColorDownTree(entry.getColor());
+            } else{
+                listActivityTableWrapper.removeRow(entry);
+                entry.hideButShowUpTree();
+            }
+            listActivityTableWrapper.getTable().refresh();
+            currentPhenotype.getActivityCellTypeTableWrapper().getTable().refresh();
+            visualisationTreeTableWrapper.getTreeTable().refresh();
+        });
+
+        entry.getColorPicker().setOnAction(e -> {
+            entry.setColorDownTree(entry.getColor());
+        });
     }
 
     /**
@@ -168,7 +188,7 @@ public class VisualisationThreeTablesSplitPaneWrapper {
     public void addFunctionalCombinationPopup(){
         if (secondaryStage==null) {
             secondaryStage = new Stage();
-
+            secondaryStage.setAlwaysOnTop(true);
             VBox mainBox = createVBox();
             mainBox.setFillWidth(true);
             mainBox.setSpacing(5);
@@ -195,29 +215,24 @@ public class VisualisationThreeTablesSplitPaneWrapper {
 
             Button addToAllButton = new Button("Add to all phenotypes");
             addToAllButton.setMaxWidth(MAX_VALUE);
+            addToAllButton.setOnAction(e -> {
+                if (stringSelectTableWrapper.collectSelected().isEmpty()){
+                    Dialogs.showErrorMessage(TITLE, "Nothing was selected!");
+                    return;
+                }
+                createNewActivityForAll();
+//                secondaryStage.close();
+            });
+
             Button addButton = new Button("Only add to current phenotype");
             addButton.setMaxWidth(MAX_VALUE);
             addButton.setOnAction(e -> {
-
-                ActivityCellTypeEntry activityCellTypeEntry = new ActivityCellTypeEntry(
-                        currentPhenotype.getCells(),
-                        currentPhenotype.getName(),
-                        stringSelectTableWrapper.collectSelected());
-                currentPhenotype.addActivity(activityCellTypeEntry);
-
-                activityCellTypeEntry.getShowButton().setOnAction(i ->
-                {
-                    listActivityTableWrapper.addRow(activityCellTypeEntry);
-                    currentPhenotype.getActivityCellTypeTableWrapper().getTable().refresh();
-                    visualisationTreeTableWrapper.getTreeTable().refresh();
-                });
-
-                activityCellTypeEntry.getHideButton().setOnAction(i ->
-                {
-                    listActivityTableWrapper.removeRow(activityCellTypeEntry);
-                    currentPhenotype.getActivityCellTypeTableWrapper().getTable().refresh();
-                    visualisationTreeTableWrapper.getTreeTable().refresh();
-                });
+                if (stringSelectTableWrapper.collectSelected().isEmpty()){
+                    Dialogs.showErrorMessage(TITLE, "Nothing was selected!");
+                    return;
+                }
+                createNewActivity(currentPhenotype);
+//                secondaryStage.close();
             });
 
             Button cancelButton = new Button("Close");
@@ -245,10 +260,51 @@ public class VisualisationThreeTablesSplitPaneWrapper {
     }
 
 
+    public void createNewActivity(PhenotypeEntry entry){
+        if (!entry.containsActivity(stringSelectTableWrapper.collectSelected())) {
+            ActivityCellTypeEntry activityCellTypeEntry = new ActivityCellTypeEntry(
+                    entry,
+                    stringSelectTableWrapper.collectSelected());
+            entry.addActivity(activityCellTypeEntry);
+
+            createMoveToList(activityCellTypeEntry);
+        }
+
+
+    }
+
+    public void createNewActivityForAll(){
+        PhenotypeEntry root = visualisationTreeTableWrapper.getRoot().getValue();
+
+        createNewActivityForChildren(root);
+    }
+
+    public void createNewActivityForChildren(PhenotypeEntry entry){
+        createNewActivity(entry);
+
+        for (PhenotypeEntry child : entry.getChildren()){
+            createNewActivityForChildren(child);
+        }
+    }
+
 
 
     public void setAvailableActivities(ObservableList<StringSelectEntry> activities){
         stringSelectTableWrapper.setItems(activities);
+    }
+
+    public void removeActivityFromAllPhenotypes(){
+        ActivityCellTypeEntry selected = currentPhenotype.getActivityCellTypeTableWrapper().getSelectedItem();
+        PhenotypeEntry root = visualisationTreeTableWrapper.getRoot().getValue();
+
+        removeActivity(root, selected.getActivities());
+    }
+
+    public void removeActivity(PhenotypeEntry entry, ArrayList<String> activities){
+        entry.removeActivity(activities);
+        for(PhenotypeEntry child : entry.getChildren()){
+            removeActivity(child, activities);
+        }
     }
 
 

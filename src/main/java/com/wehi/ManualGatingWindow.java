@@ -30,6 +30,7 @@ import qupath.lib.projects.Projects;
 import java.awt.image.BufferedImage;
 import java.io.File;
 import java.io.IOException;
+import java.nio.file.Path;
 import java.util.*;
 
 import static com.wehi.JavaFXHelpers.*;
@@ -296,6 +297,8 @@ public class ManualGatingWindow implements Runnable, ChangeListener<ImageData<Bu
                 return;
             }
             try {
+                PathClassHandler.resetCellPathClass(cells);
+                PathClassHandler.storeClassification();
                 currentPhenotype = GatingIO.readLoadOptions(folderName, manualGatingOptionsBox.getValue(), markers, measurements, cells, stage, true);
                 currentPhenotype.getXAxisSlider().valueProperty().addListener((v, o, n) -> PathClassHandler.previewThreshold(currentPhenotype.getXAxis()));
                 currentPhenotype.getYAxisSlider().valueProperty().addListener((v, o, n) -> PathClassHandler.previewThreshold(currentPhenotype.getYAxis()));

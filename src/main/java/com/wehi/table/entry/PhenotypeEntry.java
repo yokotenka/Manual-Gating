@@ -20,6 +20,7 @@ import qupath.lib.objects.PathObject;
 
 import java.util.ArrayList;
 import java.util.Collection;
+import java.util.Collections;
 
 
 /**
@@ -66,8 +67,9 @@ public class PhenotypeEntry implements IVisualisable {
     private Label count;
 
     private ColorPicker colorPicker;
-    private Button showButton;
-    private Button hideButton;
+//    private Button showButton;
+//    private Button hideButton;
+    private CheckBox showBox;
 
     private ObservableList<ActivityCellTypeEntry> functionalEntries;
 
@@ -123,10 +125,11 @@ public class PhenotypeEntry implements IVisualisable {
             this.treeItem = new TreeItem<>(this);
         }
         this.functionalEntries = FXCollections.observableArrayList();
-        this.showButton = new Button(">");
-        showButton.setAlignment(Pos.CENTER);
-        this.hideButton = new Button("<");
-        hideButton.setAlignment(Pos.CENTER);
+        showBox = new CheckBox();
+//        this.showButton = new Button(">");
+//        showButton.setAlignment(Pos.CENTER);
+//        this.hideButton = new Button("<");
+//        hideButton.setAlignment(Pos.CENTER);
         this.colorPicker = new ColorPicker();
         this.activityCellTypeTableWrapper = new ActivityCellTypeTableWrapper();
         createPane();
@@ -403,19 +406,85 @@ public class PhenotypeEntry implements IVisualisable {
     }
 
     @Override
-    public Button getShowButton() {
-        return showButton;
+    public void applyColor() {
+
     }
 
     @Override
-    public Button getHideButton(){
-        return hideButton;
+    public CheckBox getShow() {
+        return showBox;
     }
+
+    //    @Override
+//    public Button getShowButton() {
+//        return showButton;
+//    }
+//
+//    @Override
+//    public Button getHideButton(){
+//        return hideButton;
+//    }
 
     @Override
     public ColorPicker getColorPicker() {
         return colorPicker;
     }
+
+
+    public void hideButShowUpTree(){
+
+        PathClassHandler.setPathClassVisibility(cells, false, phenotypeName);
+
+        if (showBox.isSelected()){
+            PathClassHandler.setPathClassVisibility(cells, true, phenotypeName);
+            PathClassHandler.setColor(cells, colorPicker.getValue(), phenotypeName);
+        }
+
+        for (ActivityCellTypeEntry entry : activityCellTypeTableWrapper.getItems()){
+            if (entry.getShow().isSelected()){
+                entry.show();
+            }
+        }
+
+        for (PhenotypeEntry child : childPhenotypes){
+            child.showDownTree();
+        }
+
+        if (treeItem.getParent() != null)
+            treeItem.getParent().getValue().hideButShowUpTree();
+    }
+
+    public void show(){
+        PathClassHandler.setPathClassVisibility(cells, true, phenotypeName);
+    }
+
+   public void showDownTree(){
+        if (showBox.isSelected()){
+            PathClassHandler.setPathClassVisibility(cells, true, phenotypeName);
+        }
+       for (PhenotypeEntry child : childPhenotypes){
+           child.showDownTree();
+       }
+   }
+
+
+    @Override
+    public void setColorDownTree(Color color){
+
+        if (!showBox.isSelected()) {
+            PathClassHandler.setColor(cells, color, phenotypeName);
+        } else{
+            PathClassHandler.setColor(cells, colorPicker.getValue(), phenotypeName);
+        }
+
+        for (ActivityCellTypeEntry activityCellTypeEntry : activityCellTypeTableWrapper.getItems()){
+            activityCellTypeEntry.setColorDownTree(color);
+        }
+        for (PhenotypeEntry child : childPhenotypes){
+            child.setColorDownTree(color);
+        }
+    }
+
 
     public ArrayList<String> getPositiveMarkers() {
         return positiveMarkers;
@@ -543,7 +612,19 @@ public class PhenotypeEntry implements IVisualisable {
         activityCellTypeTableWrapper.getTable().refresh();
     }
 
+    public boolean containsActivity(ArrayList<String> activity){
+        return activityCellTypeTableWrapper.contains(activity);
+    }
+
     public ActivityCellTypeTableWrapper getActivityCellTypeTableWrapper(){
         return activityCellTypeTableWrapper;
+    }
+
+    public void removeActivity(){
+        activityCellTypeTableWrapper.removeRow();
+    }
+
+    public void removeActivity(ArrayList<String> activities){
+        activityCellTypeTableWrapper.remove(activities);
     }
 }

@@ -9,9 +9,9 @@ public class VisualisationTreeTableWrapper extends TreeTableWrapper<PhenotypeEnt
 
     public VisualisationTreeTableWrapper(){
         super();
-        this.addColumn("Name", "name", 0.7);
+        this.addColumn("Name", "name", 0.92);
 //        this.addColumn("Colour", "colorPicker", 0.4);
-        this.addColumn("Show", "showButton", 0.3);
+        this.addColumn("", "show", 0.08);
     }
 
     public void setRoot(PhenotypeEntry phenotypeEntry){

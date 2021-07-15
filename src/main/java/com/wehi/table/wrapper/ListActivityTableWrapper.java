@@ -10,8 +10,8 @@ public class ListActivityTableWrapper extends TableWrapper<IVisualisable>{
 
     public ListActivityTableWrapper(){
         super();
-        this.addColumn("Combination", "name", 0.4);
-        this.addColumn("Colour", "colorPicker", 0.4);
-        this.addColumn("Hide", "hideButton", 0.2);
+        this.addColumn("Combination", "name", 0.77);
+        this.addColumn("Colour", "colorPicker", 0.15);
+        this.addColumn("", "show", 0.08);
     }
 }
