@@ -2,51 +2,51 @@ com/wehi/JavaFXHelpers.java
  com.wehi.JavaFXHelpers
 com/wehi/table/entry/StringSelectEntry.java
  com.wehi.table.entry.StringSelectEntry
-com/wehi/FunctionalMarkerThresholdWindow.java
- com.wehi.FunctionalMarkerThresholdWindow
+com/wehi/table/wrapper/SingleAxisTableWrapper.java
+ com.wehi.table.wrapper.SingleAxisTableWrapper
 com/wehi/table/entry/IVisualisable.java
  com.wehi.table.entry.IVisualisable
 com/wehi/table/observer/Observer.java
  com.wehi.table.observer.Observer
-com/wehi/pathclasshandler/PathClassHandler.java
- com.wehi.pathclasshandler.PathClassHandler
- com.wehi.pathclasshandler.PathClassHandler$ClassificationRequest
+com/wehi/io/VisualisationIO.java
+ com.wehi.io.VisualisationIO
 com/wehi/chart/HistogramChart.java
  com.wehi.chart.HistogramChart
-com/wehi/table/wrapper/ListActivityTableWrapper.java
- com.wehi.table.wrapper.ListActivityTableWrapper
-com/wehi/table/wrapper/FunctionalMarkerTreeTableWrapper.java
- com.wehi.table.wrapper.FunctionalMarkerTreeTableWrapper
+com/wehi/table/wrapper/VisualisationTreeTableWrapper.java
+ com.wehi.table.wrapper.VisualisationTreeTableWrapper
+com/wehi/ManualGatingWindow.java
+ com.wehi.ManualGatingWindow
 com/wehi/chart/CytometryChart.java
  com.wehi.chart.CytometryChart
  com.wehi.chart.CytometryChart$ColourMapper
  com.wehi.chart.CytometryChart$ColourMapper$Triplet
-com/wehi/table/entry/ChildPhenotypeTableEntry.java
- com.wehi.table.entry.ChildPhenotypeTableEntry
- com.wehi.table.entry.ChildPhenotypeTableEntry$MARKER_COMBINATION
+com/wehi/table/wrapper/ActivityCellTypeTableWrapper.java
+ com.wehi.table.wrapper.ActivityCellTypeTableWrapper
 com/wehi/table/wrapper/ChildPhenotypeTableWrapper.java
  com.wehi.table.wrapper.ChildPhenotypeTableWrapper
-com/wehi/table/entry/FunctionalMarkerEntry.java
- com.wehi.table.entry.FunctionalMarkerEntry
+com/wehi/table/wrapper/FunctionalMarkerTreeTableWrapper.java
+ com.wehi.table.wrapper.FunctionalMarkerTreeTableWrapper
 com/wehi/io/AbstractIO.java
  com.wehi.io.AbstractIO
 com/wehi/table/wrapper/TableWrapper.java
  com.wehi.table.wrapper.TableWrapper
-com/wehi/chart/CustomChart.java
- com.wehi.chart.CustomChart
+com/wehi/table/entry/PhenotypeEntry.java
+ com.wehi.table.entry.PhenotypeEntry
 com/wehi/chart/BivariateKDE.java
  com.wehi.chart.BivariateKDE
  com.wehi.chart.BivariateKDE$IndependentBivariateNormalDistribution
-com/wehi/table/wrapper/FunctionalSubPhenotypeTableWrapper.java
- com.wehi.table.wrapper.FunctionalSubPhenotypeTableWrapper
+com/wehi/table/entry/ChildPhenotypeTableEntry.java
+ com.wehi.table.entry.ChildPhenotypeTableEntry
+ com.wehi.table.entry.ChildPhenotypeTableEntry$MARKER_COMBINATION
 com/wehi/table/observer/Subject.java
  com.wehi.table.observer.Subject
-com/wehi/table/wrapper/StringSelectTableWrapper.java
- com.wehi.table.wrapper.StringSelectTableWrapper
+com/wehi/pathclasshandler/PathClassHandler.java
+ com.wehi.pathclasshandler.PathClassHandler
+ com.wehi.pathclasshandler.PathClassHandler$ClassificationRequest
 com/wehi/ManualGatingExtension.java
  com.wehi.ManualGatingExtension
-com/wehi/table/wrapper/SingleAxisTableWrapper.java
- com.wehi.table.wrapper.SingleAxisTableWrapper
+com/wehi/table/entry/ActivityCellTypeEntry.java
+ com.wehi.table.entry.ActivityCellTypeEntry
 com/wehi/table/wrapper/TreeTableWrapper.java
  com.wehi.table.wrapper.TreeTableWrapper
 com/wehi/table/entry/AxisTableEntry.java
@@ -56,25 +56,25 @@ com/wehi/table/wrapper/AxisTableWrapper.java
  com.wehi.table.wrapper.AxisTableWrapper
 com/wehi/chart/ThresholdedScatterChartWrapper.java
  com.wehi.chart.ThresholdedScatterChartWrapper
-com/wehi/ChannelInformationExtraction.java
- com.wehi.ChannelInformationExtraction
+com/wehi/FunctionalMarkerThresholdWindow.java
+ com.wehi.FunctionalMarkerThresholdWindow
+com/wehi/table/wrapper/ListActivityTableWrapper.java
+ com.wehi.table.wrapper.ListActivityTableWrapper
+com/wehi/table/wrapper/StringSelectTableWrapper.java
+ com.wehi.table.wrapper.StringSelectTableWrapper
 com/wehi/io/FunctionalIO.java
  com.wehi.io.FunctionalIO
-com/wehi/VisualisationWindow.java
- com.wehi.VisualisationWindow
-com/wehi/ManualGatingWindow.java
- com.wehi.ManualGatingWindow
-com/wehi/table/wrapper/ActivityCellTypeTableWrapper.java
- com.wehi.table.wrapper.ActivityCellTypeTableWrapper
-com/wehi/table/entry/ActivityCellTypeEntry.java
- com.wehi.table.entry.ActivityCellTypeEntry
 com/wehi/io/GatingIO.java
  com.wehi.io.GatingIO
-com/wehi/table/entry/PhenotypeEntry.java
- com.wehi.table.entry.PhenotypeEntry
+com/wehi/ChannelInformationExtraction.java
+ com.wehi.ChannelInformationExtraction
+com/wehi/chart/CustomChart.java
+ com.wehi.chart.CustomChart
+com/wehi/table/wrapper/FunctionalSubPhenotypeTableWrapper.java
+ com.wehi.table.wrapper.FunctionalSubPhenotypeTableWrapper
+com/wehi/table/entry/FunctionalMarkerEntry.java
+ com.wehi.table.entry.FunctionalMarkerEntry
+com/wehi/VisualisationWindow.java
+ com.wehi.VisualisationWindow
 com/wehi/VisualisationThreeTablesSplitPaneWrapper.java
  com.wehi.VisualisationThreeTablesSplitPaneWrapper
-com/wehi/io/VisualisationIO.java
- com.wehi.io.VisualisationIO
-com/wehi/table/wrapper/VisualisationTreeTableWrapper.java
- com.wehi.table.wrapper.VisualisationTreeTableWrapper

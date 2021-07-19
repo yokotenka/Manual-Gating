@@ -13,7 +13,6 @@ public class FunctionalSubPhenotypeTableWrapper extends TableWrapper<ChildPhenot
 
     public FunctionalSubPhenotypeTableWrapper(){
         super(new TableView<>());
-
         this.addColumn("Marker Combination", "markerCombinationString", 0.3);
         this.addColumn("Phenotype Name", "phenotypeTextField", 0.5);
         this.addColumn("Create as Child", "selectedAsChildCheckBox", 0.2);

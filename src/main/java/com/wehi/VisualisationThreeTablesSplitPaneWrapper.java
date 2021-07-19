@@ -20,6 +20,7 @@ import javafx.scene.control.TreeTableRow;
 import javafx.scene.layout.HBox;
 import javafx.scene.layout.VBox;
 import javafx.stage.Stage;
+import qupath.lib.gui.QuPathGUI;
 import qupath.lib.gui.dialogs.Dialogs;
 
 import java.lang.reflect.Array;
@@ -175,10 +176,14 @@ public class VisualisationThreeTablesSplitPaneWrapper {
             listActivityTableWrapper.getTable().refresh();
             currentPhenotype.getActivityCellTypeTableWrapper().getTable().refresh();
             visualisationTreeTableWrapper.getTreeTable().refresh();
+//            QuPathGUI.getInstance().getViewer().repaintEntireImage();
+            QuPathGUI.getInstance().getViewer().forceOverlayUpdate();
         });
 
         entry.getColorPicker().setOnAction(e -> {
             entry.setColorDownTree(entry.getColor());
+            QuPathGUI.getInstance().getViewer().forceOverlayUpdate();
+
         });
     }
 
