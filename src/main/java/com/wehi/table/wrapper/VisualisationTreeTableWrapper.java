@@ -18,4 +18,6 @@ public class VisualisationTreeTableWrapper extends TreeTableWrapper<PhenotypeEnt
         this.getTreeTable().setRoot(phenotypeEntry.getTreeItem());
         this.getTreeTable().refresh();
     }
+
+
 }

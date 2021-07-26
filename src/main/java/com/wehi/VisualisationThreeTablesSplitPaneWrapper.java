@@ -1,6 +1,5 @@
 package com.wehi;
 
-import com.wehi.pathclasshandler.PathClassHandler;
 import com.wehi.table.entry.ActivityCellTypeEntry;
 import com.wehi.table.entry.IVisualisable;
 import com.wehi.table.entry.PhenotypeEntry;
@@ -23,7 +22,6 @@ import javafx.stage.Stage;
 import qupath.lib.gui.QuPathGUI;
 import qupath.lib.gui.dialogs.Dialogs;
 
-import java.lang.reflect.Array;
 import java.util.ArrayList;
 
 import static com.wehi.JavaFXHelpers.*;
@@ -106,6 +104,8 @@ public class VisualisationThreeTablesSplitPaneWrapper {
         visualisationTreeTableWrapper.setRoot(root);
         currentPhenotype = root;
 
+
+
         functionalBox.getChildren().remove(0);
         functionalBox.getChildren().add(0, root.getActivityCellTypeTableWrapper().getTable());
 
@@ -167,11 +167,12 @@ public class VisualisationThreeTablesSplitPaneWrapper {
         entry.getShow().setOnAction(e -> {
             if (entry.getShow().isSelected()) {
                 listActivityTableWrapper.addRow(entry);
-                entry.show();
+
                 entry.setColorDownTree(entry.getColor());
+                entry.show();
             } else{
                 listActivityTableWrapper.removeRow(entry);
-                entry.hideButShowUpTree();
+                entry.hide();
             }
             listActivityTableWrapper.getTable().refresh();
             currentPhenotype.getActivityCellTypeTableWrapper().getTable().refresh();
@@ -301,8 +302,8 @@ public class VisualisationThreeTablesSplitPaneWrapper {
     public void removeActivityFromAllPhenotypes(){
         ActivityCellTypeEntry selected = currentPhenotype.getActivityCellTypeTableWrapper().getSelectedItem();
         PhenotypeEntry root = visualisationTreeTableWrapper.getRoot().getValue();
-
-        removeActivity(root, selected.getActivities());
+        if (selected != null)
+            removeActivity(root, selected.getActivities());
     }
 
     public void removeActivity(PhenotypeEntry entry, ArrayList<String> activities){
@@ -312,5 +313,51 @@ public class VisualisationThreeTablesSplitPaneWrapper {
         }
     }
 
+    public PhenotypeEntry getRoot(){
+        if (visualisationTreeTableWrapper.getRoot() == null){
+            return null;
+        }
+
+        return visualisationTreeTableWrapper.getRoot().getValue();
+    }
+
+    public void refreshList() {
+        listActivityTableWrapper.getItems().clear();
+        addToList(getRoot());
+    }
+
+    public void addToList(PhenotypeEntry entry){
+        if (entry.getShow().isSelected()){
+            listActivityTableWrapper.addRow(entry);
+            entry.show();
+        }
+
+        for (ActivityCellTypeEntry activityCellTypeEntry : entry.getActivityCellTypeTableWrapper().getItems()){
+            if (activityCellTypeEntry.getShow().isSelected()){
+                listActivityTableWrapper.addRow(activityCellTypeEntry);
+                createMoveToList(activityCellTypeEntry);
+                activityCellTypeEntry.show();
+            }
+        }
+
+        for (PhenotypeEntry child : entry.getChildren()) {
+            addToList(child);
+            createMoveToList(child);
+        }
+    }
+
+    public void clearList(){
+        listActivityTableWrapper.getItems().clear();
+        clearActivities(getRoot());
+        listActivityTableWrapper.getTable().refresh();
+    }
+
+    public void clearActivities(PhenotypeEntry entry){
+        entry.removeAllActivities();
+
+        for (PhenotypeEntry child : entry.getChildren()){
+            clearActivities(child);
+        }
+    }
 
 }

@@ -10,7 +10,6 @@ import com.wehi.table.wrapper.ChildPhenotypeTableWrapper;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
 import javafx.geometry.Orientation;
-import javafx.geometry.Pos;
 import javafx.scene.control.*;
 import javafx.scene.layout.HBox;
 import javafx.scene.paint.Color;
@@ -20,7 +19,6 @@ import qupath.lib.objects.PathObject;
 
 import java.util.ArrayList;
 import java.util.Collection;
-import java.util.Collections;
 
 
 /**
@@ -401,8 +399,6 @@ public class PhenotypeEntry implements IVisualisable {
     @Override
     public void setColor(Color color){
         colorPicker.setValue(color);
-
-
     }
 
     @Override
@@ -431,9 +427,17 @@ public class PhenotypeEntry implements IVisualisable {
     }
 
 
+    public void hide(){
+        PathClassHandler.setPathClassVisibility(cells, false, phenotypeName);
+        hideButShowUpTree();
+
+        for (PhenotypeEntry child : childPhenotypes){
+            child.showDownTree();
+        }
+    }
+
     public void hideButShowUpTree(){
 
-        PathClassHandler.setPathClassVisibility(cells, false, phenotypeName);
 
         if (showBox.isSelected()){
             PathClassHandler.setPathClassVisibility(cells, true, phenotypeName);
@@ -442,12 +446,10 @@ public class PhenotypeEntry implements IVisualisable {
 
         for (ActivityCellTypeEntry entry : activityCellTypeTableWrapper.getItems()){
             if (entry.getShow().isSelected()){
+                entry.setColor();
                 entry.show();
-            }
-        }
 
-        for (PhenotypeEntry child : childPhenotypes){
-            child.showDownTree();
+            }
         }
 
         if (treeItem.getParent() != null)
@@ -458,27 +460,40 @@ public class PhenotypeEntry implements IVisualisable {
         PathClassHandler.setPathClassVisibility(cells, true, phenotypeName);
     }
 
-   public void showDownTree(){
+    public void showDownTree(){
         if (showBox.isSelected()){
             PathClassHandler.setPathClassVisibility(cells, true, phenotypeName);
         }
+
+        for (ActivityCellTypeEntry activityCellTypeEntry : activityCellTypeTableWrapper.getItems()){
+            if (activityCellTypeEntry.getShow().isSelected()) {
+                activityCellTypeEntry.setColor();
+                activityCellTypeEntry.show();
+            }
+        }
+
        for (PhenotypeEntry child : childPhenotypes){
            child.showDownTree();
        }
    }
-
+    @Override
+    public void setShow(boolean show){
+        showBox.setSelected(show);
+    }
 
     @Override
     public void setColorDownTree(Color color){
 
-        if (!showBox.isSelected()) {
-            PathClassHandler.setColor(cells, color, phenotypeName);
-        } else{
-            PathClassHandler.setColor(cells, colorPicker.getValue(), phenotypeName);
+        if (showBox.isSelected()){
+            Color color2 = colorPicker.getValue();
+            PathClassHandler.setColor(cells, color2, phenotypeName);
         }
 
         for (ActivityCellTypeEntry activityCellTypeEntry : activityCellTypeTableWrapper.getItems()){
-            activityCellTypeEntry.setColorDownTree(color);
+            if (!activityCellTypeEntry.getShow().isSelected())
+                activityCellTypeEntry.setColor(color);
+            else
+                activityCellTypeEntry.setColor();
         }
         for (PhenotypeEntry child : childPhenotypes){
             child.setColorDownTree(color);
@@ -626,5 +641,9 @@ public class PhenotypeEntry implements IVisualisable {
 
     public void removeActivity(ArrayList<String> activities){
         activityCellTypeTableWrapper.remove(activities);
+    }
+
+    public void removeAllActivities(){
+        activityCellTypeTableWrapper.removeAllActivities();
     }
 }

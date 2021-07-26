@@ -14,7 +14,7 @@ public interface IVisualisable {
     Color getColor();
 
     void setColor(Color color);
-
+    void setShow(boolean show);
     void applyColor();
 //
 //    Button getShowButton();
@@ -25,7 +25,7 @@ public interface IVisualisable {
 
     ColorPicker getColorPicker();
 
-    void hideButShowUpTree();
+    void hide();
 
     void show();
 

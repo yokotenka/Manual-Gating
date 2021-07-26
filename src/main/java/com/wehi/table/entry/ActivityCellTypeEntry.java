@@ -1,8 +1,6 @@
 package com.wehi.table.entry;
 
 import com.wehi.pathclasshandler.PathClassHandler;
-import javafx.geometry.Pos;
-import javafx.scene.control.Button;
 import javafx.scene.control.CheckBox;
 import javafx.scene.control.ColorPicker;
 import javafx.scene.control.TreeItem;
@@ -43,7 +41,10 @@ public class ActivityCellTypeEntry implements IVisualisable {
         showBox = new CheckBox();
 
     }
-
+    @Override
+    public void setShow(boolean show){
+        showBox.setSelected(show);
+    }
     @Override
     public String getName() {
         return name;
@@ -84,17 +85,14 @@ public class ActivityCellTypeEntry implements IVisualisable {
         PathClassHandler.setPathClassVisibility(cells, true, labels);
     }
 
-    public void hideButShowUpTree(){
-        PathClassHandler.setPathClassVisibility(cells, false, labels);
-        parent.getTreeItem().getParent().getValue().hideButShowUpTree();
+    public void hide(){
+//        PathClassHandler.setPathClassVisibility(cells, false, labels);
+        if (parent != null)
+            parent.hide();
     }
 
     public void setColorDownTree(Color color){
-        if (!showBox.isSelected()) {
-            PathClassHandler.setColor(cells, color, labels);
-        } else{
-            PathClassHandler.setColor(cells, colorPicker.getValue(), labels);
-        }
+        parent.setColorDownTree(color);
     }
     //
 //    @Override
@@ -104,5 +102,10 @@ public class ActivityCellTypeEntry implements IVisualisable {
 
     public ArrayList<String> getActivities(){
         return activities;
+    }
+
+    public void setColor(){
+        if (showBox.isSelected())
+            PathClassHandler.setColor(cells, colorPicker.getValue(), labels);
     }
 }

@@ -2,8 +2,8 @@ com/wehi/JavaFXHelpers.java
  com.wehi.JavaFXHelpers
 com/wehi/table/entry/StringSelectEntry.java
  com.wehi.table.entry.StringSelectEntry
-com/wehi/table/wrapper/SingleAxisTableWrapper.java
- com.wehi.table.wrapper.SingleAxisTableWrapper
+com/wehi/VisualisationThreeTablesSplitPaneWrapper.java
+ com.wehi.VisualisationThreeTablesSplitPaneWrapper
 com/wehi/table/entry/IVisualisable.java
  com.wehi.table.entry.IVisualisable
 com/wehi/table/observer/Observer.java
@@ -22,10 +22,11 @@ com/wehi/chart/CytometryChart.java
  com.wehi.chart.CytometryChart$ColourMapper$Triplet
 com/wehi/table/wrapper/ActivityCellTypeTableWrapper.java
  com.wehi.table.wrapper.ActivityCellTypeTableWrapper
+ com.wehi.table.wrapper.ActivityCellTypeTableWrapper$ActivityCellTypeComparator
 com/wehi/table/wrapper/ChildPhenotypeTableWrapper.java
  com.wehi.table.wrapper.ChildPhenotypeTableWrapper
-com/wehi/table/wrapper/FunctionalMarkerTreeTableWrapper.java
- com.wehi.table.wrapper.FunctionalMarkerTreeTableWrapper
+com/wehi/table/entry/FunctionalMarkerEntry.java
+ com.wehi.table.entry.FunctionalMarkerEntry
 com/wehi/io/AbstractIO.java
  com.wehi.io.AbstractIO
 com/wehi/table/wrapper/TableWrapper.java
@@ -43,8 +44,8 @@ com/wehi/table/observer/Subject.java
 com/wehi/pathclasshandler/PathClassHandler.java
  com.wehi.pathclasshandler.PathClassHandler
  com.wehi.pathclasshandler.PathClassHandler$ClassificationRequest
-com/wehi/ManualGatingExtension.java
- com.wehi.ManualGatingExtension
+com/wehi/VisualisationWindow.java
+ com.wehi.VisualisationWindow
 com/wehi/table/entry/ActivityCellTypeEntry.java
  com.wehi.table.entry.ActivityCellTypeEntry
 com/wehi/table/wrapper/TreeTableWrapper.java
@@ -64,17 +65,17 @@ com/wehi/table/wrapper/StringSelectTableWrapper.java
  com.wehi.table.wrapper.StringSelectTableWrapper
 com/wehi/io/FunctionalIO.java
  com.wehi.io.FunctionalIO
-com/wehi/io/GatingIO.java
- com.wehi.io.GatingIO
+com/wehi/table/wrapper/FunctionalSubPhenotypeTableWrapper.java
+ com.wehi.table.wrapper.FunctionalSubPhenotypeTableWrapper
 com/wehi/ChannelInformationExtraction.java
  com.wehi.ChannelInformationExtraction
 com/wehi/chart/CustomChart.java
  com.wehi.chart.CustomChart
-com/wehi/table/wrapper/FunctionalSubPhenotypeTableWrapper.java
- com.wehi.table.wrapper.FunctionalSubPhenotypeTableWrapper
-com/wehi/table/entry/FunctionalMarkerEntry.java
- com.wehi.table.entry.FunctionalMarkerEntry
-com/wehi/VisualisationWindow.java
- com.wehi.VisualisationWindow
-com/wehi/VisualisationThreeTablesSplitPaneWrapper.java
- com.wehi.VisualisationThreeTablesSplitPaneWrapper
+com/wehi/io/GatingIO.java
+ com.wehi.io.GatingIO
+com/wehi/table/wrapper/SingleAxisTableWrapper.java
+ com.wehi.table.wrapper.SingleAxisTableWrapper
+com/wehi/table/wrapper/FunctionalMarkerTreeTableWrapper.java
+ com.wehi.table.wrapper.FunctionalMarkerTreeTableWrapper
+com/wehi/ManualGatingExtension.java
+ com.wehi.ManualGatingExtension

@@ -296,6 +296,10 @@ public class PathClassHandler {
         cells.forEach(it -> {
                     PathClass currentClass = it.getPathClass();
                     for (String label : labels){
+                        if (label.equals("Cell")){
+                            continue;
+                        }
+
                         if (!checkForSingleClassification(currentClass, label)) {
                             return;
                         }
@@ -363,6 +367,10 @@ public class PathClassHandler {
         cells.forEach(it -> {
                     PathClass currentClass = it.getPathClass();
                     for (String label : labels){
+                        if (label.equals("Cell")){
+                            continue; 
+                        }
+
                         if (!checkForSingleClassification(currentClass, label)) {
                             return;
                         }

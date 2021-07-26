@@ -3,6 +3,7 @@ package com.wehi;
 
 import com.wehi.io.FunctionalIO;
 import com.wehi.io.GatingIO;
+import com.wehi.io.VisualisationIO;
 import com.wehi.pathclasshandler.PathClassHandler;
 import com.wehi.table.entry.PhenotypeEntry;
 import javafx.collections.FXCollections;
@@ -11,6 +12,7 @@ import javafx.geometry.Insets;
 import javafx.scene.Scene;
 import javafx.scene.control.Button;
 import javafx.scene.control.ComboBox;
+import javafx.scene.control.TextField;
 import javafx.scene.layout.HBox;
 import javafx.scene.layout.VBox;
 import javafx.stage.Stage;
@@ -71,6 +73,7 @@ public class VisualisationWindow implements Runnable{
     public void run() {
 
         createDialog();
+
         initialisePathClassHandler();
         stage.show();
     }
@@ -79,6 +82,7 @@ public class VisualisationWindow implements Runnable{
         stage = new Stage();
 
         updateQupath();
+        PathClassHandler.resetCellPathClass(cells);
         extractMeasurements();
         initialiseMainBox();
 
@@ -90,7 +94,9 @@ public class VisualisationWindow implements Runnable{
 
         mainBox.getChildren().addAll(
                 loadOptionsHBox,
-                visualisationThreeTables.getSplitPane()
+                createLoadVisualisationOptions(),
+                visualisationThreeTables.getSplitPane(),
+                createSaveRow()
         );
 
 
@@ -137,7 +143,7 @@ public class VisualisationWindow implements Runnable{
                 return;
             }
             try {
-                PathClassHandler.resetCellPathClass(cells);
+
                 PathClassHandler.storeClassification();
                 currentPhenotype = GatingIO.readLoadOptions(
                         folderName,
@@ -156,6 +162,8 @@ public class VisualisationWindow implements Runnable{
                 visualisationThreeTables.setAvailableActivities(FunctionalIO.getPossibleActivities(folderName,
                         manualGatingOptionsBox.getValue()));
 
+                currentPhenotype.hide();
+
             } catch (IOException | JSONException ioException) {
                 ioException.printStackTrace();
             }
@@ -169,6 +177,73 @@ public class VisualisationWindow implements Runnable{
     }
 
 
+    public HBox createLoadVisualisationOptions(){
+        HBox loadVisualisationOptionsHBox = createHBox();
+        File folderName = new File(Projects.getBaseDirectory(qupath.getProject()), VisualisationIO.FOLDER);
+        ComboBox<String> visualisationOptionsBox = new ComboBox<>();
+        if (!folderName.exists()){
+            folderName.mkdirs();
+        }
+        visualisationOptionsBox.setItems(FXCollections.observableArrayList(folderName.list()));
+        Button confirmOptionsButton = new Button("Load Options");
+        confirmOptionsButton.setOnAction(e -> {
+            if (visualisationOptionsBox.getSelectionModel().isEmpty()){
+                Dialogs.showErrorMessage(TITLE, "Please select a file");
+                return;
+            }
+
+            if (visualisationThreeTables.getRoot()==null){
+                Dialogs.showErrorMessage(TITLE, "Please load a phenotype options file");
+                return;
+            }
+
+            try {
+                visualisationThreeTables.clearList();
+                VisualisationIO.load(Projects.getBaseDirectory(qupath.getProject()), visualisationOptionsBox.getValue(), visualisationThreeTables.getRoot());
+            } catch (IOException ioException) {
+                ioException.printStackTrace();
+            } catch (JSONException jsonException) {
+                jsonException.printStackTrace();
+            }
+            QuPathGUI.getInstance().getViewer().forceOverlayUpdate();
+            visualisationThreeTables.refreshList();
+        });
+        loadVisualisationOptionsHBox.getChildren().addAll(
+                createLabel("Load saved colour options"),
+                visualisationOptionsBox,
+                confirmOptionsButton
+        );
+
+
+        return loadVisualisationOptionsHBox;
+    }
+
+
+
+    public HBox createSaveRow(){
+        HBox saveOptions = createHBox();
+        TextField phenotypeHierarchyNameField = new TextField();
+        Button saveButton = new Button("Save");
+        saveOptions.getChildren().addAll(
+                createLabel("Visualisation Options Name"),
+                phenotypeHierarchyNameField,
+                saveButton
+        );
+
+        saveButton.setOnAction(e -> {
+            String fileName = phenotypeHierarchyNameField.getText();
+            if (fileName == null){
+                Dialogs.showErrorMessage(ManualGatingWindow.TITLE, "Phenotype Hierarchy Name is empty");
+            }
+            File baseDir = Projects.getBaseDirectory(qupath.getProject());
+            try {
+                VisualisationIO.save(visualisationThreeTables.getRoot(), baseDir, fileName);
+            } catch (JSONException jsonException) {
+                jsonException.printStackTrace();
+            }
+        });
+        return saveOptions;
+    }
 
 
 
